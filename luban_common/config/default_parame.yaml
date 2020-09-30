@@ -1,0 +1,10 @@
+# 方法里面需要设置默认参数的配置，key就是参数名称，后面的value就是默认值
+# 只支持key: value 的形式
+# 注意冒号后要有空格，这是yaml的语法
+# $表示变量或对象
+currentPage: 1 # 当前页
+page: 1 # 也是当前页，设计未统一导致的问题
+pageNum: 1 # 也是当前页，设计未统一导致的问题
+pageSize: 50 # 分页大小
+remarks: 自动化测试备注 # 备注
+searchKey: $None$ # 搜索关键字

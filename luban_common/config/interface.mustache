@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @TIME    : 2020/7/27 17:55
+# @Author  : system
+# @File    : {{file_name}}.py
+
+import allure
+
+class {{class_name}}:
+    '''
+    {{name}}
+    '''
+
+    {{# interfaces}}
+    @allure.step('{{name_cn}}')
+    def {{name_en}}(self, item_fixture{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}}):
+        '''
+        {{name_cn}}
+        :param item_fixture: item fixture,
+        {{# params_description_list}}
+        :param {{{.}}}
+        {{/ params_description_list}}
+        '''
+        resource = f'{{basePath}}{{uri}}'
+        {{# body}}
+        body = {{{body}}}
+        {{/ body}}
+        {{# query_params}}
+        query_params = {{{query_params}}}
+        {{/ query_params}}
+        {{# cookie_params}}
+        cookies_kwargs = {{{cookie_params}}}
+        {{/ cookie_params}}
+        response = item_fixture.request('{{method}}', resource{{# body}}, body{{/ body}}{{# query_params}}, params = query_params{{/ query_params}}{{# cookie_params}}, cookies_kwargs = cookies_kwargs{{/ cookie_params}})
+        return response
+
+    {{/ interfaces}}

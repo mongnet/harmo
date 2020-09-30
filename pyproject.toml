@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "luban_common"
+version = "0.8.27"
+description = "鲁班API基础库"
+authors = ["hubiao <250021520@qq.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/mongnet/luban_common"
+repository = "https://github.com/mongnet/luban_common"
+
+keywords = ["HTTP", "api", "test", "requests", "pytest"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+pytest = "^5.4.3"
+requests = "^2.24.0"
+pyyaml = "^5.3.1"
+xlrd = "^1.2.0"
+jsonpath = "^0.82"
+allure-pytest = "^2.8.16"
+pathlib2 = "^2.3.5"
+cleo = "^0.8.1"
+chevron = "^0.13.1"
+pytest-html = "^2.1.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[tool.poetry.scripts]
+luban = "luban_common.console:main"
+
+[[tool.poetry.source]]
+name = "aliyun"
+url = "http://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
