@@ -32,37 +32,37 @@ class Send:
         self.session = requests.session()
         self.pdsUrl = envConf["pds"]
 
-    def request(self, method, address, payload=None, header=None, files=None, params=None, header_add=None, cookies_kwargs=None, **kwargs):
+    def request(self, method, address, payload=None, header=None, files=None, params=None, cookies_kwargs=None, **kwargs):
         '''
         封装request方法，要求传三个参数
         :param method：请求的方式post,get,delete,put等
         :param address：请求的地址
         :param ayload：请求的body数据，可以不传，默认为空
         :param files：上传文件时的文件信息
-        :param URL: 传参，接收一个字典数据
+        :param params: url传参，接收一个字典数据
+        :param cookies_kwargs: 添加cookies信息，有些接口请求时要在cookies上添加信息
         :return: 对响应信息进行重组，响应信息中加入status_code和responsetime
         '''
         # 如果address不是http开头，组装请求地址
         self.Url = address if address.startswith("http") else ''.join([self.host,address])
         # 是否使用默认请求头
-        if header is None:
+        if header:
+            if isinstance(header,dict):
+                header = self.header.update(header)
+            else:
+                raise TypeError("header 必须是dict类型")
+        else:
             header = self.header
         headers = json.loads(header) if not isinstance(header,dict) else header
-        # 添加header信息，有些接口请求时添加请求头
-        if header_add is not None:
-            if isinstance(header_add,dict):
-                headers.update(header_add)
-            else:
-                raise TypeError("header_add 必须是dict类型")
         # 添加cookies信息，有些接口请求时要在cookies上添加信息
-        if cookies_kwargs is not None:
+        if cookies_kwargs:
             if isinstance(cookies_kwargs,dict):
                 for key, value in cookies_kwargs.items():
                     self.session.cookies.set(key,value)
             else:
                 raise TypeError("cookies_add 必须是dict类型")
         # 当上传文件时不指定Content-Type，files会自动添加Content-Type，人为指定容易出错
-        if files is not None:
+        if files:
             del headers["Content-Type"]
         # 判断payload不为str时，dumps成str类型
         if isinstance(payload,list) or (not isinstance(payload,str) and payload):
