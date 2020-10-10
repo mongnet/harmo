@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "luban_common"
-version = "0.8.27"
+version = "0.8.36"
 description = "鲁班API基础库"
 authors = ["hubiao <250021520@qq.com>"]
 license = "MIT"
