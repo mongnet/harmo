@@ -43,12 +43,14 @@ class Send:
         '''
         # 如果address不是http开头，组装请求地址
         self.Url = address if address.startswith("http") else ''.join([self.host,address])
+        # request请求头，因为下面有update haeder的操作，不能影响基线header
+        request_header = self.header
         # 添加header信息，有些接口请求时添加请求头
-        headers = json.loads(self.header) if not isinstance(self.header, dict) else self.header
         if header is not None:
             header = json.loads(header) if not isinstance(header, dict) else header
-            self.header = json.loads(self.header) if not isinstance(self.header, dict) else self.header
-            self.header.update(header)
+            request_header = json.loads(request_header) if not isinstance(request_header, dict) else request_header
+            request_header.update(header)
+        headers = json.loads(request_header) if not isinstance(request_header, dict) else request_header
         # 添加cookies信息，有些接口请求时要在cookies上添加信息
         if cookies_kwargs is not None:
             if isinstance(cookies_kwargs,dict):
@@ -85,7 +87,7 @@ class Send:
             logging.info("请求头: " + str(self.Response.request.headers))
             logging.info("请求数据: " + str(payload).encode('utf-8').decode("unicode_escape"))
             logging.info("响应状态: " + str(self.Response.status_code))
-            logging.info("响应内容: "+ self.Response.text if "text/html" not in self.Response.headers.get("Content-Type") else "响应内容: 内容为html，隐藏")
+            logging.info("响应内容: "+ self.Response.text if "text/html" not in str(self.Response.headers.get("Content-Type")) else "响应内容: 内容为html，隐藏")
             logging.info("结束分割线end: ".center(60, "#"))
         except BaseException as e:
             logging.error("打印请求和响应数据出现异常：" + str(e))
