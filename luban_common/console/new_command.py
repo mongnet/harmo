@@ -12,12 +12,16 @@ CONFTEST_DEFAULT = u"""#!/usr/bin/env python
 # Author  : hubiao
 # File    : conftest.py
 import os
+import time
 
 import pytest
 from luban_common import base_requests
+from luban_common.msg.weixin import WeiXinMessage
+from luban_common.msg.youdu import send_youdu
 from luban_common.operation import yaml_file
 
 from business import public_login
+from swagger.jump import Jump
 from utils.utils import file_absolute_path
 
 
@@ -30,7 +34,8 @@ def pytest_addoption(parser):
     # 自定义的配置选项需要先注册如果，才能在ptest.ini中使用，注册方法如下
     # parser.addini('email_subject', help='test reports email subject')
     parser.addini('globalConf', help='global configuration')
-    parser.addini('projectname', help='projectname configuration')
+    parser.addini('message_switch', help='message_switch configuration')
+    parser.addini('success_message', help='success_message configuration')
     # 注册命令行参数
     group = parser.getgroup("testing environment configuration")
     group.addoption("--lb-driver",
@@ -76,7 +81,6 @@ def pytest_report_header(config):
     if envConf:
         return f"browser: {browser}, baseUrl: {baseUrl}, configuration: {envConf}"
 
-
 @pytest.fixture(scope="session")
 def env_conf(pytestconfig):
     '''
@@ -113,6 +117,38 @@ def global_cache(request):
     '''
     return request.config.cache
 
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    '''收集测试结果'''
+    # 读取配置文件
+    envConf = yaml_file.get_yaml_data(file_absolute_path(config.getoption("--lb-env")))
+    # 定义测试结果
+    total = terminalreporter._numcollected
+    passed = len([i for i in terminalreporter.stats.get('passed', []) if i.when != 'teardown'])
+    failed = len([i for i in terminalreporter.stats.get('failed', []) if i.when != 'teardown'])
+    error = len([i for i in terminalreporter.stats.get('error', []) if i.when != 'teardown'])
+    skipped = len([i for i in terminalreporter.stats.get('skipped', []) if i.when != 'teardown'])
+    success_rate =len(terminalreporter.stats.get('passed', []))/terminalreporter._numcollected*100
+    total_times = time.time() - terminalreporter._sessionstarttime
+    message_switch = True if config.getini("message_switch") == "True" else False
+    success_message = True if config.getini("success_message") == "True" else False
+    # 判断是否要发送消息
+    if message_switch:
+        send = WeiXinMessage()
+        youdu_users = envConf.get("youdu_users")
+        weixin_toparty = envConf.get("weixin_toparty")
+        if failed + error != 0:
+            content = f"共执行 {total} 条用例，有 {passed} 条执行成功，有 {failed} 条执行失败，有 {error} 条执行出错，跳过 {skipped} 条"
+            if weixin_toparty:
+                send.send_message_textcard(title="警告！自动化巡检测试出现异常", content=content, toparty=weixin_toparty)
+            if youdu_users:
+                send_youdu(title="警告！自动化巡检测试出现异常", content="测试一下", sendTo=youdu_users, session=0)
+        else:
+            if success_message:
+                content = f"共执行 {total} 条用例，全部执行通过，共耗时 {round(total_times,2)} 秒，请放心"
+                if weixin_toparty:
+                    send.send_message_textcard(title="恭喜，自动化巡检测试通过", content=content, toparty=weixin_toparty)
+                if youdu_users:
+                    send_youdu(title="恭喜，自动化巡检测试通过", content=content, sendTo=youdu_users, session=0)
 
 @pytest.fixture(scope="session")
 def bimadmin_login(env_conf, global_cache):
@@ -268,7 +304,7 @@ def lubansoft_login(env_conf, global_cache):
 @pytest.fixture(scope="session")
 def iworks_web_cas(env_conf, global_cache):
     '''
-    获取PDS登录凭证
+    获取cas登录凭证
     :return:
     '''
     public_login.IworksWeb(env_conf["iworksWeb"]["username"], env_conf["iworksWeb"]["password"], env_conf, global_cache).login()
@@ -277,19 +313,23 @@ def iworks_web_cas(env_conf, global_cache):
 @pytest.fixture(scope="session")
 def iworks_web_common(iworks_web_cas, env_conf, global_cache):
     '''
-    获取LBBV登录凭证
+    获取common登录凭证
     :return:
     '''
     resule = base_requests.Send(global_cache.get("pdscommon", False), env_conf, global_cache)
+    # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
+    Jump().jump(resule,resource='/rs/jump')
     yield resule
 
 @pytest.fixture(scope="session")
 def iworks_web_process(iworks_web_cas, env_conf, global_cache):
     '''
-    获取LBBV登录凭证
+    获取process登录凭证
     :return:
     '''
     resule = base_requests.Send(global_cache.get("LBprocess", False), env_conf, global_cache)
+    # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
+    Jump().jump(resule,resource='/process/jump')
     yield resule
 
 @pytest.fixture(scope="session")
@@ -299,6 +339,8 @@ def iworks_web_businessdata(iworks_web_cas, env_conf, global_cache):
     :return:
     '''
     resule = base_requests.Send(global_cache.get("BuilderCommonBusinessdata", False), env_conf, global_cache)
+    # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
+    Jump().jump(resule,resource='/jump')
     yield resule
 
 @pytest.fixture(scope="session")
@@ -308,6 +350,41 @@ def iworks_web_plan(iworks_web_cas, env_conf, global_cache):
     :return:
     '''
     resule = base_requests.Send(global_cache.get("LBSP", False), env_conf, global_cache)
+    # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
+    Jump().jump(resule,resource='/rs/jump')
+    yield resule
+
+@pytest.fixture(scope="session")
+def iworks_web_doc(iworks_web_cas, env_conf, global_cache):
+    '''
+    获取doc登录凭证
+    :return:
+    '''
+    resule = base_requests.Send(global_cache.get("pdsdoc", False), env_conf, global_cache)
+    # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
+    Jump().jump(resule,resource='/jump')
+    yield resule
+
+@pytest.fixture(scope="session")
+def iworks_web_bimco(iworks_web_cas, env_conf, global_cache):
+    '''
+    获取bimco登录凭证
+    :return:
+    '''
+    resule = base_requests.Send(global_cache.get("bimco", False), env_conf, global_cache)
+    # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
+    Jump().jump(resule,resource='/rs/co/jump')
+    yield resule
+
+@pytest.fixture(scope="session")
+def iworks_web_pdsdoc(iworks_web_cas, env_conf, global_cache):
+    '''
+    获取bimco登录凭证
+    :return:
+    '''
+    resule = base_requests.Send(global_cache.get("pdsdoc", False), env_conf, global_cache)
+    # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
+    Jump().jump(resule,resource='/rs/jump')
     yield resule"""
 
 GLOBAL_CONFIG_DEFAULT = """weixin :
@@ -316,6 +393,7 @@ GLOBAL_CONFIG_DEFAULT = """weixin :
   agentid : 100000
 centerProductid : 100
 iworksAppProductId : 94
+iworksWebProductId: 192
 headers:
     multipart_header : '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
     json_header : '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
@@ -324,6 +402,8 @@ headers:
     soap_header : '{"Content-Type": "text/xml;charset=utf-8","Accept-Encoding": "gzip, deflate","SOAPAction": ""}'"""
 
 CONFIG_DEFAULT = """pds : http://app.lbuilder.cn
+youdu_users: "胡彪_吴国君"
+weixin_toparty: 2
 center:
   username: lb91247
   password: 264f0c676e143da03019f1698304c468
@@ -342,6 +422,8 @@ addopts =
 globalConf = Config/globalConf.yaml
 minversion = 5.0
 testpaths = testcases testsuites
+message_switch = True
+success_message = False
 log_cli = True
 log_cli_level = ERROR
 log_cli_format = %(asctime)s %(levelname)s %(message)s
