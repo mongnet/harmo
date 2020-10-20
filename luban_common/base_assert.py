@@ -22,7 +22,7 @@ class Assertions:
         :return:
         '''
         assert response.get("status_code") == expected_http_code,f'校验失败,实际http状态码为:{response.get("status_code")},预期http状态码为:{expected_http_code},响应信息为:{response}'
-        assert response.get("code")[0] == expected_code,f'校验失败,实际code状态码为:{response.get("code")[0]},预期code状态码为:{expected_code},响应信息为:{response}'
+        assert response.get("code")[0] == expected_code,f'校验失败,实际code状态码为:{response.get("code")[0]},预期code状态码为:{expected_code},响应信息为:{response.get("source_response")}'
 
     @allure.step('校验状态码，实际状态码为:{2},预期状态码为:{3}')
     def assert_code(self, response, reality_code, expected_code):
@@ -34,11 +34,7 @@ class Assertions:
         :param expected_code: 预期code或status_code状态码
         :return:
         '''
-        try:
-            assert reality_code == expected_code, f'校验失败,实际状态码为:{reality_code},预期状态码为:{expected_code},响应信息为:{response}'
-        except:
-            print(f'校验失败,实际状态码为:{reality_code},预期状态码为:{expected_code},响应信息为:{response}')
-            raise
+        assert reality_code == expected_code, f'校验失败,实际状态码为:{reality_code},预期状态码为:{expected_code},响应信息为:{response.get("source_response")}'
 
     @classmethod
     @allure.step('校验数据集中指定key的值，预期key为:{2}，预期值为:{3}')

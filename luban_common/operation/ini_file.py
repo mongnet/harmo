@@ -73,7 +73,7 @@ if __name__ == '__main__':
     print(allconf['openapi']["openapiurl"])
     # 获取指定配置
     rf = cf.getConfig('openapi')
-    print(rf["openapiurl"])
+    print(rf.get("openapiurld"))
     # 写入信息
     cf.writeConfig(section='pds',key='cas',value='http://cas.com')
 
