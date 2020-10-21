@@ -24,12 +24,12 @@ class Assertions:
         assert response.get("status_code") == expected_http_code,f'校验失败,实际值为:{response.get("status_code")},预期值为:{expected_http_code},响应信息为:{response.get("source_response")}'
         assert response.get("code")[0] == expected_code,f'校验失败,实际值为:{response.get("code")[0]},预期值为:{expected_code},响应信息为:{response.get("source_response")}'
 
+    @classmethod
     @allure.step('校验状态码，实际值为:{2},预期值为:{3}')
     def assert_code(self, response, reality_code, expected_code):
         '''
         验证response响应体中的code或status_code状态码
         assert_code 后期会废弃，建议统一使用 assert_equal_value 方法
-        :param response: 响应数据
         :param reality_code: 响应体中的code或status_code状态码
         :param expected_code: 预期code或status_code状态码
         :return:
@@ -152,10 +152,7 @@ class Assertions:
         :param expected_value: 预期值
         :return:
         """
-        if isinstance(reality_value, (str,int)):
-            assert expected_value == reality_value, "校验结果不等于预期值"
-        else:
-            assert False, '只支持str和int的校验，其余暂不支持'
+        assert expected_value == reality_value, "校验结果不等于预期值"
 
     @classmethod
     @allure.step('校验是否等于None')
