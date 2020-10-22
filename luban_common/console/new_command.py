@@ -462,19 +462,23 @@ def upFiles(pdscommon, resource, filePath):
     except Exception as e:
         raise FileNotFoundError(f"上传文件失败，错误原因:{e}")"""
 
-GIT_DEFAULT = """*.pyc
-__pycache__
+GIT_DEFAULT = """__pycache__
 .DS_Store
+.cache
+.eggs
+.pytest_cache
 .vscode
 .idea
 .pypirc
-*/tmp/*
-dist/*
-*.egg-info
-logs
-reports
 .venv
-*.xml"""
+.tox
+*/tmp/*
+*.egg-info
+*.pyc
+dist
+build
+logs
+reports"""
 
 PUBLIC_LOGIN = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-

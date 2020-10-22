@@ -4,12 +4,17 @@ description = "Allure pytest integration"
 name = "allure-pytest"
 optional = false
 python-versions = "*"
-version = "2.8.16"
+version = "2.8.18"
 
 [package.dependencies]
-allure-python-commons = "2.8.16"
+allure-python-commons = "2.8.18"
 pytest = ">=4.5.0"
 six = ">=1.9.0"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -17,12 +22,17 @@ description = "Common module for integrate allure with python-based frameworks"
 name = "allure-python-commons"
 optional = false
 python-versions = "*"
-version = "2.8.16"
+version = "2.8.18"
 
 [package.dependencies]
 attrs = ">=16.0.0"
 pluggy = ">=0.4.0"
 six = ">=1.9.0"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -33,19 +43,29 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "1.4.0"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Classes Without Boilerplate"
 name = "attrs"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "19.3.0"
+version = "20.2.0"
 
 [package.extras]
-azure-pipelines = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "pytest-azurepipelines"]
-dev = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "sphinx", "pre-commit"]
-docs = ["sphinx", "zope.interface"]
-tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
+dev = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "sphinx", "sphinx-rtd-theme", "pre-commit"]
+docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
+tests = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
+tests_no_zope = ["coverage (>=5.0.2)", "hypothesis", "pympler", "pytest (>=4.3.0)", "six"]
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -55,6 +75,11 @@ optional = false
 python-versions = "*"
 version = "2020.6.20"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Universal encoding detector for Python 2 and 3"
@@ -63,6 +88,11 @@ optional = false
 python-versions = "*"
 version = "3.0.4"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Mustache templating language renderer"
@@ -70,6 +100,11 @@ name = "chevron"
 optional = false
 python-versions = "*"
 version = "0.13.1"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -81,6 +116,11 @@ version = "0.8.1"
 
 [package.dependencies]
 clikit = ">=0.6.0,<0.7.0"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -98,6 +138,11 @@ pylev = ">=1.3,<2.0"
 python = ">=3.6,<4.0"
 version = ">=0.3.0,<0.4.0"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Cross-platform colored terminal text."
@@ -105,7 +150,12 @@ marker = "sys_platform == \"win32\""
 name = "colorama"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "0.4.3"
+version = "0.4.4"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -114,7 +164,12 @@ marker = "python_version >= \"3.6\" and python_version < \"4.0\""
 name = "crashtest"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "0.3.0"
+version = "0.3.1"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -124,6 +179,11 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.10"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Read metadata from Python packages"
@@ -131,7 +191,7 @@ marker = "python_version < \"3.8\""
 name = "importlib-metadata"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
-version = "1.7.0"
+version = "2.0.0"
 
 [package.dependencies]
 zipp = ">=0.5"
@@ -139,6 +199,11 @@ zipp = ">=0.5"
 [package.extras]
 docs = ["sphinx", "rst.linker"]
 testing = ["packaging", "pep517", "importlib-resources (>=1.3)"]
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -148,13 +213,23 @@ optional = false
 python-versions = "*"
 version = "0.82"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "More routines for operating on iterables, beyond itertools"
 name = "more-itertools"
 optional = false
 python-versions = ">=3.5"
-version = "8.4.0"
+version = "8.5.0"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -168,13 +243,23 @@ version = "20.4"
 pyparsing = ">=2.0.2"
 six = "*"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Bring colors to your terminal."
 name = "pastel"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "0.2.0"
+version = "0.2.1"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -186,6 +271,11 @@ version = "2.3.5"
 
 [package.dependencies]
 six = "*"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -203,6 +293,11 @@ version = ">=0.12"
 [package.extras]
 dev = ["pre-commit", "tox"]
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "library with cross-python path, ini-parsing, io, code, log facilities"
@@ -210,6 +305,11 @@ name = "py"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "1.9.0"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -219,6 +319,11 @@ optional = false
 python-versions = "*"
 version = "1.3.0"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Python parsing module"
@@ -226,6 +331,11 @@ name = "pyparsing"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 version = "2.4.7"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -253,6 +363,44 @@ version = ">=0.12"
 checkqa-mypy = ["mypy (v0.761)"]
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
+[[package]]
+category = "main"
+description = "pytest plugin for generating HTML reports"
+name = "pytest-html"
+optional = false
+python-versions = ">=3.6"
+version = "2.1.1"
+
+[package.dependencies]
+pytest = ">=5.0"
+pytest-metadata = "*"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
+[[package]]
+category = "main"
+description = "pytest plugin for test session metadata"
+name = "pytest-metadata"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
+version = "1.10.0"
+
+[package.dependencies]
+pytest = ">=2.9.0"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "YAML parser and emitter for Python"
@@ -260,6 +408,11 @@ name = "pyyaml"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 version = "5.3.1"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -279,6 +432,11 @@ urllib3 = ">=1.21.1,<1.25.0 || >1.25.0,<1.25.1 || >1.25.1,<1.26"
 security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)"]
 socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Python 2 and 3 compatibility utilities"
@@ -287,18 +445,28 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 version = "1.15.0"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 name = "urllib3"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
-version = "1.25.9"
+version = "1.25.11"
 
 [package.extras]
 brotli = ["brotlipy (>=0.6.0)"]
-secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "pyOpenSSL (>=0.14)", "ipaddress"]
+secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
 socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
@@ -308,6 +476,11 @@ optional = false
 python-versions = "*"
 version = "0.2.5"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Library for developers to extract data from Microsoft Excel (tm) spreadsheet files"
@@ -316,6 +489,11 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "1.2.0"
 
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
 [[package]]
 category = "main"
 description = "Backport of pathlib-compatible object wrapper for zip files"
@@ -323,41 +501,45 @@ marker = "python_version < \"3.8\""
 name = "zipp"
 optional = false
 python-versions = ">=3.6"
-version = "3.1.0"
+version = "3.3.1"
 
 [package.extras]
 docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
-testing = ["jaraco.itertools", "func-timeout"]
+testing = ["pytest (>=3.5,<3.7.3 || >3.7.3)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pytest-cov", "jaraco.test (>=3.2.0)", "jaraco.itertools", "func-timeout", "pytest-black (>=0.3.7)", "pytest-mypy"]
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
 
 [metadata]
-content-hash = "4b75baf7e9a0213fc099ad4da0dc8e0ccb0553ce4f7bc09ecba289017ba4d9ef"
-lock-version = "1.0"
+content-hash = "857917544fbb06464196778fdd63a6c9677c1320fef05308308fc0be29e0b72b"
 python-versions = "^3.6"
 
 [metadata.files]
 allure-pytest = [
-    {file = "allure-pytest-2.8.16.tar.gz", hash = "sha256:91a8a7481b9914abdaf5918ae9eddf15167f835806c5d04d0881ddbf8744f7b6"},
-    {file = "allure_pytest-2.8.16-py3-none-any.whl", hash = "sha256:4a0d4214ed19bc5bae4d6b2bd2329c008facb3e562d8d3dd12d74e455b3203dc"},
+    {file = "allure-pytest-2.8.18.tar.gz", hash = "sha256:329482d276921fc23c1c3bc3598f053c2db736c57723523ba8a02ac7dd49b3eb"},
+    {file = "allure_pytest-2.8.18-py3-none-any.whl", hash = "sha256:47d4d0bde778e6f10c05948d2b1de16027c2313dc9393c30e97a91a565f5d7ee"},
 ]
 allure-python-commons = [
-    {file = "allure-python-commons-2.8.16.tar.gz", hash = "sha256:f67104a51643f2b0f1807acfe324bc13c1fa97f16d9b5c85670199acabd5c40d"},
-    {file = "allure_python_commons-2.8.16-py3-none-any.whl", hash = "sha256:3cf65bce770e4d6b6b1bd46bfecad8a04f1f7bef44133f9a3ded4295510187e2"},
+    {file = "allure-python-commons-2.8.18.tar.gz", hash = "sha256:9a1aea515dcaee5f687d0f56bc54df927a46f734bf821bc6b95c15f7a7b99ed8"},
+    {file = "allure_python_commons-2.8.18-py3-none-any.whl", hash = "sha256:ea3c04a2878aa68cb7ccafd792854ed4c10af6fcee2b5d88bdb7c75aa245ee7f"},
 ]
 atomicwrites = [
     {file = "atomicwrites-1.4.0-py2.py3-none-any.whl", hash = "sha256:6d1784dea7c0c8d4a5172b6c620f40b6e4cbfdf96d783691f2e1302a7b88e197"},
     {file = "atomicwrites-1.4.0.tar.gz", hash = "sha256:ae70396ad1a434f9c7046fd2dd196fc04b12f9e91ffb859164193be8b6168a7a"},
 ]
 attrs = [
-    {file = "attrs-19.3.0-py2.py3-none-any.whl", hash = "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c"},
-    {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
+    {file = "attrs-20.2.0-py2.py3-none-any.whl", hash = "sha256:fce7fc47dfc976152e82d53ff92fa0407700c21acd20886a13777a0d20e655dc"},
+    {file = "attrs-20.2.0.tar.gz", hash = "sha256:26b54ddbbb9ee1d34d5d3668dd37d6cf74990ab23c828c2888dccdceee395594"},
 ]
 certifi = [
     {file = "certifi-2020.6.20-py2.py3-none-any.whl", hash = "sha256:8fc0819f1f30ba15bdb34cceffb9ef04d99f420f68eb75d901e9560b8749fc41"},
     {file = "certifi-2020.6.20.tar.gz", hash = "sha256:5930595817496dd21bb8dc35dad090f1c2cd0adfaf21204bf6732ca5d8ee34d3"},
 ]
 chardet = [
-    {file = "chardet-3.0.4-py2.py3-none-any.whl", hash = "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"},
-    {file = "chardet-3.0.4.tar.gz", hash = "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"},
+    {file = "chardet-3.0.4-py2.py3-none-any.whl", hash = "md5:0004b00caff7bb543a1d0d0bd0185a03"},
+    {file = "chardet-3.0.4.tar.gz", hash = "md5:7dd1ba7f9c77e32351b0a0cfacf4055c"},
 ]
 chevron = [
     {file = "chevron-0.13.1-py3-none-any.whl", hash = "sha256:95b0a055ef0ada5eb061d60be64a7f70670b53372ccd221d1b88adf1c41a9094"},
@@ -372,35 +554,35 @@ clikit = [
     {file = "clikit-0.6.2.tar.gz", hash = "sha256:442ee5db9a14120635c5990bcdbfe7c03ada5898291f0c802f77be71569ded59"},
 ]
 colorama = [
-    {file = "colorama-0.4.3-py2.py3-none-any.whl", hash = "sha256:7d73d2a99753107a36ac6b455ee49046802e59d9d076ef8e47b61499fa29afff"},
-    {file = "colorama-0.4.3.tar.gz", hash = "sha256:e96da0d330793e2cb9485e9ddfd918d456036c7149416295932478192f4436a1"},
+    {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
+    {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
 ]
 crashtest = [
-    {file = "crashtest-0.3.0-py3-none-any.whl", hash = "sha256:06069a9267c54be31c42b03574b72407bf780e13c82cb0238f24ea69cf25b6dd"},
-    {file = "crashtest-0.3.0.tar.gz", hash = "sha256:e9c06cc96400939ab5327123a3f699078eaad8a6283247d7b2ae0f6afffadf14"},
+    {file = "crashtest-0.3.1-py3-none-any.whl", hash = "sha256:300f4b0825f57688b47b6d70c6a31de33512eb2fa1ac614f780939aa0cf91680"},
+    {file = "crashtest-0.3.1.tar.gz", hash = "sha256:42ca7b6ce88b6c7433e2ce47ea884e91ec93104a4b754998be498a8e6c3d37dd"},
 ]
 idna = [
     {file = "idna-2.10-py2.py3-none-any.whl", hash = "sha256:b97d804b1e9b523befed77c48dacec60e6dcb0b5391d57af6a65a312a90648c0"},
     {file = "idna-2.10.tar.gz", hash = "sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6"},
 ]
 importlib-metadata = [
-    {file = "importlib_metadata-1.7.0-py2.py3-none-any.whl", hash = "sha256:dc15b2969b4ce36305c51eebe62d418ac7791e9a157911d58bfb1f9ccd8e2070"},
-    {file = "importlib_metadata-1.7.0.tar.gz", hash = "sha256:90bb658cdbbf6d1735b6341ce708fc7024a3e14e99ffdc5783edea9f9b077f83"},
+    {file = "importlib_metadata-2.0.0-py2.py3-none-any.whl", hash = "sha256:cefa1a2f919b866c5beb7c9f7b0ebb4061f30a8a9bf16d609b000e2dfaceb9c3"},
+    {file = "importlib_metadata-2.0.0.tar.gz", hash = "sha256:77a540690e24b0305878c37ffd421785a6f7e53c8b5720d211b211de8d0e95da"},
 ]
 jsonpath = [
     {file = "jsonpath-0.82.tar.gz", hash = "sha256:46d3fd2016cd5b842283d547877a02c418a0fe9aa7a6b0ae344115a2c990fef4"},
 ]
 more-itertools = [
-    {file = "more-itertools-8.4.0.tar.gz", hash = "sha256:68c70cc7167bdf5c7c9d8f6954a7837089c6a36bf565383919bb595efb8a17e5"},
-    {file = "more_itertools-8.4.0-py3-none-any.whl", hash = "sha256:b78134b2063dd214000685165d81c154522c3ee0a1c0d4d113c80361c234c5a2"},
+    {file = "more-itertools-8.5.0.tar.gz", hash = "sha256:6f83822ae94818eae2612063a5101a7311e68ae8002005b5e05f03fd74a86a20"},
+    {file = "more_itertools-8.5.0-py3-none-any.whl", hash = "sha256:9b30f12df9393f0d28af9210ff8efe48d10c94f73e5daf886f10c4b0b0b4f03c"},
 ]
 packaging = [
     {file = "packaging-20.4-py2.py3-none-any.whl", hash = "sha256:998416ba6962ae7fbd6596850b80e17859a5753ba17c32284f67bfff33784181"},
     {file = "packaging-20.4.tar.gz", hash = "sha256:4357f74f47b9c12db93624a82154e9b120fa8293699949152b22065d556079f8"},
 ]
 pastel = [
-    {file = "pastel-0.2.0-py2.py3-none-any.whl", hash = "sha256:18b559dc3ad4ba9b8bd5baebe6503f25f36d21460f021cf27a8d889cb5d17840"},
-    {file = "pastel-0.2.0.tar.gz", hash = "sha256:46155fc523bdd4efcd450bbcb3f2b94a6e3b25edc0eb493e081104ad09e1ca36"},
+    {file = "pastel-0.2.1-py2.py3-none-any.whl", hash = "sha256:4349225fcdf6c2bb34d483e523475de5bb04a5c10ef711263452cb37d7dd4364"},
+    {file = "pastel-0.2.1.tar.gz", hash = "sha256:e6581ac04e973cac858828c6202c1e1e81fee1dc7de7683f3e1ffe0bfd8a573d"},
 ]
 pathlib2 = [
     {file = "pathlib2-2.3.5-py2.py3-none-any.whl", hash = "sha256:0ec8205a157c80d7acc301c0b18fbd5d44fe655968f5d947b6ecef5290fc35db"},
@@ -415,8 +597,8 @@ py = [
     {file = "py-1.9.0.tar.gz", hash = "sha256:9ca6883ce56b4e8da7e79ac18787889fa5206c79dcc67fb065376cd2fe03f342"},
 ]
 pylev = [
-    {file = "pylev-1.3.0-py2.py3-none-any.whl", hash = "sha256:1d29a87beb45ebe1e821e7a3b10da2b6b2f4c79b43f482c2df1a1f748a6e114e"},
-    {file = "pylev-1.3.0.tar.gz", hash = "sha256:063910098161199b81e453025653ec53556c1be7165a9b7c50be2f4d57eae1c3"},
+    {file = "pylev-1.3.0-py2.py3-none-any.whl", hash = "md5:6da14dfce5034873fc5c2d7a6e83dc29"},
+    {file = "pylev-1.3.0.tar.gz", hash = "md5:3be579cfc32ce5140cc04001f898741b"},
 ]
 pyparsing = [
     {file = "pyparsing-2.4.7-py2.py3-none-any.whl", hash = "sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b"},
@@ -425,6 +607,14 @@ pyparsing = [
 pytest = [
     {file = "pytest-5.4.3-py3-none-any.whl", hash = "sha256:5c0db86b698e8f170ba4582a492248919255fcd4c79b1ee64ace34301fb589a1"},
     {file = "pytest-5.4.3.tar.gz", hash = "sha256:7979331bfcba207414f5e1263b5a0f8f521d0f457318836a7355531ed1a4c7d8"},
+]
+pytest-html = [
+    {file = "pytest-html-2.1.1.tar.gz", hash = "sha256:6a4ac391e105e391208e3eb9bd294a60dd336447fd8e1acddff3a6de7f4e57c5"},
+    {file = "pytest_html-2.1.1-py2.py3-none-any.whl", hash = "sha256:9e4817e8be8ddde62e8653c8934d0f296b605da3d2277a052f762c56a8b32df2"},
+]
+pytest-metadata = [
+    {file = "pytest-metadata-1.10.0.tar.gz", hash = "sha256:b7e6e0a45adacb17a03a97bf7a2ef60cc1f4e172bcce9732ce5e814191932315"},
+    {file = "pytest_metadata-1.10.0-py2.py3-none-any.whl", hash = "sha256:fcbcc5781aee450107c620c79c57e50796b6777b82b3c504be9cbc3017201169"},
 ]
 pyyaml = [
     {file = "PyYAML-5.3.1-cp27-cp27m-win32.whl", hash = "sha256:74809a57b329d6cc0fdccee6318f44b9b8649961fa73144a98735b0aaf029f1f"},
@@ -448,8 +638,8 @@ six = [
     {file = "six-1.15.0.tar.gz", hash = "sha256:30639c035cdb23534cd4aa2dd52c3bf48f06e5f4a941509c8bafd8ce11080259"},
 ]
 urllib3 = [
-    {file = "urllib3-1.25.9-py2.py3-none-any.whl", hash = "sha256:88206b0eb87e6d677d424843ac5209e3fb9d0190d0ee169599165ec25e9d9115"},
-    {file = "urllib3-1.25.9.tar.gz", hash = "sha256:3018294ebefce6572a474f0604c2021e33b3fd8006ecd11d62107a5d2a963527"},
+    {file = "urllib3-1.25.11-py2.py3-none-any.whl", hash = "sha256:f5321fbe4bf3fefa0efd0bfe7fb14e90909eb62a48ccda331726b4319897dd5e"},
+    {file = "urllib3-1.25.11.tar.gz", hash = "sha256:8d7eaa5a82a1cac232164990f04874c594c9453ec55eef02eab885aa02fc17a2"},
 ]
 wcwidth = [
     {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},
@@ -460,6 +650,6 @@ xlrd = [
     {file = "xlrd-1.2.0.tar.gz", hash = "sha256:546eb36cee8db40c3eaa46c351e67ffee6eeb5fa2650b71bc4c758a29a1b29b2"},
 ]
 zipp = [
-    {file = "zipp-3.1.0-py3-none-any.whl", hash = "sha256:aa36550ff0c0b7ef7fa639055d797116ee891440eac1a56f378e2d3179e0320b"},
-    {file = "zipp-3.1.0.tar.gz", hash = "sha256:c599e4d75c98f6798c509911d08a22e6c021d074469042177c8c86fb92eefd96"},
+    {file = "zipp-3.3.1-py3-none-any.whl", hash = "sha256:16522f69653f0d67be90e8baa4a46d66389145b734345d68a257da53df670903"},
+    {file = "zipp-3.3.1.tar.gz", hash = "sha256:c1532a8030c32fd52ff6a288d855fe7adef5823ba1d26a29a68fd6314aa72baa"},
 ]
