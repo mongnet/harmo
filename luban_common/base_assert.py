@@ -30,6 +30,7 @@ class Assertions:
         '''
         验证response响应体中的code或status_code状态码
         assert_code 后期会废弃，建议统一使用 assert_equal_value 方法
+        :param response: 响应体
         :param reality_code: 响应体中的code或status_code状态码
         :param expected_code: 预期code或status_code状态码
         :return:
@@ -49,10 +50,10 @@ class Assertions:
         if isinstance(data[key], list):
             if expected_value != data[key]:
                 if [False for value in expected_value if value not in data[key]]:
-                    assert False, '预期值不等于实际值'
+                    assert False, f'预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}'
         elif isinstance(data[key], str):
             assert data[key] != "" and data[key] != None, '实际值不能为空'
-            assert data[key] == expected_value, '预期值不等于实际值'
+            assert data[key] == expected_value, f'预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}'
         else:
             assert False, '只支持list和str的校验，其余暂不支持'
 
@@ -125,7 +126,7 @@ class Assertions:
         :return:
         """
         if isinstance(data, (list,str)):
-            assert expected_value not in data,"结果中存在预期值"
+            assert expected_value not in data,f"结果中存在预期值为：{expected_value} 的数据"
         else:
             assert False, '只支持list、str的校验，其余暂不支持'
 
@@ -139,7 +140,7 @@ class Assertions:
         :return:
         """
         if isinstance(data, dict):
-            assert expected_key not in data.keys(),"校验结果中存在预期key"
+            assert expected_key not in data.keys(),f"结果中存在预期key为：{expected_key} 的数据"
         else:
             assert False, '只支持dict的校验，其余暂不支持'
 
@@ -152,7 +153,7 @@ class Assertions:
         :param expected_value: 预期值
         :return:
         """
-        assert expected_value == reality_value, "校验结果不等于预期值"
+        assert expected_value == reality_value, f"实际值不等于预期值,实际值为:{reality_value},预期值为:{expected_value}"
 
     @classmethod
     @allure.step('校验是否等于None')
@@ -179,7 +180,7 @@ class Assertions:
         if reality_time <= expected_time:
             assert True
         else:
-            assert False, '响应持续时间大于预期值'
+            assert False, f'实际时间大于预期时间,实际值为:{reality_time},预期值为:{expected_time}'
 
     @classmethod
     @allure.step('校验字典或列表是否相等，实际值为:{1}，预期值为:{2}')

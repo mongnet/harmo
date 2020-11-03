@@ -34,7 +34,7 @@ class Send:
         封装request方法，要求传三个参数
         :param method：请求的方式post,get,delete,put等
         :param address：请求的地址
-        :param ayload：请求的body数据，可以不传，默认为空
+        :param payload：请求的body数据，可以不传，默认为空
         :param header：header信息
         :param files：上传文件时的文件信息
         :param params: URL传参，接收一个字典数据

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "luban_common"
-version = "0.8.48"
+version = "0.8.50"
 description = "鲁班API基础库"
 authors = ["hubiao <250021520@qq.com>"]
 license = "MIT"
@@ -22,9 +22,10 @@ pathlib2 = "^2.3.5"
 cleo = "^0.8.1"
 chevron = "^0.13.1"
 py = "^1.9.0"
+pytest-html = "^2.1.1"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^5.4"
 
 [tool.poetry.scripts]
 luban = "luban_common.console:main"

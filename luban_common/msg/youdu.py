@@ -21,12 +21,14 @@ def send_msg(title, content, sendTo, file=None, session=0):
     :param session: 会话session，当session=0时，会新建一个新的会话窗口，默认为新建会话窗口
     :return: 返回当前会话的session,当session为0时，会返回一个新的session，不为0时返回当前session
     '''
-    # 求sendTo的md5来判断是否要新启会话
-    sendTo_md5 = base_utils.getStrMD5(sendTo)
+    if title or content or sendTo:
+        raise SyntaxError('必填参数不能为空、None、""、False')
+    # 求sendTo+title的md5来判断是否要新启会话
+    session_md5 = base_utils.getStrMD5(sendTo+title)
     # 读取session
     current_path = os.path.dirname(os.path.realpath(__file__))
     cf = ManageConfig(file_path=f'{current_path}/../config/youdu_session.ini')
-    cf_session = cf.getConfig('session').get(sendTo_md5)
+    cf_session = cf.getConfig('session').get(session_md5)
     body = {
         "session":cf_session if cf_session is not None else session,
         "members":sendTo,
@@ -36,7 +38,7 @@ def send_msg(title, content, sendTo, file=None, session=0):
     filepath = base_utils.file_is_exist(file) if file is not None else file
     res_session = requests.request("post","http://192.168.2.203/zentao/www/index.php?m=api&f=setYouduFileMsg",data=body,files=None if file is None else {'file':open(filepath, 'rb')})
     # 写入session
-    cf.writeConfig(section='session', key=sendTo_md5, value=res_session.text)
+    cf.writeConfig(section='session', key=session_md5, value=res_session.text)
     return res_session.text
 
 
