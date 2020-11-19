@@ -3,6 +3,7 @@
 # @TIME    : 2018/7/31 17:18
 # @Author  : hubiao
 # @File    : base_requests.py
+import copy
 import json
 import logging
 
@@ -29,13 +30,14 @@ class Send:
         self.session = requests.session()
         self.pdsUrl = envConf["pds"]
 
-    def request(self, method, address, payload=None, header=None, files=None, params=None, cookies_kwargs=None, **kwargs):
+    def request(self, method, address, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,**kwargs):
         '''
         封装request方法，要求传三个参数
         :param method：请求的方式post,get,delete,put等
         :param address：请求的地址
         :param payload：请求的body数据，可以不传，默认为空
         :param header：header信息
+        :param flush_header: 刷新header，比如token就要通过flush_header
         :param files：上传文件时的文件信息
         :param params: URL传参，接收一个字典数据
         :param cookies_kwargs: cookie参数，接收一个字典数据
@@ -43,14 +45,14 @@ class Send:
         '''
         # 如果address不是http开头，组装请求地址
         self.Url = address if address.startswith("http") else ''.join([self.host,address])
-        # request请求头，因为下面有update haeder的操作，不能影响基线header
-        request_header = self.header
-        # 添加header信息，有些接口请求时添加请求头
+        request_header = copy.deepcopy(json.loads(self.header) if not isinstance(self.header, dict) else self.header)
+        # 添加header信息，有些接口请求时添加请求头,flush_header用来指定是否更新基线header
         if header is not None:
             header = json.loads(header) if not isinstance(header, dict) else header
-            request_header = json.loads(request_header) if not isinstance(request_header, dict) else request_header
             request_header.update(header)
-        headers = json.loads(request_header) if not isinstance(request_header, dict) else request_header
+            if flush_header:
+                self.header = json.loads(self.header) if not isinstance(self.header, dict) else self.header
+                self.header.update(header)
         # 添加cookies信息，有些接口请求时要在cookies上添加信息
         if cookies_kwargs is not None:
             if isinstance(cookies_kwargs,dict):
@@ -60,17 +62,17 @@ class Send:
                 raise TypeError("cookies_kwargs 必须是dict类型")
         # 当上传文件时不指定Content-Type，files会自动添加Content-Type，人为指定容易出错
         if files is not None:
-            del headers["Content-Type"]
+            del request_header["Content-Type"]
         # 判断payload不为str时，dumps成str类型
         if isinstance(payload,list) or (not isinstance(payload,str) and payload):
             payload = json.dumps(payload)
         try:
             # 发送POST请求
-            self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=headers, hooks=dict(response=self.hooks), params=params, timeout=60, files=files)
+            self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, hooks=dict(response=self.hooks), params=params, timeout=60, files=files)
             # 解决跨域302跳转后响应成cas登录页面的处理，当出现cas登录界面时自动重试相关接口
             if self.Response.status_code == 200 and "/login?service=" in self.Response.url:
                 self.Response = self.session.request(method=method, url=self.Url, data=payload,
-                                                     headers=headers, timeout=60)
+                                                     headers=request_header, timeout=60)
         except requests.exceptions.RequestException as e:
             logging.error("RequestException异常开始分割线start: ".center(60, "#"))
             logging.error("请求的Url: " + self.Url)

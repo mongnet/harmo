@@ -387,6 +387,22 @@ url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
+description = "Configures logging and allows tweaking the log level with a py.test flag"
+name = "pytest-logging"
+optional = false
+python-versions = "*"
+version = "2015.11.4"
+
+[package.dependencies]
+pytest = ">=2.8.1"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
+[[package]]
+category = "main"
 description = "pytest plugin for test session metadata"
 name = "pytest-metadata"
 optional = false
@@ -452,6 +468,19 @@ url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
+description = "Lightweight SOAP client"
+name = "suds-py3"
+optional = false
+python-versions = "*"
+version = "1.4.1.0"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
+[[package]]
+category = "main"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 name = "urllib3"
 optional = false
@@ -496,6 +525,19 @@ url = "http://mirrors.aliyun.com/pypi/simple"
 
 [[package]]
 category = "main"
+description = "Makes working with XML feel like you are working with JSON"
+name = "xmltodict"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "0.12.0"
+
+[package.source]
+reference = "aliyun"
+type = "legacy"
+url = "http://mirrors.aliyun.com/pypi/simple"
+
+[[package]]
+category = "main"
 description = "Backport of pathlib-compatible object wrapper for zip files"
 marker = "python_version < \"3.8\""
 name = "zipp"
@@ -513,7 +555,7 @@ type = "legacy"
 url = "http://mirrors.aliyun.com/pypi/simple"
 
 [metadata]
-content-hash = "06dced89f05a88fbb09005ada04a991e7c4fb51296f39c4d1b6e1914b11b5b7e"
+content-hash = "f0c1fc08dbf3d570692b54d86e5eeaa61d2ba5edf95cdefce4d3c4e8e151ae88"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -612,6 +654,9 @@ pytest-html = [
     {file = "pytest-html-2.1.1.tar.gz", hash = "sha256:6a4ac391e105e391208e3eb9bd294a60dd336447fd8e1acddff3a6de7f4e57c5"},
     {file = "pytest_html-2.1.1-py2.py3-none-any.whl", hash = "sha256:9e4817e8be8ddde62e8653c8934d0f296b605da3d2277a052f762c56a8b32df2"},
 ]
+pytest-logging = [
+    {file = "pytest-logging-2015.11.4.tar.gz", hash = "md5:d0baf806cb2b4b3546f6277b06a7cb07"},
+]
 pytest-metadata = [
     {file = "pytest-metadata-1.10.0.tar.gz", hash = "sha256:b7e6e0a45adacb17a03a97bf7a2ef60cc1f4e172bcce9732ce5e814191932315"},
     {file = "pytest_metadata-1.10.0-py2.py3-none-any.whl", hash = "sha256:fcbcc5781aee450107c620c79c57e50796b6777b82b3c504be9cbc3017201169"},
@@ -637,6 +682,9 @@ six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
     {file = "six-1.15.0.tar.gz", hash = "sha256:30639c035cdb23534cd4aa2dd52c3bf48f06e5f4a941509c8bafd8ce11080259"},
 ]
+suds-py3 = [
+    {file = "suds-py3-1.4.1.0.tar.gz", hash = "sha256:3b167cbcc032a9c8f04712323bfaaf3b4d2913b5ef71167c57db6ccd170910da"},
+]
 urllib3 = [
     {file = "urllib3-1.25.11-py2.py3-none-any.whl", hash = "sha256:f5321fbe4bf3fefa0efd0bfe7fb14e90909eb62a48ccda331726b4319897dd5e"},
     {file = "urllib3-1.25.11.tar.gz", hash = "sha256:8d7eaa5a82a1cac232164990f04874c594c9453ec55eef02eab885aa02fc17a2"},
@@ -648,6 +696,10 @@ wcwidth = [
 xlrd = [
     {file = "xlrd-1.2.0-py2.py3-none-any.whl", hash = "sha256:e551fb498759fa3a5384a94ccd4c3c02eb7c00ea424426e212ac0c57be9dfbde"},
     {file = "xlrd-1.2.0.tar.gz", hash = "sha256:546eb36cee8db40c3eaa46c351e67ffee6eeb5fa2650b71bc4c758a29a1b29b2"},
+]
+xmltodict = [
+    {file = "xmltodict-0.12.0-py2.py3-none-any.whl", hash = "sha256:8bbcb45cc982f48b2ca8fe7e7827c5d792f217ecf1792626f808bf41c3b86051"},
+    {file = "xmltodict-0.12.0.tar.gz", hash = "sha256:50d8c638ed7ecb88d90561beedbf720c9b4e851a9fa6c47ebd64e99d166d8a21"},
 ]
 zipp = [
     {file = "zipp-3.4.0-py3-none-any.whl", hash = "sha256:102c24ef8f171fd729d46599845e95c7ab894a4cf45f5de11a44cc7444fb1108"},

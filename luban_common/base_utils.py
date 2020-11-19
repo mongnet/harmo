@@ -112,8 +112,10 @@ def FromBase64(String):
     '''
     if not isinstance(String,str):
         raise TypeError("只支持字符串类型")
-    original = base64.b64decode(String)
-    return str(original,'utf-8')
+    missing_padding = 4 - len(String) % 4
+    if missing_padding:
+        String += '=' * missing_padding
+    return str(base64.b64decode(String),'utf-8')
 
 def getUnix(date=None):
     '''

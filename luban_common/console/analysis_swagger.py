@@ -42,7 +42,7 @@ class AnalysisSwaggerJson():
             raise e
 
         self.data = res['paths']  # 取接口地址返回的path数据,包括了请求的路径
-        self.basePath = res['basePath']  # 获取接口的根路径/hcp
+        self.basePath = res['basePath']  # 获取接口的根路径
         # 第一错，swagger文档是ip地址，使用https协议会错误,注意接口地址的请求协议
         self.host = 'http://' + res.get('host') if res.get('host') else ''
         self.title = res['info']['title']  # 获取接口的标题
@@ -406,15 +406,22 @@ class AnalysisSwaggerJson():
 
 if __name__ == '__main__':
     url = "http://192.168.13.202:8081/Plan/rs/swagger/swagger.json"
-    url1 = "http://192.168.13.197:8989/builder/v2/api-docs"
-    url2 = "http://192.168.3.195:9002/LBprocess/v2/api-docs"
+    url1 = "http://192.168.3.195/LBbuilder/v2/api-docs"
+    url2 = "http://192.168.3.195:8989/LBprocess/v2/api-docs"
     url3 = "http://192.168.13.20/pdscommon/rs/swagger/swagger.json"
     url4 = 'http://192.168.13.202:8082/pdsdoc/rs/swagger/swagger.json'
+    url5 = 'http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json'
+    url6 = 'http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json'
     print(AnalysisSwaggerJson(url).analysis_json_data())
     print(AnalysisSwaggerJson(url1).analysis_json_data())
     print(AnalysisSwaggerJson(url2).analysis_json_data())
     print(AnalysisSwaggerJson(url3).analysis_json_data())
     print(AnalysisSwaggerJson(url4).analysis_json_data())
+    print(AnalysisSwaggerJson(url5).analysis_json_data())
+    print(AnalysisSwaggerJson(url6).analysis_json_data())
 
     # js.generator_interface_file(result)
+    # http://192.168.3.195:8989/BuilderCommonBusinessdata/swagger/index.html
+    # http://192.168.3.195:8989/LBprocess/swagger-ui.html
+    # http://192.168.13.233:8080/dev-api/doc.html
 
