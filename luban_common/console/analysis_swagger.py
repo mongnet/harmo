@@ -81,7 +81,8 @@ class AnalysisSwaggerJson():
                         k1 = uri.split('/{', 1)[0].split('/')[1:]
                         for i in uri_list:
                             k2 = i.split('/{', 1)[0].split('/')[1:]
-                            file_name = list(sorted(set(k1).intersection(set(k2)), key=k1.index))
+                            k1 = k1 if not list(sorted(set(k1).intersection(set(k2)), key=k1.index)) else list(sorted(set(k1).intersection(set(k2)), key=k1.index))
+                        file_name = k1
                         break
                     self.group['class_name'] = "_".join(file_name).capitalize()
                     self.group['file_name'] = "_".join(file_name)
@@ -373,7 +374,7 @@ class AnalysisSwaggerJson():
                     kwarg = '"' + default_parame[arg] + '"'
             list_kwargs.append(arg + '=' + kwarg)
         # 当parameters_form不是None或不是path参数时，参数默认值设置为None
-        elif parameters_form is not None and parameters_form != 'path':
+        elif parameters_form is not None or parameters_form != 'path':
             list_kwargs.append(arg + '=$None$')
         elif body[arg] == 'boolean':
             list_kwargs.append(arg + '=$False$')
@@ -405,13 +406,14 @@ class AnalysisSwaggerJson():
 
 
 if __name__ == '__main__':
-    url = "http://192.168.13.202:8081/Plan/rs/swagger/swagger.json"
+    url = "http://192.168.3.195:8080/Plan/rs/swagger/swagger.json"
     url1 = "http://192.168.3.195/LBbuilder/v2/api-docs"
     url2 = "http://192.168.3.195:8989/LBprocess/v2/api-docs"
     url3 = "http://192.168.13.20/pdscommon/rs/swagger/swagger.json"
     url4 = 'http://192.168.13.202:8082/pdsdoc/rs/swagger/swagger.json'
     url5 = 'http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json'
-    url6 = 'http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json'
+    url6 = 'http://192.168.13.233:8080/dev-api/v2/api-docs'
+    url7 = 'http://192.168.13.202:8084/openapi/rs/swagger/swagger.json'
     print(AnalysisSwaggerJson(url).analysis_json_data())
     print(AnalysisSwaggerJson(url1).analysis_json_data())
     print(AnalysisSwaggerJson(url2).analysis_json_data())
@@ -419,9 +421,12 @@ if __name__ == '__main__':
     print(AnalysisSwaggerJson(url4).analysis_json_data())
     print(AnalysisSwaggerJson(url5).analysis_json_data())
     print(AnalysisSwaggerJson(url6).analysis_json_data())
+    print(AnalysisSwaggerJson(url7).analysis_json_data())
 
     # js.generator_interface_file(result)
     # http://192.168.3.195:8989/BuilderCommonBusinessdata/swagger/index.html
     # http://192.168.3.195:8989/LBprocess/swagger-ui.html
     # http://192.168.13.233:8080/dev-api/doc.html
+    # http://192.168.3.195:8080/Plan/swagger/index.html
+    # http://192.168.13.202:8084/openapi/swagger/index.html
 

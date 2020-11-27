@@ -17,13 +17,13 @@ import time
 import pytest
 from luban_common import base_requests
 from luban_common.msg.weixin import WeiXinMessage
-from luban_common.msg.youdu import send_youdu
+from luban_common.msg.youdu import send_msg
 from luban_common.operation import yaml_file
 
 from business import public_login
 from swagger.jump import Jump
 from utils.utils import file_absolute_path
-
+from py._xmlgen import html
 
 def pytest_addoption(parser):
     '''
@@ -49,7 +49,6 @@ def pytest_addoption(parser):
                     default=os.getenv("Pytest_Env", None),
                     help="set testing environment")
 
-
 def pytest_configure(config):
     '''
     在测试报告中添加环境信息
@@ -60,13 +59,12 @@ def pytest_configure(config):
     browser = config.getoption("--lb-driver")
     baseUrl = config.getoption("--lb-base-url")
     if hasattr(config, '_metadata'):
-        if browser is not None:
-            config._metadata['Browser'] = browser
         if envConf is not None:
-            config._metadata['EnvConf'] = envConf
+            config._metadata['运行配置'] = envConf
+        if browser is not None:
+            config._metadata['浏览器'] = browser
         if baseUrl is not None:
-            config._metadata['BaseUrl'] = baseUrl
-
+            config._metadata['基础URL'] = baseUrl
 
 def pytest_report_header(config):
     '''
@@ -107,7 +105,6 @@ def base_url(pytestconfig):
     if base_url:
         return base_url
 
-
 @pytest.fixture(scope="session")
 def global_cache(request):
     '''
@@ -118,7 +115,7 @@ def global_cache(request):
     return request.config.cache
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    '''收集测试结果'''
+    '''收集测试结果并发送到对应IM'''
     # 读取配置文件
     envConf = yaml_file.get_yaml_data(file_absolute_path(config.getoption("--lb-env")))
     # 定义测试结果
@@ -127,28 +124,29 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     failed = len([i for i in terminalreporter.stats.get('failed', []) if i.when != 'teardown'])
     error = len([i for i in terminalreporter.stats.get('error', []) if i.when != 'teardown'])
     skipped = len([i for i in terminalreporter.stats.get('skipped', []) if i.when != 'teardown'])
-    success_rate =len(terminalreporter.stats.get('passed', []))/terminalreporter._numcollected*100
     total_times = time.time() - terminalreporter._sessionstarttime
     message_switch = True if config.getini("message_switch") == "True" else False
     success_message = True if config.getini("success_message") == "True" else False
+    html_report = config.getoption("--html")
     # 判断是否要发送消息
     if message_switch:
         send = WeiXinMessage()
         youdu_users = envConf.get("youdu_users")
         weixin_toparty = envConf.get("weixin_toparty")
+        # 通过jenkins构件时，可以获取到JOB_NAME
+        JOB_NAME = "通用" if config._metadata.get('JOB_NAME') is None else config._metadata.get('JOB_NAME')
         if failed + error != 0:
-            content = f"共执行 {total} 条用例，有 {passed} 条执行成功，有 {failed} 条执行失败，有 {error} 条执行出错，跳过 {skipped} 条"
+            content = f"共执行 {total} 条用例\n有 {passed} 条执行成功\n有 {failed} 条执行失败\n有 {error} 条执行出错\n有 {skipped} 条跳过"
             if weixin_toparty:
-                send.send_message_textcard(title="警告！自动化巡检测试出现异常", content=content, toparty=weixin_toparty)
+                send.send_message_textcard(title=f"警告！{JOB_NAME} 巡检出现异常", content=content, toparty=weixin_toparty)
             if youdu_users:
-                send_youdu(title="警告！自动化巡检测试出现异常", content="测试一下", sendTo=youdu_users, session=0)
-        else:
-            if success_message:
-                content = f"共执行 {total} 条用例，全部执行通过，共耗时 {round(total_times,2)} 秒，请放心"
-                if weixin_toparty:
-                    send.send_message_textcard(title="恭喜，自动化巡检测试通过", content=content, toparty=weixin_toparty)
-                if youdu_users:
-                    send_youdu(title="恭喜，自动化巡检测试通过", content=content, sendTo=youdu_users, session=0)
+                send_msg(title=f"警告！{JOB_NAME} 巡检出现异常", content=content, sendTo=youdu_users+"_FAIL", session=0, file=html_report)
+        elif success_message:
+            content = f"共执行 {total} 条用例，全部执行通过，耗时 {round(total_times,2)} 秒"
+            if weixin_toparty:
+                send.send_message_textcard(title=f"恭喜，{JOB_NAME} 巡检通过，请放心", content=content, toparty=weixin_toparty)
+            if youdu_users:
+                send_msg(title=f"恭喜，{JOB_NAME} 巡检通过，请放心", content=content, sendTo=youdu_users+"_PASS", session=0, file=html_report)
 
 @pytest.fixture(scope="session")
 def bimadmin_login(env_conf, global_cache):
@@ -355,17 +353,6 @@ def iworks_web_plan(iworks_web_cas, env_conf, global_cache):
     yield resule
 
 @pytest.fixture(scope="session")
-def iworks_web_doc(iworks_web_cas, env_conf, global_cache):
-    '''
-    获取doc登录凭证
-    :return:
-    '''
-    resule = base_requests.Send(global_cache.get("pdsdoc", False), env_conf, global_cache)
-    # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
-    Jump().jump(resule,resource='/jump')
-    yield resule
-
-@pytest.fixture(scope="session")
 def iworks_web_bimco(iworks_web_cas, env_conf, global_cache):
     '''
     获取bimco登录凭证
@@ -379,13 +366,32 @@ def iworks_web_bimco(iworks_web_cas, env_conf, global_cache):
 @pytest.fixture(scope="session")
 def iworks_web_pdsdoc(iworks_web_cas, env_conf, global_cache):
     '''
-    获取bimco登录凭证
+    获取doc登录凭证
     :return:
     '''
     resule = base_requests.Send(global_cache.get("pdsdoc", False), env_conf, global_cache)
     # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
     Jump().jump(resule,resource='/rs/jump')
-    yield resule"""
+    yield resule
+
+@pytest.fixture(scope="session")
+def token(env_conf, global_cache):
+    '''
+    获取登录凭证Token
+    :return:
+    '''
+    resule = public_login.Token(env_conf["iworksWeb"]["username"], env_conf["iworksWeb"]["password"], env_conf, global_cache)
+    yield  resule.login()
+    # resule.logout()
+
+@pytest.fixture(scope="session")
+def openapi_motor_token(token, env_conf, global_cache):
+    '''
+    获取openapi_motor_token
+    :return:
+    '''
+    resule = public_login.OpenApiMotorToken(token).login()
+    yield  resule"""
 
 GLOBAL_CONFIG_DEFAULT = """weixin :
   corpid : ww7cfc110509f4c78c
@@ -402,7 +408,7 @@ headers:
     soap_header : '{"Content-Type": "text/xml;charset=utf-8","Accept-Encoding": "gzip, deflate","SOAPAction": ""}'"""
 
 CONFIG_DEFAULT = """pds : http://app.lbuilder.cn
-youdu_users: "胡彪_吴国君"
+youdu_users: "胡彪"
 weixin_toparty: 2
 center:
   username: lb91247
@@ -489,9 +495,14 @@ import json
 import re
 import xmltodict
 
+from urllib.parse import quote
 from luban_common import base_utils
 from luban_common import base_requests
 from luban_common.base_assert import Assertions
+from luban_common.global_map import Global_Map
+
+from swagger.dev_api.auth import Auth
+from swagger.motor.motor_auth import MotorAuth
 
 
 class BimAdmin:
@@ -521,7 +532,7 @@ class Center:
     def __init__(self,centerusername,centerpassword,envConf,global_cache):
         self.cache = global_cache
         self.productId = envConf['centerProductid']
-        self.username = centerusername
+        self.username = centerusername if isinstance(centerusername,int) else quote(centerusername)
         self.password = centerpassword
         self.header = envConf["headers"]["plain_header"]
         self.CenterLogin = base_requests.Send(envConf['pds'], envConf, global_cache=self.cache)
@@ -570,7 +581,7 @@ class Center:
         resource = '/login'#?service=+serverlist[6]["serverURL"].replace("://","%3A%2F%2F")
         body = f'_eventId=submit&execution=e1s1&lt=LT{self.getLT()}&password={self.password}&productId={self.productId}&submit=%25E7%2599%25BB%25E5%25BD%2595&username={self.username}'
         response = self.CenterLogin.request('post', resource, body, self.header)
-        assert response["status_code"] == 200
+        Assertions().assert_equal_value(response["status_code"], 200)
 
     def getCompanyList(self):
         '''
@@ -612,7 +623,7 @@ class IworksApp:
     def __init__(self,username,password,envConf,global_cache):
         self.cache = global_cache
         self.productId = envConf['iworksAppProductId']
-        self.username = username
+        self.username = username if isinstance(username,int) else quote(username)
         self.password = password
         self.header = envConf["headers"]["plain_header"]
         self.clientVersion = envConf["iworksApp"]["clientVersion"]
@@ -699,7 +710,7 @@ class Iworks:
         # self.rf = ManageConfig().getConfig(self.section)
         # self.wf = ManageConfig()
         self.productId = envConf['iWorksProductId']
-        self.username = username
+        self.username = username if isinstance(username,int) else quote(username)
         self.password = password
         self.header =envConf["headers"]["soap_header"]
         self.header1 = envConf["headers"]["urlencoded_header"]
@@ -721,7 +732,7 @@ class Iworks:
         Assertions().assert_equal_value(response["status_code"], 200)
         convertedXml = xmltodict.parse(response['Response_body'])
         Response_serverURL= base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:getServUrlResponse_return_list'][0]
-        assert len(Response_serverURL)!=0
+        assert len(Response_serverURL)!=0,"serverURL不能为空"
         for server in Response_serverURL:
             self.cache.set(dict(server)["serverName"],dict(server)["serverURL"])
 
@@ -870,6 +881,8 @@ class IworksWeb:
         if len(response["data_enterpriseId"]) > 0:
             self.cache.set('iworksWebEpid', response["data_enterpriseId"][0])
             self.epid = response["data_enterpriseId"][0]
+            Global_Map().set_map("epid", response["data_enterpriseId"][0])
+            Global_Map().set_map("enterpriseName", response["data_enterpriseName"][0])
             return self.epid
 
     def switchCompany(self):
@@ -900,16 +913,6 @@ class IworksWeb:
         response = self.casLogin.request('get', resource)
         Assertions().assert_equal_value(response["status_code"], 200)
 
-    def get_openapitoken(self):
-        '''
-        获取opnapi的token
-        '''
-        resource = f'/rs/v2/casLogin/openapi/token'
-        response = self.casLogin.request('get', resource)
-        if response["code"][0] == 200:
-            self.cache.set('openapitoken', response["data"][0])
-        Assertions().assert_all_code(response,200,200)
-
     def login(self):
         '''
         iworks web流程方法
@@ -921,7 +924,70 @@ class IworksWeb:
         self.switchCompany()
         self.enterpriseInfo()
         self.authgroup()
-        self.get_openapitoken()
+
+class Token:
+    '''
+    token登录流程
+    '''
+    def __init__(self,username,password,envConf,global_cache):
+        self.cache = global_cache
+        self.productId = envConf['iworksWebProductId']
+        self.username = username
+        self.password = password
+        self.header = envConf["headers"]["json_header"]
+        self.casLogin = base_requests.Send(envConf['auth_url'], envConf, global_cache=self.cache)
+        self.epid = ''
+        self.Authorization = ""
+
+    def getToken(self):
+        '''
+        获取token接口
+        '''
+        resource = "/auth-server/auth/token"
+        body = {"loginType": "CLIENT_WEB","password": self.password,"username": self.username}
+        response = self.casLogin.request('post', resource, body)
+        Assertions().assert_equal_value(response["status_code"], 200)
+        if len(response.get("data")) > 0:
+            self.Authorization = response.get("data")[0]
+            Global_Map().set_map("Authorization", response.get("data")[0])
+        # 验证token中账号是否正确
+        userinfo = base_utils.FromBase64(self.Authorization.split(".")[1])
+        Assertions().assert_in_value(userinfo,self.username)
+
+    def getEnterprises(self):
+        '''
+        获取企业列表
+        '''
+        resource = f"/auth-server/auth/enterprises/productId/{self.productId}"
+        response = self.casLogin.request('get', resource,header={"Authorization":self.Authorization},flush_header=True)
+        Assertions().assert_equal_value(response["status_code"], 200)
+        if len(response.get("data_epid")) > 0:
+            self.epid = response.get("data_epid")[0]
+            Global_Map().set_map("epid", response.get("data_epid")[0])
+            Global_Map().set_map("enterpriseName", response.get("data_enterpriseName")[0])
+
+    def enterprise(self):
+        '''
+        切换企业
+        '''
+        resource = f"/auth-server/auth/enterprise"
+        body = {"epid": self.epid}
+        response = self.casLogin.request('put', resource,body)
+        Assertions().assert_equal_value(response["status_code"], 200)
+
+    def logout(self):
+        '''
+        退出登录接口
+        '''
+        resource = "/auth-server/auth/logout"
+        response = self.casLogin.request('get', resource)
+        Assertions().assert_equal_value(response["status_code"], 200)
+
+    def login(self):
+        self.getToken()
+        self.getEnterprises()
+        self.enterprise()
+        return self.casLogin
 
 class OpenAPI:
     '''
@@ -946,6 +1012,21 @@ class OpenAPI:
         header.update({"token": response["data"][0]})
         self.OpenAPIToken.header = json.dumps(header)
         return self.OpenAPIToken
+
+class OpenApiMotorToken:
+    '''
+    开放平台motor token获取
+    '''
+    def __init__(self,token):
+        self.token = token
+
+    def login(self):
+        '''
+        登录获取token
+        '''
+        GetToken = Auth().getMotorClientTokenUsingGET(self.token).get("data")[0]
+        MotorAuth().validateToken(self.token,WebToken=GetToken)
+        return self.token
 
 
 class Bimapp:
@@ -1064,10 +1145,10 @@ class LubanSoft:
 
     def login(self):
         '''
-        lubansoft 登录
+        lubansoft rest 登录
         :return:
         '''
-        resource = "/login"
+        resource = "/webservice/clientInfo/LBClient"
         body = '''<?xml version="1.0" encoding="UTF-8"?>
         <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:ns1="http://cloudnorm.webservice.lbapp.lubansoft.com/" xmlns:ns10="http://webservice.clientcomponent.lbapp.lubansoft.com/" xmlns:ns11="http://webservice.cloudcomponent.lbapp.lubansoft.com/" xmlns:ns12="http://webservice.lbim.lbapp.lubansoft.com/" xmlns:ns13="http://webservice.common.lbapp.lubansoft.com/" xmlns:ns14="http://webservice.costlib.lbapp.lubansoft.com/" xmlns:ns15="http://webservice.usergrade.lbapp.lubansoft.com/" xmlns:ns16="http://webservice.cloudautoset.lbapp.lubansoft.com/" xmlns:ns17="http://webservice.lbcert.lbapp.lubansoft.com/" xmlns:ns18="http://webservice.clientinfo.lbapp.lubansoft.com/" xmlns:ns19="http://webservice.onlineservice.lbapp.lubansoft.com/" xmlns:ns2="http://lbmsg.webservice.lbapp.lubansoft.com/" xmlns:ns20="http://webservice.localbim.lbapp.lubansoft.com/" xmlns:ns21="http://webservice.adimage.lbapp.lubansoft.com/" xmlns:ns22="http://webservice.banbankDrainage.lbapp.lubansoft.com/" xmlns:ns3="http://upgrade.webservice.lbapp.lubansoft.com/" xmlns:ns4="http://cloudpush.webservice.lbapp.lubansoft.com/" xmlns:ns5="http://common.webservice.lbapp.lubansoft.com/" xmlns:ns6="http://clientInfo.webservice.lbapp.lubansoft.com/" xmlns:ns7="http://validate.webservice.lbapp.lubansoft.com/" xmlns:ns8="http://LBUFS.webservice.lbapp.lubansoft.com/" xmlns:ns9="http://webservice.dataserver.LBUFS.lubansoft.com/">
         <SOAP-ENV:Header><LBTag>Kick</LBTag><LBSessionId></LBSessionId></SOAP-ENV:Header>
