@@ -6,7 +6,7 @@
 
 from cleo import Command as BaseCommand
 
-CONFTEST_DEFAULT = u"""#!/usr/bin/env python
+CONFTEST_DEFAULT = r"""#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # TIME    : 2018/10/9 18:07
 # Author  : hubiao
@@ -439,8 +439,10 @@ UTILS_DEFAULT = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @TIME    : 2020/7/5 9:47
 # @Author  : hubiao
-# @File    : utils.py
+# @File    : base_utils.py
 import os
+import allure
+from luban_common import base_utils
 
 def file_absolute_path(rel_path):
     '''
@@ -453,17 +455,17 @@ def file_absolute_path(rel_path):
     return file_path
 
 @allure.step("上传文件")
-def upFiles(pdscommon, resource, filePath):
+def upFiles(item_fixture, resource, filePath):
     '''
     封装上传文件方法，要求传二个参数，上传成功返回文件UUID
-    pdscommon：所属项目
+    item_fixture：item fixture
     resource：请求的地址
     filePath：要上传的文件，相对于项目根目录，如 data/Doc/Lubango20191205.docx
     :return: 返回文件uuid
     '''
     file = base_utils.file_is_exist(filePath)
     try:
-        response = pdscommon.request('post', resource, files={'file': open(file, 'rb')})
+        response = item_fixture.request('post', resource, files={'file': open(file, 'rb')})
         return response["Response_body"]
     except Exception as e:
         raise FileNotFoundError(f"上传文件失败，错误原因:{e}")"""
@@ -500,9 +502,6 @@ from luban_common import base_utils
 from luban_common import base_requests
 from luban_common.base_assert import Assertions
 from luban_common.global_map import Global_Map
-
-from swagger.dev_api.auth import Auth
-from swagger.motor.motor_auth import MotorAuth
 
 
 class BimAdmin:
@@ -1020,12 +1019,31 @@ class OpenApiMotorToken:
     def __init__(self,token):
         self.token = token
 
+    def getMotorClientTokenUsingGET(self, token):
+        '''
+        获取访问motor模型的token
+        :param item_fixture: item fixture,
+        '''
+        resource = f'/auth-server/auth/motor/client_token'
+        response = token.request('GET', resource)
+        return response
+
+    def validateToken(self, item_fixture,WebToken):
+        '''
+        验证token是否有效
+        :param item_fixture: item fixture
+        '''
+        header = {"access_token": WebToken}
+        resource = f'/openapi/motor/v1.0/service/uc/auth/validateToken'
+        response = item_fixture.request('GET', resource,header=header,flush_header=True)
+        return response
+
     def login(self):
         '''
         登录获取token
         '''
-        GetToken = Auth().getMotorClientTokenUsingGET(self.token).get("data")[0]
-        MotorAuth().validateToken(self.token,WebToken=GetToken)
+        GetToken = self.getMotorClientTokenUsingGET(self.token).get("data")[0]
+        self.validateToken(self.token,WebToken=GetToken)
         return self.token
 
 
@@ -1245,6 +1263,29 @@ class Org:
         response = CenterBuilder.request('delete', resource)
         return response"""
 
+SWAGGER_JUMP = """#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @TIME    : 2020/7/27 17:55
+# @Author  : system
+# @File    : jump.py
+
+import allure
+
+class Jump:
+    '''
+    JumpRestService
+    '''
+
+    @allure.step('cas 302 jump接口')
+    def jump(self, item_fixture,resource):
+        '''
+        cas 302 jump接口
+        :param item_fixture: item fixture,
+        '''
+        # resource = f'/rs/jump'
+        response = item_fixture.request('GET', resource)
+        return response"""
+
 CASE_DEMO = """#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @TIME    : 2019/5/13 17:12
@@ -1375,7 +1416,7 @@ class NewCommand(BaseCommand):
         # 初始化 utils.py
         utils_default = path / "utils/utils.py"
         with utils_default.open("w", encoding="utf-8") as f:
-            f.write(UTILS_DEFAULT.format(name))
+            f.write(UTILS_DEFAULT)
             self.line("Created file: <fg=green>{}</>".format(utils_default))
 
         # config 中初始化全局 yaml 配置文件
@@ -1419,6 +1460,11 @@ class NewCommand(BaseCommand):
         with swagger_demo_default.open("w", encoding="utf-8") as f:
             f.write(SWAGGER_DEMO)
             self.line("Created file: <fg=green>{}</>".format(swagger_demo_default))
+        # 初始化swagger jump.py 用于302跳转
+        swagger_jump_default = path / "swagger/jump.py"
+        with swagger_jump_default.open("w", encoding="utf-8") as f:
+            f.write(SWAGGER_JUMP)
+            self.line("Created file: <fg=green>{}</>".format(swagger_jump_default))
         # 初始化 test_center_demo.py 用例
         case_demo_default = path / "testsuites/test_center_demo.py"
         with case_demo_default.open("w", encoding="utf-8") as f:

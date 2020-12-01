@@ -10,37 +10,41 @@ class Global_Map:
     '''
     全局变量
     '''
-    map = {}
+    __map = {}
 
+    @classmethod
     def set_map(self, key, value):
         if(isinstance(value,dict)):
             value = json.dumps(value)
-        self.map[key] = value
+        self.__map[key] = value
 
+    @classmethod
     def set(self, **keys):
         try:
             for key_, value_ in keys.items():
-                self.map[key_] = str(value_)
+                self.__map[key_] = str(value_)
         except BaseException as msg:
             raise msg
 
+    @classmethod
     def del_map(self, key):
         try:
-            del self.map[key]
-            return self.map
+            del self.__map[key]
+            return self.__map
         except KeyError:
             print()
 
+    @classmethod
     def get(self,*args):
         try:
             dic = {}
             for key in args:
                 if len(args)==1:
-                    dic = self.map[key]
+                    dic = self.__map[key]
                 elif len(args)==1 and args[0]=='all':
-                    dic = self.map
+                    dic = self.__map
                 else:
-                    dic[key]=self.map[key]
+                    dic[key]=self.__map[key]
             return dic
         except KeyError:
             return 'Null_'
