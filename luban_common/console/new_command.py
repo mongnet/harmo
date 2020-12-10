@@ -422,7 +422,7 @@ PYTESTINI_DEFAULT = """[pytest]
 addopts =
     --lb-env=Config/release/config.yaml
     --lb-driver=firefox
-    --html=reports/report.html
+    --html=reports/report.html --self-contained-html
     -p no:warnings
 ;    --cache-clear
 globalConf = Config/globalConf.yaml

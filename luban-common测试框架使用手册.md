@@ -42,19 +42,19 @@ luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架�
 
 PyPI安装(版本稳定后会托管到PyPI上)
 
-```
+```python
 pip install luban-common
 ```
 
 本地安装
 
-```
+```python
 pip install luban_common-0.5.27-py3-none-any.whl
 ```
 
 从git安装
 
-```
+```python
 pip install git+https://github.com/mongnet/luban_common@master
 ```
 
@@ -62,7 +62,7 @@ pip install git+https://github.com/mongnet/luban_common@master
 
 假如你之前已经安装过了 luban-common，现在需要升级到最新版本，那么你可以使用 `-U` 参数。
 
-```
+```python
 pip install -U luban-common
 pip install -U git+https://github.com/mongnet/luban_common@master
 ```
@@ -82,7 +82,7 @@ Luban version 0.4.0
 
 luban-common 框架项目结构如下：
 
-```
+```python
 ├─config
 │   ├─blacklist.yaml
 │   ├─default_parame.yaml
@@ -667,6 +667,26 @@ Assertions.assert_dictOrList_eq(reality, expected)
 from luban_common.base_assert import Assertions
 
 Assertions.assert_dictOrList_eq(dict1,dict2)
+```
+
+
+
+#### 3.4.13 校验列表中是否有重复项
+
+assert_list_repetition()函数可校验列表中是否有重复项，调用格式如下：
+
+```python
+Assertions.assert_list_repetition(list)
+```
+
+[^list]: 实际值
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+Assertions.assert_list_repetition(list)
 ```
 
 
@@ -1366,7 +1386,7 @@ def switchCompany(self):
 
 环境配置，合并了 `pytest.ini` 配置中 `--lb-env` 和 `globalConf` 文件中的 yaml 数据，使用字典的方式取值，使用方法为：
 
-```
+```python
 env_conf["center"]["username"]
 ```
 
@@ -1466,13 +1486,13 @@ luban new CenterAutomation
 
 **直接执行**：在命令行中输入如下命令，表示使用 `pytest.ini` 中的默认配置执行
 
-```
+```python
 pytest
 ```
 
 **指定环境执行**：在命令行中输入如下命令，表示使用 `dev` 环境配置执行
 
-```
+```python
 pytest --lb-env config/dev/config.yaml
 ```
 
@@ -1507,7 +1527,7 @@ luban new iworksweb
 
 在命令行中输入如下命令生成 swagger 接口方法
 
-```
+```python
 luban swagger http://192.168.13.202:8081/Plan/rs/swagger/swagger.json
 ```
 

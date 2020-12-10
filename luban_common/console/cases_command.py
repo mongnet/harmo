@@ -12,9 +12,9 @@ from luban_common.console.analysis_swagger import AnalysisSwaggerJson
 
 class CasesCommand(BaseCommand):
     """
-    Swagger generates file interfaces and use cases
+    Swagger generates cases
 
-    swagger
+    swaggerCase
         {swagger-url-json : Swagger url地址，必须是json地址}
         {--d|directory=? : 生成到指定的目录，可选参数，不指定时生成到当前目录}
     """

@@ -6,13 +6,14 @@ import os
 
 import chevron
 from cleo import Command as BaseCommand
+from luban_common.global_map import Global_Map
 from pathlib2 import Path
 from luban_common.console.analysis_swagger import AnalysisSwaggerJson
 
 
 class SwaggerCommand(BaseCommand):
     """
-    Swagger generates file interfaces and use cases
+    Swagger generates file interfaces
 
     swagger
         {swagger-url-json : Swagger url地址，必须是json地址}
@@ -20,6 +21,10 @@ class SwaggerCommand(BaseCommand):
     """
 
     def handle(self):
+        # 提示
+        Global_Map().set_map("prompt", False)
+        # 覆盖
+        Global_Map().set_map("replace", False)
         js = AnalysisSwaggerJson(self.argument("swagger-url-json"))
         data = js.analysis_json_data()
         if not isinstance(data,dict):
@@ -32,17 +37,35 @@ class SwaggerCommand(BaseCommand):
                     path = Path.cwd() / data["config"]["name_en"]
                 if path.exists():
                     if list(path.glob("*")):
-                        # Directory is not empty. Aborting.
-                        raise RuntimeError(
-                            "Destination <fg=yellow>{}</> "
-                            "exists and is not empty".format(path)
-                        )
-
+                        self.line("")
+                        question = (f"{path} is not empty, continue to generate?")
+                        # Folder or file already exists, do you want to replace it?
+                        if self.confirm(question, True):
+                            self.line("<fg=green>Generate</>")
+                        else:
+                            # Directory already exists. Aborting.
+                            self.line("")
+                            self.line("Destination <fg=yellow>{}</> is not empty".format(path))
+                            break
                 path.mkdir(mode=0o777, parents=True, exist_ok=True)
                 package_init = path / "__init__.py"
-                package_init.touch(exist_ok=False)
+                package_init.touch(exist_ok=True)
                 current_path = os.path.dirname(os.path.realpath(__file__))
+                # 是否覆盖文件
                 for group in values:
+                    if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
+                        self.line("")
+                        question = (f"Some file already exists, do you want to replace it?")
+                        if self.confirm(question, True):
+                            self.line("<fg=green>Replace</>")
+                            Global_Map().set_map("prompt",1)
+                        else:
+                            Global_Map().set_map("replace",1)
+                    if Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
+                        # file already exists.
+                        self.line(f"<fg=red>{group['file_name']}.py</> file already exists, Don't replace")
+                        continue
+                    # 生成文件
                     with open(f'{current_path}/../config/interface.mustache', 'r') as mustache:
                         interfaces = chevron.render(mustache, group)
                         interface_file = path/f"{group['file_name']}.py"

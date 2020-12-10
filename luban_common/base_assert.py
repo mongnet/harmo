@@ -4,6 +4,8 @@
 # @Author  : hubiao
 # @File    : base_assert.py
 import operator
+from collections import Counter
+
 import allure
 
 class Assertions:
@@ -204,6 +206,21 @@ class Assertions:
         else:
             assert False, '传入的数据不是字典或列表'
 
+    @classmethod
+    @allure.step('校验列表中是否有重复项')
+    def assert_list_repetition(self, lists):
+        """
+        校验列表中是否有重复项
+        :param lists: 列表
+        :return:
+        """
+        if isinstance(lists,list):
+            repetition = {key: value for key, value in dict(Counter(lists)).items() if value > 1}
+            if repetition:
+                assert False, f'列表中有重复项，重复项为：{repetition}'
+        else:
+            assert False, '传入的数据不是一个list'
+
 if __name__ == '__main__':
     dict1 = {"projId":113692,"ppid":130817,"projName":"BW接口用工程-勿删160711"}
     dict2 = {"projId":113692,"projName":"BW接口用工程-勿删160711","ppid":130817}
@@ -211,7 +228,9 @@ if __name__ == '__main__':
     list1 = [1111,'adfaf','胡彪']
     list2 = [1111,'胡彪','adfaf']
     str2 = {'hu':'adf'}
+    list3 = ['89010001#89','89010001#89','89010001#89', '96003010#96']
     Assertions.assert_dictOrList_eq(dict1,dict2)
     Assertions.assert_dictOrList_eq(list1,list2)
     Assertions.assert_assign_attribute_value(str2, 'hu', 'adf')
     Assertions.assert_assign_attribute_value(dict3, "hu", ['adfaf',1111, '胡彪'])
+    Assertions.assert_list_repetition(list3)

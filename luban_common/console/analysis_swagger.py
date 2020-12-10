@@ -83,10 +83,10 @@ class AnalysisSwaggerJson():
                         for i in uri_list:
                             k2 = i.split('/{', 1)[0].split('/')[1:]
                             k1 = k1 if not list(sorted(set(k1).intersection(set(k2)), key=k1.index)) else list(sorted(set(k1).intersection(set(k2)), key=k1.index))
-                        file_name = k1
+                        file_name = "_".join(k1).replace('-', '_')
                         break
-                    self.group['class_name'] = "_".join(file_name).capitalize()
-                    self.group['file_name'] = "_".join(file_name)
+                    self.group['class_name'] = file_name.capitalize()
+                    self.group['file_name'] = file_name
                     self.group['generated_time'] = datetime.now().strftime('%Y/%m/%d %H:%M')
                 self.http_interface_group['groups'].append(self.group)
         else:
@@ -417,15 +417,21 @@ if __name__ == '__main__':
     url6 = 'http://192.168.13.233:8080/dev-api/v2/api-docs'
     url7 = 'http://192.168.13.202:8084/openapi/rs/swagger/swagger.json'
     url8 = 'http://124.71.44.188:8080/v2/api-docs'
-    print(AnalysisSwaggerJson(url).analysis_json_data())
-    print(AnalysisSwaggerJson(url1).analysis_json_data())
-    print(AnalysisSwaggerJson(url2).analysis_json_data())
-    print(AnalysisSwaggerJson(url3).analysis_json_data())
-    print(AnalysisSwaggerJson(url4).analysis_json_data())
-    print(AnalysisSwaggerJson(url5).analysis_json_data())
-    print(AnalysisSwaggerJson(url6).analysis_json_data())
-    print(AnalysisSwaggerJson(url7).analysis_json_data())
-    print(AnalysisSwaggerJson(url8).analysis_json_data())
+    url9 = 'http://192.168.3.236:8083/monitor/v2/api-docs?group=center'
+    url10 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(center端)'
+    url11 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(客户端)'
+    # print(AnalysisSwaggerJson(url).analysis_json_data())
+    # print(AnalysisSwaggerJson(url1).analysis_json_data())
+    # print(AnalysisSwaggerJson(url2).analysis_json_data())
+    # print(AnalysisSwaggerJson(url3).analysis_json_data())
+    # print(AnalysisSwaggerJson(url4).analysis_json_data())
+    # print(AnalysisSwaggerJson(url5).analysis_json_data())
+    # print(AnalysisSwaggerJson(url6).analysis_json_data())
+    # print(AnalysisSwaggerJson(url7).analysis_json_data())
+    # print(AnalysisSwaggerJson(url8).analysis_json_data())
+    # print(AnalysisSwaggerJson(url9).analysis_json_data())
+    # print(AnalysisSwaggerJson(url10).analysis_json_data())
+    print(AnalysisSwaggerJson(url11).analysis_json_data())
 
     # js.generator_interface_file(result)
     # http://192.168.3.195:8989/BuilderCommonBusinessdata/swagger/index.html
@@ -433,4 +439,6 @@ if __name__ == '__main__':
     # http://192.168.13.233:8080/dev-api/doc.html
     # http://192.168.3.195:8080/Plan/swagger/index.html
     # http://192.168.13.202:8084/openapi/swagger/index.html
+    # http://192.168.3.236:8083/monitor/swagger-ui.html#/
+    # http://192.168.3.199:9083/misc/swagger-ui.html
 
