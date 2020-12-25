@@ -48,11 +48,10 @@ class AnalysisSwaggerJson():
         self.host = 'http://' + res.get('host') if res.get('host') else ''
         self.title = res['info']['title']  # 获取接口的标题
         self.http_interface_group['config']['name'] = self.title  # 在初始化用例集字典更新值
-        self.http_interface_group['config']['name_en'] = self.url.split('/')[3].lower() if self.url.startswith("http") else self.url.split('/')[1].lower()
+        self.http_interface_group['config']['name_en'] = self.url.split('/')[3].lower().replace('-', '_') if self.url.startswith("http") else self.url.split('/')[1].lower().replace('-', '_')
         self.http_interface_group['config']['host'] = self.host
         self.http_interface_group['config']['base_url'] = self.basePath
         self.definitions = res['definitions']  # body参数
-
 
         for tag_dict in res['tags']:
             self.tags_list.append(tag_dict)
@@ -72,7 +71,7 @@ class AnalysisSwaggerJson():
                                 interface = self.wash_params(params, uri, method)
                                 self.group['interfaces'].append(interface)
                         else:
-                            print('interface path: {}, if name: {}, is deprecated.'.format(uri, params['operationId']))
+                            print(f"interface path: {uri}, if name: {params['operationId']}, is deprecated.")
                             break
                 # 生成 class_name 和 file_name
                 uri_list = base_utils.jpath(self.group, check_key='uri', sub_key='uri')

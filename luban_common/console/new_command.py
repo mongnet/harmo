@@ -880,8 +880,8 @@ class IworksWeb:
         if len(response["data_enterpriseId"]) > 0:
             self.cache.set('iworksWebEpid', response["data_enterpriseId"][0])
             self.epid = response["data_enterpriseId"][0]
-            Global_Map().set_map("epid", response["data_enterpriseId"][0])
-            Global_Map().set_map("enterpriseName", response["data_enterpriseName"][0])
+            Global_Map().set("epid", response["data_enterpriseId"][0])
+            Global_Map().set("enterpriseName", response["data_enterpriseName"][0])
             return self.epid
 
     def switchCompany(self):
@@ -948,7 +948,7 @@ class Token:
         Assertions().assert_equal_value(response["status_code"], 200)
         if len(response.get("data")) > 0:
             self.Authorization = response.get("data")[0]
-            Global_Map().set_map("Authorization", response.get("data")[0])
+            Global_Map().set("Authorization", response.get("data")[0])
         # 验证token中账号是否正确
         userinfo = base_utils.FromBase64(self.Authorization.split(".")[1])
         Assertions().assert_in_value(userinfo,self.username)
@@ -958,12 +958,12 @@ class Token:
         获取企业列表
         '''
         resource = f"/auth-server/auth/enterprises/productId/{self.productId}"
-        response = self.casLogin.request('get', resource,header={"Authorization":self.Authorization},flush_header=True)
+        response = self.casLogin.request('get', resource,header={"access-token":self.Authorization},flush_header=True)
         Assertions().assert_equal_value(response["status_code"], 200)
         if len(response.get("data_epid")) > 0:
             self.epid = response.get("data_epid")[0]
-            Global_Map().set_map("epid", response.get("data_epid")[0])
-            Global_Map().set_map("enterpriseName", response.get("data_enterpriseName")[0])
+            Global_Map().set("epid", response.get("data_epid")[0])
+            Global_Map().set("enterpriseName", response.get("data_enterpriseName")[0])
 
     def enterprise(self):
         '''
@@ -1148,6 +1148,7 @@ class Bussiness:
         body = {"username":self.username,"password":self.password}
         response = self.BussinessLogin.request('post', resource, body)
         Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_equal_value(response["rtcode"][0], 0)
         return self.BussinessLogin
 
 class LubanSoft:
