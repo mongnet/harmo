@@ -366,7 +366,7 @@ def get_all_key(data):
                 in_key(item)
         if isinstance(data, dict):
             for key, value in data.items():
-                if isinstance(value, list):
+                if isinstance(value, (list,dict)):
                     in_key(value)
                 ALLKEY.append(key)
         return ALLKEY
@@ -388,7 +388,7 @@ def get_all_value(data):
                     ALLVALUE.append(item)
         if isinstance(data, dict):
             for key, value in data.items():
-                if isinstance(value, list):
+                if isinstance(value, (list, dict)):
                     in_key(value)
                 else:
                     ALLVALUE.append(value)
@@ -406,22 +406,19 @@ if __name__ == "__main__":
     list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
     list5 = [['89010001#89','89010001#89','89010001#89', '96003010#96'],{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
     dict4 = {"name":"hubiao","chengji":[10,20,30],"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}
+    dict5 = {'busiModuleList': {'type': 'array', 'description': '流程类型id列表', 'items': {'type': 'string'}}}
     print(generate_random_mobile())
     print(generate_random_str())
     print(generate_random_mail())
     print(getStrMD5("hubiao"))
     print(calday(3,2015))
     print(get_all_key(data=list4))
-    print("===========")
     print(get_all_key(data=dict4))
-    print("===========")
+    print(get_all_key(data=dict5))
     print(get_all_key(data=str2))
-    print("===========")
     print(get_all_value(data=list4))
-    print("===========")
     print(get_all_value(data=list5))
-    print("===========")
     print(get_all_value(data=dict4))
-    print("===========")
     print(get_all_value(data=dict3))
+    print(get_all_value(data=dict5))
 
