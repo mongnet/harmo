@@ -7,7 +7,7 @@ import os
 import chevron
 from cleo import Command as BaseCommand
 from pathlib2 import Path
-from luban_common.console.analysis_swagger import AnalysisSwaggerJson
+from ..console.analysis_swagger import AnalysisSwaggerJson
 
 
 class CasesCommand(BaseCommand):

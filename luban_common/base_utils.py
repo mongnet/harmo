@@ -353,15 +353,75 @@ def jpath(data,check_key,check_value=None,sub_key=None):
         expr = f"$..[?(@.{check_key})]" if sub_key is None else f"$..[?(@.{check_key})]..{sub_key}"
     return jsonpath.jsonpath(data,expr)
 
+def get_all_key(data):
+    '''
+    获取全部字典的key，包含列表中包含的字典
+    :param data:
+    :return: key组成的列表，未去重
+    '''
+    ALLKEY = []
+    def in_key(data):
+        if isinstance(data, list):
+            for item in data:
+                in_key(item)
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, list):
+                    in_key(value)
+                ALLKEY.append(key)
+        return ALLKEY
+    return in_key(data)
+
+def get_all_value(data):
+    '''
+    获取全部value，包含list和字典的value值
+    :param data:
+    :return: value组成的列表，未去重
+    '''
+    ALLVALUE = []
+    def in_key(data):
+        if isinstance(data, list):
+            for item in data:
+                if isinstance(item, (list, dict)):
+                    in_key(item)
+                else:
+                    ALLVALUE.append(item)
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, list):
+                    in_key(value)
+                else:
+                    ALLVALUE.append(value)
+        return ALLVALUE
+    return in_key(data)
+
 if __name__ == "__main__":
+    dict1 = {"projId":113692,"ppid":130817,"projName":"BW接口用工程-勿删160711"}
+    dict2 = {"projId":113692,"projName":"BW接口用工程-勿删160711","ppid":130817}
+    dict3 = {'hu':[1111,'adfaf','胡彪']}
+    list1 = [1111,'adfaf','胡彪']
+    list2 = [1111,'胡彪','adfaf']
+    str2 = {'hu':'adf'}
+    list3 = ['89010001#89','89010001#89','89010001#89', '96003010#96']
+    list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
+    list5 = [['89010001#89','89010001#89','89010001#89', '96003010#96'],{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
+    dict4 = {"name":"hubiao","chengji":[10,20,30],"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}
     print(generate_random_mobile())
     print(generate_random_str())
     print(generate_random_mail())
     print(getStrMD5("hubiao"))
     print(calday(3,2015))
-    time1 = datetime.now()
-    time.sleep(2)
-    time2 = datetime.now()
-    print(time_difference(time1, time2))
-
+    print(get_all_key(data=list4))
+    print("===========")
+    print(get_all_key(data=dict4))
+    print("===========")
+    print(get_all_key(data=str2))
+    print("===========")
+    print(get_all_value(data=list4))
+    print("===========")
+    print(get_all_value(data=list5))
+    print("===========")
+    print(get_all_value(data=dict4))
+    print("===========")
+    print(get_all_value(data=dict3))
 

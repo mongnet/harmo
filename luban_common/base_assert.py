@@ -8,6 +8,9 @@ from collections import Counter
 
 import allure
 
+from luban_common import base_utils
+
+
 class Assertions:
     '''
     公共断言方法
@@ -68,13 +71,10 @@ class Assertions:
         :param expected_value:预期值
         :return:
         """
-        if isinstance(data, (list,str)):
-            if isinstance(expected_value,list):
-                assert set(expected_value) <= set(data)
-            else:
-                assert expected_value in data,f'响应结果中不存在预期值为：{expected_value} 的数据'
+        if isinstance(data,(list,dict)):
+            assert expected_value in base_utils.get_all_value(data),f'响应结果中不存在预期值为：{expected_value} 的数据'
         else:
-            assert False, '只支持list、str的校验，其余暂不支持'
+            assert False, f"{type(data)}数据类型不支持"
 
     @classmethod
     @allure.step('校验以预期值开头，预期值为:{2}')
@@ -113,10 +113,10 @@ class Assertions:
         :param key: 预期key值
         :return:
         """
-        if isinstance(data, dict):
-            assert key in data.keys(),f"结果中不存在预期为:{key} 的数据"
+        if isinstance(data,(list,dict)):
+            assert key in base_utils.get_all_key(data),f"结果中不存在预期为:{key} 的数据"
         else:
-            assert False, '只支持dict的校验，其余暂不支持'
+            assert False,f"{type(data)}数据类型不支持"
 
     @classmethod
     @allure.step('校验数据集中不存在预期值，预期值为:{2}')
@@ -127,10 +127,10 @@ class Assertions:
         :param expected_value: 预期值
         :return:
         """
-        if isinstance(data, (list,str)):
-            assert expected_value not in data,f"结果中存在预期值为：{expected_value} 的数据"
+        if isinstance(data,(list,dict)):
+            assert expected_value not in base_utils.get_all_value(data),f"结果中存在预期值为：{expected_value} 的数据"
         else:
-            assert False, '只支持list、str的校验，其余暂不支持'
+            assert False,f"{type(data)}数据类型不支持"
 
     @classmethod
     @allure.step('校验字典中不存在预期key，预期值为:{2}')
@@ -141,10 +141,10 @@ class Assertions:
         :param expected_key: 预期key
         :return:
         """
-        if isinstance(data, dict):
-            assert expected_key not in data.keys(),f"结果中存在预期key为：{expected_key} 的数据"
+        if isinstance(data,(list,dict)):
+            assert expected_key not in base_utils.get_all_key(data),f"结果中存在预期key为：{expected_key} 的数据"
         else:
-            assert False, '只支持dict的校验，其余暂不支持'
+            assert False,f"{type(data)}数据类型不支持"
 
     @classmethod
     @allure.step('校验等于预期值，预期值为:{2}')
@@ -227,10 +227,20 @@ if __name__ == '__main__':
     dict3 = {'hu':[1111,'adfaf','胡彪']}
     list1 = [1111,'adfaf','胡彪']
     list2 = [1111,'胡彪','adfaf']
-    str2 = {'hu':'adf'}
+    dict5 = {'hu':'adf'}
     list3 = ['89010001#89','89010001#89','89010001#89', '96003010#96']
+    list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
+    list5 = [['89010001#89','89010001#89','89010001#89', '96003010#96'],{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
+    dict4 = {"name":"hubiao","chengji":[10,20,30],"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}
+    str1 = "haha"
     Assertions.assert_dictOrList_eq(dict1,dict2)
     Assertions.assert_dictOrList_eq(list1,list2)
-    Assertions.assert_assign_attribute_value(str2, 'hu', 'adf')
+    Assertions.assert_assign_attribute_value(dict5, 'hu', 'adf')
     Assertions.assert_assign_attribute_value(dict3, "hu", ['adfaf',1111, '胡彪'])
-    Assertions.assert_list_repetition(list3)
+    # Assertions.assert_list_repetition(list3)
+    # Assertions.assert_in_value(dict1,"ppid")
+    # in_value 和 in_key 等要支持list和dict，现在只部分支持
+    Assertions.assert_in_key(list4, "hu")
+    Assertions.assert_in_value(str1, 'haha')
+    Assertions.assert_not_in_key(list4, "hdu")
+    Assertions.assert_not_in_value(dict4, 'addf')

@@ -71,8 +71,7 @@ class Send:
             self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, hooks=dict(response=self.hooks), params=params, timeout=60, files=files)
             # 解决跨域302跳转后响应成cas登录页面的处理，当出现cas登录界面时自动重试相关接口
             if self.Response.status_code == 200 and "/login?service=" in self.Response.url:
-                self.Response = self.session.request(method=method, url=self.Url, data=payload,
-                                                     headers=request_header, timeout=60)
+                self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, params=params, timeout=60, files=files)
         except requests.exceptions.RequestException as e:
             logging.error("RequestException异常开始分割线start: ".center(60, "#"))
             logging.error("请求的Url: " + self.Url)

@@ -6,9 +6,9 @@ import os
 
 import chevron
 from cleo import Command as BaseCommand
-from luban_common.global_map import Global_Map
+from ..global_map import Global_Map
 from pathlib2 import Path
-from luban_common.console.analysis_swagger import AnalysisSwaggerJson
+from ..console.analysis_swagger import AnalysisSwaggerJson
 
 
 class SwaggerCommand(BaseCommand):
@@ -22,9 +22,9 @@ class SwaggerCommand(BaseCommand):
 
     def handle(self):
         # 提示
-        Global_Map().set_map("prompt", False)
+        Global_Map().set("prompt", False)
         # 覆盖
-        Global_Map().set_map("replace", False)
+        Global_Map().set("replace", False)
         js = AnalysisSwaggerJson(self.argument("swagger-url-json"))
         data = js.analysis_json_data()
         if not isinstance(data,dict):
@@ -58,9 +58,9 @@ class SwaggerCommand(BaseCommand):
                         question = (f"Some file already exists, do you want to replace it?")
                         if self.confirm(question, True):
                             self.line("<fg=green>Replace</>")
-                            Global_Map().set_map("prompt",1)
+                            Global_Map().set("prompt",1)
                         else:
-                            Global_Map().set_map("replace",1)
+                            Global_Map().set("replace",1)
                     if Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
                         # file already exists.
                         self.line(f"<fg=red>{group['file_name']}.py</> file already exists, Don't replace")

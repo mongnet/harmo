@@ -132,7 +132,9 @@ luban-common 框架项目结构如下：
 
 #### 3.1.1 企业微信消息
 
-当前微信消息使用的是我个人注册的企业微信，如果想收到消息，需要加入我的企业微信
+当前微信消息使用的是我个人注册的企业微信，如果想收到消息，需要加入我的企业微信，扫描如下二维码添加企业微信
+
+![image-20201211183455067](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20201211183455067.png)
 
 现封装了三种消息格式，分别为 `文本`、`卡片`、`markdown`  消息，可针对不同场景使用对应消息，消息样式如下
 
@@ -1108,14 +1110,14 @@ base_utils.jpath(data,check_key="functionKey",check_value="D-2",sub_key="openSta
 
 全局变量函数，效果同 `global_cache` ，为什么有了 `global_cache` 还要再搞一个 global_map 了，因为 `global_cache` 是一个 fixture 函数，调用会有局限性，它只能在 fixture 函数或测试方法下调用，但实际场景有时候需要在其它函数中获取全局变量
 
-#### 3.6.1 set_map 设置变量
+#### 3.6.1 set 设置变量
 
 设置变量到全局
 
 调用格式如下：
 
 ```python
-Global_Map.set_map(key, value)
+Global_Map.set(key, value)
 ```
 
 [^key]: 变量名称
@@ -1123,38 +1125,38 @@ Global_Map.set_map(key, value)
 
 ```python
 from luban_common.global_map import Global_Map
-Global_Map.set_map("username","hubiao")
+Global_Map.set("username","hubiao")
 ```
 
 
 
-#### 3.6.2 set 设置多变量
+#### 3.6.2 sets 设置多变量
 
 
 
 调用格式如下：
 
 ```python
-Global_Map.set(**keys)
+Global_Map.sets(**keys)
 ```
 
 [^keys]: 设置参数变量，支持
 
 ```python
 from luban_common.global_map import Global_Map
-Global_Map().set(age=20,shcool="luban")
+Global_Map().sets(age=20,shcool="luban")
 ```
 
 
 
-#### 3.6.3 del_map 删除指定变量
+#### 3.6.3 del_key 删除指定变量
 
 从全局变量中删除指定的变量
 
 调用格式如下：
 
 ```python
-Global_Map.del_map(key)
+Global_Map.del_key(key)
 ```
 
 [^del_map]: 需要删除的变量名
@@ -1163,7 +1165,7 @@ Global_Map.del_map(key)
 
 ```python
 from luban_common.global_map import Global_Map
-Global_Map.del_map("username")
+Global_Map.del_key("username")
 ```
 
 

@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib2 import Path
 
 from luban_common import base_utils
-from luban_common.operation import yaml_file
+from ..operation import yaml_file
 
 
 class AnalysisSwaggerJson():
@@ -328,6 +328,11 @@ class AnalysisSwaggerJson():
         return http_interface
 
     def recursion(self,data):
+        '''
+        递归解析数据
+        :param data:
+        :return:
+        '''
         if isinstance(data, list):
             for itme in data:
                 self.recursion(itme)
@@ -420,18 +425,20 @@ if __name__ == '__main__':
     url9 = 'http://192.168.3.236:8083/monitor/v2/api-docs?group=center'
     url10 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(center端)'
     url11 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(客户端)'
-    # print(AnalysisSwaggerJson(url).analysis_json_data())
-    # print(AnalysisSwaggerJson(url1).analysis_json_data())
-    # print(AnalysisSwaggerJson(url2).analysis_json_data())
-    # print(AnalysisSwaggerJson(url3).analysis_json_data())
-    # print(AnalysisSwaggerJson(url4).analysis_json_data())
-    # print(AnalysisSwaggerJson(url5).analysis_json_data())
-    # print(AnalysisSwaggerJson(url6).analysis_json_data())
-    # print(AnalysisSwaggerJson(url7).analysis_json_data())
-    # print(AnalysisSwaggerJson(url8).analysis_json_data())
-    # print(AnalysisSwaggerJson(url9).analysis_json_data())
-    # print(AnalysisSwaggerJson(url10).analysis_json_data())
+    url12 = 'http://192.168.13.206:8083/pds/rs/swagger/swagger.json'
+    print(AnalysisSwaggerJson(url).analysis_json_data())
+    print(AnalysisSwaggerJson(url1).analysis_json_data())
+    print(AnalysisSwaggerJson(url2).analysis_json_data())
+    print(AnalysisSwaggerJson(url3).analysis_json_data())
+    print(AnalysisSwaggerJson(url4).analysis_json_data())
+    print(AnalysisSwaggerJson(url5).analysis_json_data())
+    print(AnalysisSwaggerJson(url6).analysis_json_data())
+    print(AnalysisSwaggerJson(url7).analysis_json_data())
+    print(AnalysisSwaggerJson(url8).analysis_json_data())
+    print(AnalysisSwaggerJson(url9).analysis_json_data())
+    print(AnalysisSwaggerJson(url10).analysis_json_data())
     print(AnalysisSwaggerJson(url11).analysis_json_data())
+    print(AnalysisSwaggerJson(url12).analysis_json_data())
 
     # js.generator_interface_file(result)
     # http://192.168.3.195:8989/BuilderCommonBusinessdata/swagger/index.html
@@ -441,4 +448,6 @@ if __name__ == '__main__':
     # http://192.168.13.202:8084/openapi/swagger/index.html
     # http://192.168.3.236:8083/monitor/swagger-ui.html#/
     # http://192.168.3.199:9083/misc/swagger-ui.html
+    # http://192.168.3.195:8082/pdscommon/swagger/index.html#/
+    # http://192.168.13.206:8083/pds/rs/api/api-docs?url=/pds/rs/api/swagger.json
 

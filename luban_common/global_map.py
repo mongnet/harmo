@@ -13,13 +13,13 @@ class Global_Map:
     __map = {}
 
     @classmethod
-    def set_map(self, key, value):
+    def set(self, key, value):
         if(isinstance(value,dict)):
             value = json.dumps(value)
         self.__map[key] = value
 
     @classmethod
-    def set(self, **keys):
+    def sets(self, **keys):
         try:
             for key_, value_ in keys.items():
                 self.__map[key_] = str(value_)
@@ -27,7 +27,7 @@ class Global_Map:
             raise msg
 
     @classmethod
-    def del_map(self, key):
+    def del_key(self, key):
         try:
             del self.__map[key]
             return self.__map
@@ -48,3 +48,6 @@ class Global_Map:
             return dic
         except KeyError:
             return 'Null_'
+
+if __name__ == '__main__':
+    gl = Global_Map()
