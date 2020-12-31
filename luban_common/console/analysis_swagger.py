@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib2 import Path
 
 from luban_common import base_utils
-from ..operation import yaml_file
+from luban_common.operation import yaml_file
 
 
 class AnalysisSwaggerJson():
@@ -145,77 +145,15 @@ class AnalysisSwaggerJson():
         if not parameters:  # 确保参数字典存在
             parameters = {}
         # 调试用
-        # if name != "检查库工程类别自定义列表接口,排序字段sort_num":
+        # if name != "创建评分（部位树支持）":
         #     return
         for each in parameters:
             if each.get('in') == 'body':
                 # if method.upper() == 'GET':
                 #     raise SyntaxError("语法错误: GET方法不应该有请求体,接口名为："+api)
                 schema = each.get('schema')
-                if schema and '$ref' in schema.keys() or ('items' in schema.keys() and '$ref' in schema.get('items').keys()):
-                    ref = schema.get('items').get('$ref') if schema.get('$ref') is None else schema.get('$ref')
-                    if ref:
-                        # 拆分这个uri，根据实际情况来取第几个/反斜杠
-                        param_key = ref.split('/', 2)[-1]
-                        param = self.definitions[param_key]['properties']
-                        for key, value in param.items():
-                            if 'type' in value.keys():
-                                if 'description' in value.keys():
-                                    http_interface['params_description'].update({key: value['description']})
-                                else:
-                                    http_interface['params_description'].update({key: value['type']})
-                                if 'items' in value.keys():
-                                    if '$ref' in value.get('items'):
-                                        items_ref = self.definitions[value.get('items').get('$ref').split('/', 2)[-1]]['properties']
-                                        data = {}
-                                        for k, v in items_ref.items():
-                                            if 'type' in v.keys():
-                                                data.update({k: v['type']})
-                                                if 'description' in v.keys():
-                                                    http_interface['params_description'].update({k: v['description']})
-                                        http_interface['body'].update({key: [data]})
-                                    elif 'type' in value.get('items'):
-                                        for k,v in value.get('items').items():
-                                            http_interface['body'].update({key: [v]})
-                                            if 'description' in value.keys():
-                                                http_interface['params_description'].update({key: value['description']})
-                                            else:
-                                                http_interface['params_description'].update({key: value['type']})
-                                else:
-                                    http_interface['body'].update({key: value['type']})
-                            elif '$ref' in value.keys():  # 解决 BasicPage 问题
-                                data = {}
-                                # 有多个schema时，这里会报错
-                                if self.definitions.get(value.get('$ref').split('/', 2)[-1]).get('properties'):
-                                    for k,v in self.definitions.get(value.get('$ref').split('/', 2)[-1]).get('properties').items():
-                                        if 'type' in v.keys():
-                                            data.update({k: v['type']})
-                                            if 'description' in v.keys():
-                                                http_interface['params_description'].update({k: v['description']})
-                                            else:
-                                                http_interface['params_description'].update({k: v['type']})
-                                http_interface['body'].update({key: data})
-                                # print(key)
-                    # 处理body为列表时的情况
-                    if schema.get('type') == 'array':
-                        bady = http_interface['body']
-                        del http_interface['body']
-                        http_interface.update({'body':[bady]})
-                # 结果为None时，传参分列表和字符串
-                elif schema.get('$ref') is None and schema.get('type')=='array':
-                    http_interface['body'] = 'body_list'
-                    http_interface['params_description'].update({"body_list": schema.get('items').get('type')})
-                elif schema.get('$ref') is None and schema.get('type')=='string':
-                    http_interface['body'] = 'body_str'
-                    http_interface['params_description'].update({"body_str": schema.get('type')})
-
-            # 看能否把下面的合并成一个，且把必填字段写出
-            # else:
-            #     name = each.get('name')
-            #     for key in each.keys():
-            #         http_interface['query_params'].update({name: each[key]})
-            #         if 'description' in each.keys():
-            #             http_interface['params_description'].update({name: each['description']})
+                if schema:
+                    self.jiexi(schema, http_interface)
 
             if each.get('in') == 'query':
                 name = each.get('name')
@@ -234,8 +172,6 @@ class AnalysisSwaggerJson():
                 http_interface['cookie_params'].update({name: each.get('type')})
                 if 'description' in each.keys():
                     http_interface['params_description'].update({name: each['description']})
-            # 会出现有多个schema的情况，发现后面的schema都是有问题的，所以直接跳出循环
-            # break
 
         # 把 query_params 的 key 组装成新的 query_params_url ,生成用例时添加成测试方法的参数
         if 'query_params' in http_interface.keys() and http_interface['query_params']:
@@ -263,21 +199,14 @@ class AnalysisSwaggerJson():
             http_interface['cookie_params_kwargs'] = list(set(kwargs))
         # 把 body 的 key 组装成新的 body_param ,生成用例时添加成测试方法的参数
         if 'body' in http_interface.keys() and http_interface['body']:
-            if http_interface['body'] != 'body_list' and http_interface['body'] != 'body_str':
-                self.args = []
-                self.kwargs = []
-                self.recursion(http_interface['body'])
-                http_interface['body_params_args'] = list(set(self.args))
-                http_interface['body_params_kwargs'] = list(set(self.kwargs))
-            elif http_interface['body'] == 'body_list':
-                http_interface['body'] = "'$body_list$'"
-                http_interface['body_params_kwargs'] = ["body_list=[]"]
-            elif  http_interface['body'] == 'body_str':
-                http_interface['body'] = "'$body_str$'"
-                http_interface['body_params_kwargs'] = ["body_str='body_str'"]
+            self.args = []
+            self.kwargs = []
+            self.recursion(http_interface['body'])
+            http_interface['body_params_args'] = (list(set(self.args)) if http_interface['body_params_args']==[] else http_interface['body_params_args'])
+            http_interface['body_params_kwargs'] = (list(set(self.kwargs)) if http_interface['body_params_kwargs']==[] else http_interface['body_params_kwargs'])
         # 把 args、kwargs 组装在一起，方便后续调用
-        http_interface['params_args'] = http_interface['path_params_args'] + http_interface['cookie_params_args'] + http_interface['query_params_args'] + http_interface['body_params_args']
-        http_interface['params_kwargs'] = http_interface['path_params_kwargs'] + http_interface['cookie_params_kwargs'] + http_interface['query_params_kwargs'] + http_interface['body_params_kwargs']
+        http_interface['params_args'] = list(set(http_interface['path_params_args'] + http_interface['cookie_params_args'] + http_interface['query_params_args'] + http_interface['body_params_args']))
+        http_interface['params_kwargs'] = list(set(http_interface['path_params_kwargs']+http_interface['cookie_params_kwargs'] + http_interface['query_params_kwargs'] + http_interface['body_params_kwargs']))
         # 把 params_description 组装成 params_description_list 生成用例时,生成字段备注使用
         if 'params_description' in http_interface.keys():
             params_description = []
@@ -326,6 +255,74 @@ class AnalysisSwaggerJson():
         # 定义接口测试用例
         return http_interface
 
+    def jiexi(self,schema,http_interface,ephemeral_key=None,router=[]):
+
+        if '$ref' in schema.keys():
+            ref = schema.get('$ref')
+            if ref:
+                # 拆分这个uri，根据实际情况来取第几个/反斜杠
+                param_key = ref.split('/', 2)[-1]
+                try:
+                    param = self.definitions[param_key]['properties']
+                except KeyError:
+                    print(f"ERROR: {schema}没有properties节点信息，请确认程序生成的swagger信息是否正确")
+                    return
+                ephemeral_data = {}
+                for key, value in param.items():
+                    if 'type' in value.keys():
+                        if ephemeral_key:
+                            ephemeral_data.update({key: value['type']})
+                            if 'description' in value.keys():
+                                http_interface['params_description'].update({key: value['description']})
+                            # http_interface['body'].update({ephemeral_key: [ephemeral_data]})
+                            if 'items' in value.keys() and '$ref' in value.get('items'):
+                                # print(ephemeral_key)
+                                # print(key)
+                                # print(value)
+                                pass
+                            # else:
+                            #     print(value)
+                        else:
+                            if 'description' in value.keys():
+                                http_interface['params_description'].update({key: value['description']})
+                            else:
+                                http_interface['params_description'].update({key: value['type']})
+                            http_interface['body'].update({key: value['type']})
+                            # print(value)
+                            if 'items' in value.keys() and '$ref' in value.get('items'):
+                                # print(key)
+                                pass
+                        if 'items' in value.keys() and '$ref' in value.get('items'):
+                            if value.get('items').get('$ref') == ref:
+                                # 跳出递归死循环
+                                pass
+                            else:
+                                # print(key)
+                                self.jiexi(value, http_interface,key)
+                    elif '$ref' in value.keys():
+                        self.jiexi(value, http_interface, key)
+                if ephemeral_key:
+                    http_interface['body'].update({ephemeral_key: [ephemeral_data]})
+                    # print(http_interface['body'])
+        else:
+            for key, value in schema.items():
+                if isinstance(value, dict) and '$ref' in value.keys():
+                    self.jiexi(value, http_interface,ephemeral_key)
+                    return
+            # 处理body为列表时的情况
+            if schema.get('type') == 'array' and ephemeral_key is None:
+                del http_interface['body']
+                body = "_".join(base_utils.get_all_value(schema))
+                http_interface.update({'body': f"${body}$"})
+                http_interface['params_description'].update({f"${body}$": f"${body}$"})
+                http_interface['body_params_kwargs'].append(f"${body}$=[]")
+            elif schema.get('type') == 'string' and ephemeral_key is None:
+                del http_interface['body']
+                body = "_".join(base_utils.get_all_value(schema))
+                http_interface.update({'body': f"${body}$"})
+                http_interface['params_description'].update({"body_string": "string"})
+                http_interface['body_params_kwargs'].append(f"${body}$=${body}$")
+
     def recursion(self,data):
         '''
         递归解析数据
@@ -341,10 +338,11 @@ class AnalysisSwaggerJson():
                     self.recursion(value)
             for key, value in data.items():
                 if isinstance(value, list):
-                    if isinstance(value[0], dict):
-                        for k, v in value[0].items():
-                            self.wash_body(k, value[0], self.args, self.kwargs)
-                        continue
+                    for i in value:
+                        if isinstance(i, dict):
+                            for k, v in i.items():
+                                self.wash_body(k, i, self.args, self.kwargs)
+                    continue
                 elif isinstance(value, dict):
                     for k, v in value.items():
                         self.wash_body(k, value, self.args, self.kwargs)
@@ -364,7 +362,8 @@ class AnalysisSwaggerJson():
         current_path = os.path.dirname(os.path.realpath(__file__))
         default_parame = yaml_file.get_yaml_data(f'{current_path}/../config/default_parame.yaml')
         blacklist = yaml_file.get_yaml_data(f'{current_path}/../config/blacklist.yaml')
-        if arg in list_args or arg in [kwarg.split('=')[0] for kwarg in list_kwargs if kwarg.startswith(arg)]:
+        # 无默认值的参数无需处理
+        if arg in list_args and arg in blacklist:
             return
         if arg in default_parame.keys():
             # 接口传参默认值处理
@@ -388,6 +387,7 @@ class AnalysisSwaggerJson():
             list_args.append(arg)
         # body 请求体参数化处理
         body[arg] = '$' + arg + '$'
+
 
     def generator_interface_file(self,data):
         '''
@@ -420,24 +420,24 @@ if __name__ == '__main__':
     url5 = 'http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json'
     url6 = 'http://192.168.13.233:8080/dev-api/v2/api-docs'
     url7 = 'http://192.168.13.202:8084/openapi/rs/swagger/swagger.json'
-    url8 = 'http://124.71.44.188:8080/v2/api-docs'
     url9 = 'http://192.168.3.236:8083/monitor/v2/api-docs?group=center'
     url10 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(center端)'
     url11 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(客户端)'
-    url12 = 'http://192.168.13.206:8083/pds/rs/swagger/swagger.json'
-    print(AnalysisSwaggerJson(url).analysis_json_data())
-    print(AnalysisSwaggerJson(url1).analysis_json_data())
-    print(AnalysisSwaggerJson(url2).analysis_json_data())
+    url12 = 'http://192.168.13.20/businessdata/rs/swagger/swagger.json'
+
+    # print(AnalysisSwaggerJson(url).analysis_json_data())
+    # print(AnalysisSwaggerJson(url1).analysis_json_data())
+    # print(AnalysisSwaggerJson(url2).analysis_json_data())
     print(AnalysisSwaggerJson(url3).analysis_json_data())
-    print(AnalysisSwaggerJson(url4).analysis_json_data())
-    print(AnalysisSwaggerJson(url5).analysis_json_data())
-    print(AnalysisSwaggerJson(url6).analysis_json_data())
-    print(AnalysisSwaggerJson(url7).analysis_json_data())
-    print(AnalysisSwaggerJson(url8).analysis_json_data())
-    print(AnalysisSwaggerJson(url9).analysis_json_data())
-    print(AnalysisSwaggerJson(url10).analysis_json_data())
-    print(AnalysisSwaggerJson(url11).analysis_json_data())
-    print(AnalysisSwaggerJson(url12).analysis_json_data())
+    # print(AnalysisSwaggerJson(url4).analysis_json_data())
+    # print(AnalysisSwaggerJson(url5).analysis_json_data())
+    # print(AnalysisSwaggerJson(url6).analysis_json_data())
+    # print(AnalysisSwaggerJson(url7).analysis_json_data())
+    # print(AnalysisSwaggerJson(url9).analysis_json_data())
+    # print(AnalysisSwaggerJson(url10).analysis_json_data())
+    # print(AnalysisSwaggerJson(url11).analysis_json_data())
+    # print(AnalysisSwaggerJson(url12).analysis_json_data())
+
 
     # js.generator_interface_file(result)
     # http://192.168.3.195:8989/BuilderCommonBusinessdata/swagger/index.html
@@ -449,4 +449,7 @@ if __name__ == '__main__':
     # http://192.168.3.199:9083/misc/swagger-ui.html
     # http://192.168.3.195:8082/pdscommon/swagger/index.html#/
     # http://192.168.13.206:8083/pds/rs/api/api-docs?url=/pds/rs/api/swagger.json
+
+    # http://192.168.13.202/gateway/business-data/swagger/index.html#/
+    # http://192.168.13.202/gateway/process/swagger-ui.html
 
