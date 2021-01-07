@@ -147,6 +147,8 @@ class AnalysisSwaggerJson():
         # 调试用
         # if name != "创建评分（部位树支持）":
         #     return
+        # if name != "创建任务中检查信息 （iworksweb）":
+        #     return
         for each in parameters:
             if each.get('in') == 'body':
                 # if method.upper() == 'GET':
@@ -154,6 +156,10 @@ class AnalysisSwaggerJson():
                 schema = each.get('schema')
                 if schema:
                     self.jiexi(schema, http_interface)
+                    if schema.get('type') == 'array':
+                        bady = http_interface['body']
+                        del http_interface['body']
+                        http_interface.update({'body': [bady]})
 
             if each.get('in') == 'query':
                 name = each.get('name')
@@ -428,7 +434,7 @@ if __name__ == '__main__':
     # print(AnalysisSwaggerJson(url).analysis_json_data())
     # print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
-    print(AnalysisSwaggerJson(url3).analysis_json_data())
+    # print(AnalysisSwaggerJson(url3).analysis_json_data())
     # print(AnalysisSwaggerJson(url4).analysis_json_data())
     # print(AnalysisSwaggerJson(url5).analysis_json_data())
     # print(AnalysisSwaggerJson(url6).analysis_json_data())
@@ -436,7 +442,7 @@ if __name__ == '__main__':
     # print(AnalysisSwaggerJson(url9).analysis_json_data())
     # print(AnalysisSwaggerJson(url10).analysis_json_data())
     # print(AnalysisSwaggerJson(url11).analysis_json_data())
-    # print(AnalysisSwaggerJson(url12).analysis_json_data())
+    print(AnalysisSwaggerJson(url12).analysis_json_data())
 
 
     # js.generator_interface_file(result)

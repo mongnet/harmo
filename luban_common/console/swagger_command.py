@@ -17,7 +17,8 @@ class SwaggerCommand(BaseCommand):
 
     swagger
         {swagger-url-json : Swagger url地址，必须是json地址}
-        {--d|directory=? : 生成到指定的目录，可选参数，不指定时生成到当前目录}
+        {--d|directory=? : 生成到指定的目录，不指定时生成到当前目录，可选参数}
+        {--p|project=? : 生成的swagger项目名，不指定时不会添加项目名到接口地址中，可选参数}
     """
 
     def handle(self):
@@ -67,7 +68,13 @@ class SwaggerCommand(BaseCommand):
                         continue
                     # 生成文件
                     with open(f'{current_path}/../config/interface.mustache', 'r') as mustache:
-                        interfaces = chevron.render(mustache, group)
+                        if self.option("project"):
+                            if self.option("project").startswith("/"):
+                                interfaces = chevron.render(mustache, {**group, **{"project":self.option("project")}})
+                            else:
+                                interfaces = chevron.render(mustache, {**group, **{"project": ''.join(["/",self.option("project")])}})
+                        else:
+                            interfaces = chevron.render(mustache, group)
                         interface_file = path/f"{group['file_name']}.py"
                         with interface_file.open("w", encoding="utf-8") as f:
                             f.write(interfaces.replace("'$","").replace("$'","").replace("$",""))

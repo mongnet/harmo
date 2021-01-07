@@ -408,6 +408,7 @@ headers:
     soap_header : '{"Content-Type": "text/xml;charset=utf-8","Accept-Encoding": "gzip, deflate","SOAPAction": ""}'"""
 
 CONFIG_DEFAULT = """pds : http://app.lbuilder.cn
+auth_url: http://app.lbuilder.cn
 youdu_users: "胡彪"
 weixin_toparty: 2
 center:
@@ -950,7 +951,7 @@ class Token:
             self.Authorization = response.get("data")[0]
             Global_Map().set("Authorization", response.get("data")[0])
         # 验证token中账号是否正确
-        userinfo = base_utils.FromBase64(self.Authorization.split(".")[1])
+        userinfo = json.loads(base_utils.FromBase64(self.Authorization.split(".")[1]))
         Assertions().assert_in_value(userinfo,self.username)
 
     def getEnterprises(self):

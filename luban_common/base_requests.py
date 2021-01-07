@@ -60,9 +60,14 @@ class Send:
                     self.session.cookies.set(key,value)
             else:
                 raise TypeError("cookies_kwargs 必须是dict类型")
-        # 当上传文件时不指定Content-Type，files会自动添加Content-Type，人为指定容易出错
-        if files is not None:
+        # 默认上传文件时不指定Content-Type，files会自动添加Content-Type，人为指定容易出错，如果强制指定了header就跳过
+        if files is not None and header is None:
             del request_header["Content-Type"]
+            # 上传文件时在框架中直接判断文件是否存在，调用时可只传文件路径即可
+            if isinstance(files,dict) and "file" in files.keys():
+                pass
+            else:
+                files = {'file': open(base_utils.file_is_exist(files), 'rb')}
         # 判断payload不为str时，dumps成str类型
         if isinstance(payload,list) or (not isinstance(payload,str) and payload):
             payload = json.dumps(payload)
@@ -94,7 +99,9 @@ class Send:
             logging.error("打印请求和响应数据出现异常：" + str(e))
         res = {}
         res["status_code"] = self.Response.status_code
-        res["responsetime"] = self.Response.elapsed.microseconds/1000
+        res["response_time"] = self.Response.elapsed.microseconds/1000
+        res["response_header"] = self.Response.headers
+        res["request_header"] = self.Response.request.headers
         # 当响应体为json类型，且响应信息不为空时
         try:
             self.Response.json()
