@@ -375,14 +375,24 @@ def iworks_web_pdsdoc(iworks_web_cas, env_conf, global_cache):
     yield resule
 
 @pytest.fixture(scope="session")
-def token(env_conf, global_cache):
+def token(env_conf):
     '''
-    获取登录凭证Token
+    数据管理平台获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf["iworksWeb"]["username"], env_conf["iworksWeb"]["password"], env_conf, global_cache)
+    resule = public_login.Token(env_conf["iworksWeb"]["username"], env_conf["iworksWeb"]["password"],env_conf['iworksWebProductId'], env_conf)
     yield  resule.login()
-    # resule.logout()
+    resule.logout()
+
+@pytest.fixture(scope="session")
+def CenterToken(env_conf):
+    '''
+    Center获取登录凭证
+    :return:
+    '''
+    resule = public_login.Token(env_conf["center"]["username"], env_conf["center"]["password"],env_conf['centerProductid'], env_conf)
+    yield  resule.login()
+    resule.logout()
 
 @pytest.fixture(scope="session")
 def openapi_motor_token(token, env_conf, global_cache):
@@ -927,17 +937,16 @@ class IworksWeb:
 
 class Token:
     '''
-    token登录流程
+    通用token登录类，所以标准版本token登录可使用这个类来登录
     '''
-    def __init__(self,username,password,envConf,global_cache):
-        self.cache = global_cache
-        self.productId = envConf['iworksWebProductId']
+    def __init__(self,username,password,productId,envConf):
+        self.productId = productId
         self.username = username
         self.password = password
         self.header = envConf["headers"]["json_header"]
-        self.casLogin = base_requests.Send(envConf['auth_url'], envConf, global_cache=self.cache)
+        self.Login = base_requests.Send(envConf['auth_url'], envConf)
         self.epid = ''
-        self.Authorization = ""
+        self.access_token = ""
 
     def getToken(self):
         '''
@@ -945,13 +954,13 @@ class Token:
         '''
         resource = "/auth-server/auth/token"
         body = {"loginType": "CLIENT_WEB","password": self.password,"username": self.username}
-        response = self.casLogin.request('post', resource, body)
+        response = self.Login.request('post', resource, body)
         Assertions().assert_equal_value(response["status_code"], 200)
         if len(response.get("data")) > 0:
-            self.Authorization = response.get("data")[0]
-            Global_Map().set("Authorization", response.get("data")[0])
+            self.access_token = response.get("data")[0]
+            Global_Map().set("access_token", response.get("data")[0])
         # 验证token中账号是否正确
-        userinfo = json.loads(base_utils.FromBase64(self.Authorization.split(".")[1]))
+        userinfo = json.loads(base_utils.FromBase64(self.access_token.split(".")[1]))
         Assertions().assert_in_value(userinfo,self.username)
 
     def getEnterprises(self):
@@ -959,7 +968,7 @@ class Token:
         获取企业列表
         '''
         resource = f"/auth-server/auth/enterprises/productId/{self.productId}"
-        response = self.casLogin.request('get', resource,header={"access-token":self.Authorization},flush_header=True)
+        response = self.Login.request('get', resource,header={"access-token":self.access_token},flush_header=True)
         Assertions().assert_equal_value(response["status_code"], 200)
         if len(response.get("data_epid")) > 0:
             self.epid = response.get("data_epid")[0]
@@ -972,7 +981,7 @@ class Token:
         '''
         resource = f"/auth-server/auth/enterprise"
         body = {"epid": self.epid}
-        response = self.casLogin.request('put', resource,body)
+        response = self.Login.request('put', resource,body)
         Assertions().assert_equal_value(response["status_code"], 200)
 
     def logout(self):
@@ -980,14 +989,14 @@ class Token:
         退出登录接口
         '''
         resource = "/auth-server/auth/logout"
-        response = self.casLogin.request('get', resource)
+        response = self.Login.request('get', resource)
         Assertions().assert_equal_value(response["status_code"], 200)
 
     def login(self):
         self.getToken()
         self.getEnterprises()
         self.enterprise()
-        return self.casLogin
+        return self.Login
 
 class OpenAPI:
     '''
@@ -1105,7 +1114,6 @@ class Bimapp:
         self.gettoken()
         self.doLoginWithToken()
         return self.BimappLogin
-
 
 class MylubanWeb:
     '''
