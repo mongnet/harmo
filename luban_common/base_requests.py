@@ -6,6 +6,7 @@
 import copy
 import json
 import logging
+from mimetypes import MimeTypes
 
 import requests
 
@@ -60,14 +61,22 @@ class Send:
                     self.session.cookies.set(key,value)
             else:
                 raise TypeError("cookies_kwargs 必须是dict类型")
-        # 默认上传文件时不指定Content-Type，files会自动添加Content-Type，人为指定容易出错，如果强制指定了header就跳过
-        if files is not None and header is None:
-            del request_header["Content-Type"]
+        # 默认上传文件时不指定Content-Type,files会自动添加Content-Type,人为指定容易出错
+        if files is not None:
+            # 指定header时跳过删除类型
+            if header is None:
+                del request_header["Content-Type"]
             # 上传文件时在框架中直接判断文件是否存在，调用时可只传文件路径即可
             if isinstance(files,dict) and "file" in files.keys():
                 pass
             else:
-                files = {'file': open(base_utils.file_is_exist(files), 'rb')}
+                base_utils.file_is_exist(files)
+                filename = base_utils.getFileName(files)
+                fileType = MimeTypes().guess_type(files)[0]
+                if fileType is None:
+                    files = {'file': (filename,open(files, 'rb'))}
+                else:
+                    files = {'file': (filename, open(files, 'rb'),fileType)}
         # 判断payload不为str时，dumps成str类型
         if isinstance(payload,list) or (not isinstance(payload,str) and payload):
             payload = json.dumps(payload)
@@ -113,11 +122,13 @@ class Send:
                     #合并添加的http状态和返回的响应内容
                     res = {**res, **base_utils.ResponseData(Response)}
                 else:
-                    # 非dict、list响应情况，直接把响应信息重组到Response_body中
-                    res["Response_body"] = Response
+                    # 非dict、list响应情况，直接把响应信息返回
+                    res["Response_text"] = self.Response.text
+                    res["Response_content"] = self.Response.content
         except:
-            #非json响应信息时的处理，直接把响应的文本重组给Response_body
-            res["Response_body"] = self.Response.text
+            #非json响应信息时的处理，直接把响应信息返回
+            res["Response_text"] = self.Response.text
+            res["Response_content"] = self.Response.content
         return res
 
     def hooks(self,r,*args, **kwargs):

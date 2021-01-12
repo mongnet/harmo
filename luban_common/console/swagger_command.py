@@ -6,6 +6,8 @@ import os
 
 import chevron
 from cleo import Command as BaseCommand
+from datetime import datetime
+
 from ..global_map import Global_Map
 from pathlib2 import Path
 from ..console.analysis_swagger import AnalysisSwaggerJson
@@ -66,9 +68,11 @@ class SwaggerCommand(BaseCommand):
                         # file already exists.
                         self.line(f"<fg=red>{group['file_name']}.py</> file already exists, Don't replace")
                         continue
+                    group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M')}}
                     # 生成文件
                     with open(f'{current_path}/../config/interface.mustache', 'r') as mustache:
                         if self.option("project"):
+                            # 添加项目名称
                             if self.option("project").startswith("/"):
                                 interfaces = chevron.render(mustache, {**group, **{"project":self.option("project")}})
                             else:

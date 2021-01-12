@@ -567,7 +567,7 @@ class Center:
         resource = '/rs/centerLogin/deployType'
         response = self.CenterLogin.request('get', resource)
         Assertions().assert_equal_value(response["status_code"], 200)
-        deployType = response["Response_body"]
+        deployType = response["Response_text"]
         self.cache.set('deployType', deployType)
 
     def getLT(self):
@@ -578,7 +578,7 @@ class Center:
         resource = '/login'
         response = self.CenterLogin.request('get', resource)
         Assertions().assert_equal_value(response["status_code"], 200)
-        html = response["Response_body"]
+        html = response["Response_text"]
         pattern = 'value="LT(.+?)" />'
         lt = re.findall(pattern, html)[0]
         return lt
@@ -660,7 +660,7 @@ class IworksApp:
         resource = '/login'
         response = self.casLogin.request('get', resource)
         Assertions().assert_equal_value(response["status_code"], 200)
-        html = response["Response_body"]
+        html = response["Response_text"]
         pattern = 'value="LT(.+?)" />'
         lt = re.findall(pattern, html)[0]
         return lt
@@ -740,7 +740,7 @@ class Iworks:
 </SOAP-ENV:Envelope>'''
         response = self.casLogin.request('post',resource,body)
         Assertions().assert_equal_value(response["status_code"], 200)
-        convertedXml = xmltodict.parse(response['Response_body'])
+        convertedXml = xmltodict.parse(response['Response_text'])
         Response_serverURL= base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:getServUrlResponse_return_list'][0]
         assert len(Response_serverURL)!=0,"serverURL不能为空"
         for server in Response_serverURL:
@@ -754,7 +754,7 @@ class Iworks:
         resource = '/login'
         response = self.casLogin.request('get', resource)
         Assertions().assert_equal_value(response["status_code"], 200)
-        html = response["Response_body"]
+        html = response["Response_text"]
         pattern = 'value="LT(.+?)" />'
         lt = re.findall(pattern, html)[0]
         return lt
@@ -784,7 +784,7 @@ class Iworks:
 </soapenv:Envelope>'''
         response = self.casLogin.request('post',resource,body)
         Assertions().assert_equal_value(response["status_code"], 200)
-        convertedXml = xmltodict.parse(response['Response_body'])
+        convertedXml = xmltodict.parse(response['Response_text'])
         enterpriseId = base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:getCompanyListResponse_return_enterpriseId']
         print(enterpriseId)
         if len(enterpriseId) > 0:
@@ -832,7 +832,7 @@ class Iworks:
 '''
         response = self.casLogin.request('post',resource,body,self.header)
         Assertions().assert_equal_value(response["status_code"], 200)
-        convertedXml = xmltodict.parse(response['Response_body'])
+        convertedXml = xmltodict.parse(response['Response_text'])
         Response_authCodes = base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:casLoginResponse_return_clientAuthGroupResultList_list']
         print(Response_authCodes)
     def login(self):
@@ -1084,8 +1084,8 @@ class Bimapp:
         resource = "/getAcAddress.htm"
         response = self.BimappLogin.request('get', resource)
         Assertions().assert_equal_value(response["status_code"], 200)
-        if response["Response_body"] is not None:
-            self.AcAddress = response["Response_body"]
+        if response["Response_text"] is not None:
+            self.AcAddress = response["Response_text"]
 
     def gettoken(self):
         '''

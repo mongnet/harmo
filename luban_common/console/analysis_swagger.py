@@ -55,13 +55,12 @@ class AnalysisSwaggerJson():
 
         for tag_dict in res['tags']:
             self.tags_list.append(tag_dict)
-
         if isinstance(self.data, dict):  # 判断接口返回的paths数据类型是否dict类型
             # 前面已经把接口返回的结果tags分别写入了tags_list空列表,再从json对应的tag往里面插入数据
             for tag in self.tags_list:
                 self.group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
                 self.repetition_operationId = []
-                for uri, value in self.data.items():
+                for uri, value in list(self.data.items()):
                     for method in list(value.keys()):
                         params = value[method]
                         # deprecated字段标识：接口是否被弃用，暂时无法判断
@@ -73,6 +72,8 @@ class AnalysisSwaggerJson():
                         else:
                             print(f"interface path: {uri}, if name: {params['operationId']}, is deprecated.")
                             break
+                    # 优化循环性能，已经处理过的数据删除掉，避免重复循环
+                    # del self.data[f"{uri}"]
                 # 生成 class_name 和 file_name
                 uri_list = base_utils.jpath(self.group, check_key='uri', sub_key='uri')
                 if isinstance(uri_list,list):
@@ -86,7 +87,6 @@ class AnalysisSwaggerJson():
                         break
                     self.group['class_name'] = file_name.capitalize()
                     self.group['file_name'] = file_name
-                    self.group['generated_time'] = datetime.now().strftime('%Y/%m/%d %H:%M')
                 self.http_interface_group['groups'].append(self.group)
         else:
             return 'error'
@@ -156,6 +156,8 @@ class AnalysisSwaggerJson():
                 schema = each.get('schema')
                 if schema:
                     self.jiexi(schema, http_interface)
+                    # print(schema.get('type'))
+                    # print(schema)
                     if schema.get('type') == 'array':
                         bady = http_interface['body']
                         del http_interface['body']
@@ -303,10 +305,13 @@ class AnalysisSwaggerJson():
                                 # 跳出递归死循环
                                 pass
                             else:
-                                # print(key)
                                 self.jiexi(value, http_interface,key)
                     elif '$ref' in value.keys():
-                        self.jiexi(value, http_interface, key)
+                        if value.get('$ref') == ref:
+                            # 跳出递归死循环
+                            pass
+                        else:
+                            self.jiexi(value, http_interface, key)
                 if ephemeral_key:
                     http_interface['body'].update({ephemeral_key: [ephemeral_data]})
                     # print(http_interface['body'])
@@ -430,25 +435,27 @@ if __name__ == '__main__':
     url10 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(center端)'
     url11 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(客户端)'
     url12 = 'http://192.168.13.20/businessdata/rs/swagger/swagger.json'
+    url13 = 'http://192.168.3.195/gateway/process/v2/api-docs'
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
     # print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
     # print(AnalysisSwaggerJson(url3).analysis_json_data())
     # print(AnalysisSwaggerJson(url4).analysis_json_data())
-    # print(AnalysisSwaggerJson(url5).analysis_json_data())
+    print(AnalysisSwaggerJson(url5).analysis_json_data())
     # print(AnalysisSwaggerJson(url6).analysis_json_data())
     # print(AnalysisSwaggerJson(url7).analysis_json_data())
     # print(AnalysisSwaggerJson(url9).analysis_json_data())
     # print(AnalysisSwaggerJson(url10).analysis_json_data())
     # print(AnalysisSwaggerJson(url11).analysis_json_data())
-    print(AnalysisSwaggerJson(url12).analysis_json_data())
+    # print(AnalysisSwaggerJson(url12).analysis_json_data())
+    # print(AnalysisSwaggerJson(url13).analysis_json_data())
 
 
     # js.generator_interface_file(result)
     # http://192.168.3.195:8989/BuilderCommonBusinessdata/swagger/index.html
     # http://192.168.3.195:8989/LBprocess/swagger-ui.html
-    # http://192.168.13.233:8080/dev-api/doc.html
+    # http://192.168.13.233:8080/auth-server/doc.html
     # http://192.168.3.195:8080/Plan/swagger/index.html
     # http://192.168.13.202:8084/openapi/swagger/index.html
     # http://192.168.3.236:8083/monitor/swagger-ui.html#/
