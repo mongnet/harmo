@@ -31,7 +31,7 @@ class Send:
         self.session = requests.session()
         self.pdsUrl = envConf["pds"]
 
-    def request(self, method, address, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,**kwargs):
+    def request(self, method, address, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,timeout=60,**kwargs):
         '''
         封装request方法，要求传三个参数
         :param method：请求的方式post,get,delete,put等
@@ -82,10 +82,10 @@ class Send:
             payload = json.dumps(payload)
         try:
             # 发送POST请求
-            self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, hooks=dict(response=self.hooks), params=params, timeout=60, files=files)
+            self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, hooks=dict(response=self.hooks), params=params, timeout=timeout, files=files)
             # 解决跨域302跳转后响应成cas登录页面的处理，当出现cas登录界面时自动重试相关接口
             if self.Response.status_code == 200 and "/login?service=" in self.Response.url:
-                self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, params=params, timeout=60, files=files)
+                self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, params=params, timeout=timeout, files=files)
         except requests.exceptions.RequestException as e:
             logging.error("RequestException异常开始分割线start: ".center(60, "#"))
             logging.error("请求的Url: " + self.Url)

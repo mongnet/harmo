@@ -477,7 +477,7 @@ def upFiles(item_fixture, resource, filePath):
     file = base_utils.file_is_exist(filePath)
     try:
         response = item_fixture.request('post', resource, files={'file': open(file, 'rb')})
-        return response["Response_body"]
+        return response["Response_text"]
     except Exception as e:
         raise FileNotFoundError(f"上传文件失败，错误原因:{e}")"""
 

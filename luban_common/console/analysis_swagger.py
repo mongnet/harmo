@@ -38,7 +38,9 @@ class AnalysisSwaggerJson():
         """
         # swagger接口文档地址
         try:
-            res = requests.get(self.url).json()
+            request = requests.get(self.url)
+            assert request.status_code == 200,f"swagger地址无法访问，响应状态码为{request.status_code}"
+            res = request.json()
         except Exception as e:
             raise e
 
@@ -156,8 +158,6 @@ class AnalysisSwaggerJson():
                 schema = each.get('schema')
                 if schema:
                     self.jiexi(schema, http_interface)
-                    # print(schema.get('type'))
-                    # print(schema)
                     if schema.get('type') == 'array':
                         bady = http_interface['body']
                         del http_interface['body']
@@ -263,8 +263,7 @@ class AnalysisSwaggerJson():
         # 定义接口测试用例
         return http_interface
 
-    def jiexi(self,schema,http_interface,ephemeral_key=None,router=[]):
-
+    def jiexi(self,schema,http_interface,ephemeral_key=None,key_type=None,body=None):
         if '$ref' in schema.keys():
             ref = schema.get('$ref')
             if ref:
@@ -281,31 +280,31 @@ class AnalysisSwaggerJson():
                         if ephemeral_key:
                             ephemeral_data.update({key: value['type']})
                             if 'description' in value.keys():
-                                http_interface['params_description'].update({key: value['description']})
-                            # http_interface['body'].update({ephemeral_key: [ephemeral_data]})
+                                http_interface['params_description'].update({key: value['description'] + ",可用值:" + ",".join(value['enum']) if "enum" in value.keys() else value['description']})
                             if 'items' in value.keys() and '$ref' in value.get('items'):
-                                # print(ephemeral_key)
-                                # print(key)
-                                # print(value)
                                 pass
-                            # else:
-                            #     print(value)
                         else:
                             if 'description' in value.keys():
-                                http_interface['params_description'].update({key: value['description']})
+                                http_interface['params_description'].update({key: value['description'] + ",可用值:" + ",".join(value['enum']) if "enum" in value.keys() else value['description']})
                             else:
                                 http_interface['params_description'].update({key: value['type']})
                             http_interface['body'].update({key: value['type']})
-                            # print(value)
-                            if 'items' in value.keys() and '$ref' in value.get('items'):
-                                # print(key)
-                                pass
                         if 'items' in value.keys() and '$ref' in value.get('items'):
                             if value.get('items').get('$ref') == ref:
                                 # 跳出递归死循环
                                 pass
                             else:
-                                self.jiexi(value, http_interface,key)
+                                if ephemeral_key is None:
+                                    http_interface['body'].update({key: []})
+                                    self.jiexi(value.get('items'), http_interface, key, value['type'],body=http_interface['body'][key])
+                                else:
+                                    if body is not None:
+                                        if key_type == 'array':
+                                            if key in ephemeral_data:
+                                                ephemeral_data.update({key: []})
+                                            else:
+                                                body.append({key: []})
+                                    self.jiexi(value.get('items'), http_interface, key, value['type'],body=ephemeral_data)
                     elif '$ref' in value.keys():
                         if value.get('$ref') == ref:
                             # 跳出递归死循环
@@ -313,8 +312,13 @@ class AnalysisSwaggerJson():
                         else:
                             self.jiexi(value, http_interface, key)
                 if ephemeral_key:
-                    http_interface['body'].update({ephemeral_key: [ephemeral_data]})
-                    # print(http_interface['body'])
+                    if body:
+                        if body[ephemeral_key] == 'array':
+                            body[ephemeral_key] = [ephemeral_data]
+                        else:
+                            body[ephemeral_key].append(ephemeral_data)
+                    else:
+                        http_interface['body'].update({ephemeral_key.split("_")[-1]: [ephemeral_data]})
         else:
             for key, value in schema.items():
                 if isinstance(value, dict) and '$ref' in value.keys():
@@ -347,14 +351,8 @@ class AnalysisSwaggerJson():
             for key, value in data.items():
                 if isinstance(value, list):
                     self.recursion(value)
-            for key, value in data.items():
-                if isinstance(value, list):
-                    for i in value:
-                        if isinstance(i, dict):
-                            for k, v in i.items():
-                                self.wash_body(k, i, self.args, self.kwargs)
                     continue
-                elif isinstance(value, dict):
+                if isinstance(value, dict):
                     for k, v in value.items():
                         self.wash_body(k, value, self.args, self.kwargs)
                     continue
@@ -429,7 +427,7 @@ if __name__ == '__main__':
     url3 = "http://192.168.13.20/pdscommon/rs/swagger/swagger.json"
     url4 = 'http://192.168.13.202:8082/pdsdoc/rs/swagger/swagger.json'
     url5 = 'http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json'
-    url6 = 'http://192.168.13.233:8080/dev-api/v2/api-docs'
+    url6 = 'http://192.168.13.233:8080/auth-server/v2/api-docs'
     url7 = 'http://192.168.13.202:8084/openapi/rs/swagger/swagger.json'
     url9 = 'http://192.168.3.236:8083/monitor/v2/api-docs?group=center'
     url10 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(center端)'
@@ -437,18 +435,20 @@ if __name__ == '__main__':
     url12 = 'http://192.168.13.20/businessdata/rs/swagger/swagger.json'
     url13 = 'http://192.168.3.195/gateway/process/v2/api-docs'
 
+
+    # print(AnalysisSwaggerJson(url3).analysis_json_data())
+    # print(AnalysisSwaggerJson(url4).analysis_json_data())
+    # print(AnalysisSwaggerJson(url7).analysis_json_data())
+    # print(AnalysisSwaggerJson(url12).analysis_json_data())
+
     # print(AnalysisSwaggerJson(url).analysis_json_data())
     # print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
-    # print(AnalysisSwaggerJson(url3).analysis_json_data())
-    # print(AnalysisSwaggerJson(url4).analysis_json_data())
     print(AnalysisSwaggerJson(url5).analysis_json_data())
     # print(AnalysisSwaggerJson(url6).analysis_json_data())
-    # print(AnalysisSwaggerJson(url7).analysis_json_data())
     # print(AnalysisSwaggerJson(url9).analysis_json_data())
     # print(AnalysisSwaggerJson(url10).analysis_json_data())
     # print(AnalysisSwaggerJson(url11).analysis_json_data())
-    # print(AnalysisSwaggerJson(url12).analysis_json_data())
     # print(AnalysisSwaggerJson(url13).analysis_json_data())
 
 
