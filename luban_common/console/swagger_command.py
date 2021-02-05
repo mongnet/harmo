@@ -18,9 +18,9 @@ class SwaggerCommand(BaseCommand):
     Swagger generates file interfaces
 
     swagger
-        {swagger-url-json : Swagger url地址，必须是json地址}
-        {--d|directory=? : 生成到指定的目录，不指定时生成到当前目录，可选参数}
-        {--p|project=? : 生成的swagger项目名，不指定时不会添加项目名到接口地址中，可选参数}
+        {swagger-url-json : Swagger url地址，必须是json地址，必填参数}
+        {directory : 生成到指定的目录，一般为项目名称，必填参数}
+        {--p|project=? : 项目名，会把项目名和接口地址合并成新的接口地址，接口文件中的 resource 字段，可选参数}
     """
 
     def handle(self):
@@ -34,10 +34,7 @@ class SwaggerCommand(BaseCommand):
             raise FileExistsError("数据类型错误，传入的数据必须为dict")
         for key, values in data.items():
             if "groups" in key:
-                if self.option("directory"):
-                    path = Path.cwd() / Path(self.option("directory")) / data["config"]["name_en"]
-                else:
-                    path = Path.cwd() / data["config"]["name_en"]
+                path = Path.cwd() / Path(self.argument("directory"))
                 if path.exists():
                     if list(path.glob("*")):
                         self.line("")

@@ -424,26 +424,26 @@ if __name__ == '__main__':
     url = "http://192.168.3.195:8080/Plan/rs/swagger/swagger.json"
     url1 = "http://192.168.3.195/LBbuilder/v2/api-docs"
     url2 = "http://192.168.3.195:8989/LBprocess/v2/api-docs"
-    url3 = "http://192.168.13.20/pdscommon/rs/swagger/swagger.json"
-    url4 = 'http://192.168.13.202:8082/pdsdoc/rs/swagger/swagger.json'
+    url3 = "http://192.168.3.195/pdscommon/rs/swagger/swagger.json"
+    url4 = 'http://192.168.3.195/pdsdoc/rs/swagger/swagger.json'
     url5 = 'http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json'
     url6 = 'http://192.168.13.233:8080/auth-server/v2/api-docs'
-    url7 = 'http://192.168.13.202:8084/openapi/rs/swagger/swagger.json'
+    url7 = 'http://192.168.3.195/openapi/rs/swagger/swagger.json'
     url9 = 'http://192.168.3.236:8083/monitor/v2/api-docs?group=center'
     url10 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(center端)'
     url11 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(客户端)'
-    url12 = 'http://192.168.13.20/businessdata/rs/swagger/swagger.json'
+    url12 = 'http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json'
     url13 = 'http://192.168.3.195/gateway/process/v2/api-docs'
 
 
-    # print(AnalysisSwaggerJson(url3).analysis_json_data())
-    # print(AnalysisSwaggerJson(url4).analysis_json_data())
     # print(AnalysisSwaggerJson(url7).analysis_json_data())
     # print(AnalysisSwaggerJson(url12).analysis_json_data())
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
     # print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
+    # print(AnalysisSwaggerJson(url3).analysis_json_data())
+    # print(AnalysisSwaggerJson(url4).analysis_json_data())
     print(AnalysisSwaggerJson(url5).analysis_json_data())
     # print(AnalysisSwaggerJson(url6).analysis_json_data())
     # print(AnalysisSwaggerJson(url9).analysis_json_data())
@@ -453,16 +453,14 @@ if __name__ == '__main__':
 
 
     # js.generator_interface_file(result)
-    # http://192.168.3.195:8989/BuilderCommonBusinessdata/swagger/index.html
     # http://192.168.3.195:8989/LBprocess/swagger-ui.html
     # http://192.168.13.233:8080/auth-server/doc.html
     # http://192.168.3.195:8080/Plan/swagger/index.html
     # http://192.168.13.202:8084/openapi/swagger/index.html
     # http://192.168.3.236:8083/monitor/swagger-ui.html#/
     # http://192.168.3.199:9083/misc/swagger-ui.html
-    # http://192.168.3.195:8082/pdscommon/swagger/index.html#/
+    # http://192.168.3.195/gateway/pdscommon/swagger/index.html
     # http://192.168.13.206:8083/pds/rs/api/api-docs?url=/pds/rs/api/swagger.json
-
-    # http://192.168.13.202/gateway/business-data/swagger/index.html#/
-    # http://192.168.13.202/gateway/process/swagger-ui.html
+    # http://192.168.3.195/gateway/business-data/swagger/index.html#/
+    # http://192.168.3.195/gateway/process/swagger-ui.html
 

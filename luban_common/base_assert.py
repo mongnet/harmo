@@ -171,6 +171,32 @@ class Assertions:
             assert False, "校验值不等于None"
 
     @classmethod
+    @allure.step('校验为空')
+    def assert_isEmpty(self, reality_value):
+        """
+        校验值为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空
+        :param reality_value: 实际值
+        :return:
+        """
+        if not reality_value:
+            assert True
+        else:
+            assert False, f"校验值不为空,值为:{reality_value}"
+
+    @classmethod
+    @allure.step('校验不为空')
+    def assert_isNotEmpty(self, reality_value):
+        """
+        校验值不为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空
+        :param reality_value: 实际值
+        :return:
+        """
+        if reality_value:
+            assert True
+        else:
+            assert False, f"校验值为空,值为:{reality_value}"
+
+    @classmethod
     @allure.step('校验时间小于预期，实际值为:{2}，预期值为:{3}')
     def assert_time(self, reality_time, expected_time):
         """
@@ -189,8 +215,8 @@ class Assertions:
     def assert_dictOrList_eq(self,reality, expected):
         """
         校验字典或列表是否相等
-        :param reality: 实际值
-        :param expected: 预期值
+        :param reality: 实际字典或列表
+        :param expected: 预期字典或列表
         :return:
         """
         if isinstance(reality, dict) and isinstance(expected, dict):
@@ -241,6 +267,7 @@ if __name__ == '__main__':
     # Assertions.assert_in_value(dict1,"ppid")
     # in_value 和 in_key 等要支持list和dict，现在只部分支持
     Assertions.assert_in_key(list4, "hu")
-    Assertions.assert_in_value(str1, 'haha')
     Assertions.assert_not_in_key(list4, "hdu")
     Assertions.assert_not_in_value(dict4, 'addf')
+
+

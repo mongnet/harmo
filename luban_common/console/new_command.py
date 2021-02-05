@@ -380,7 +380,7 @@ def token(env_conf):
     数据管理平台获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf["iworksWeb"]["username"], env_conf["iworksWeb"]["password"],env_conf['iworksWebProductId'], env_conf)
+    resule = public_login.WebToken(env_conf["iworksWeb"]["username"], env_conf["iworksWeb"]["password"],env_conf['iworksWebProductId'], env_conf)
     yield  resule.login()
     resule.logout()
 
@@ -439,7 +439,7 @@ addopts =
 globalConf = Config/globalConf.yaml
 minversion = 5.0
 testpaths = testcases testsuites
-message_switch = True
+message_switch = False
 success_message = False
 log_cli = True
 log_cli_level = ERROR
@@ -935,6 +935,98 @@ class IworksWeb:
         self.enterpriseInfo()
         self.authgroup()
 
+class WebToken:
+    '''
+    webtoken登录类，工程管理数字化平台使用
+    '''
+    def __init__(self,username,password,productId,envConf):
+        self.productId = productId
+        self.username = username
+        self.password = password
+        self.header = envConf["headers"]["json_header"]
+        self.Login = base_requests.Send(envConf['auth_url'], envConf)
+        self.epid = ''
+        self.access_token = ""
+
+    def getToken(self):
+        '''
+        获取token接口
+        '''
+        resource = "/auth-server/auth/token"
+        body = {"loginType": "192","password": self.password,"username": self.username}
+        response = self.Login.request('post', resource, body)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
+        if len(response.get("data")) > 0:
+            self.access_token = response.get("data")[0]
+            Global_Map().set("access_token", response.get("data")[0])
+        # 验证token中账号是否正确
+        userinfo = json.loads(base_utils.FromBase64(self.access_token.split(".")[1]))
+        Assertions().assert_in_value(userinfo,self.username)
+
+    def getEnterprises(self):
+        '''
+        获取企业列表
+        '''
+        resource = f"/auth-server/auth/enterprises"
+        response = self.Login.request('get', resource,header={"access-token":self.access_token},flush_header=True)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
+        if len(response.get("data_epid")) > 0:
+            self.epid = response.get("data_epid")[0]
+            Global_Map().set("epid", response.get("data_epid")[0])
+            Global_Map().set("enterpriseName", response.get("data_enterpriseName")[0])
+
+    def enterprise(self):
+        '''
+        切换企业
+        '''
+        resource = f"/auth-server/auth/enterprise"
+        body = {"epid": self.epid}
+        response = self.Login.request('put', resource,body)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
+
+    def client(self):
+        '''
+        获取产品权限
+        '''
+        resource = f"/auth-server/auth/client"
+        response = self.Login.request('get', resource)
+        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_in_value(response.get("data_productId"),192)
+
+    def authgroup(self):
+        '''
+        获取权限码，加切登录产品
+        '''
+        resource = f"/auth-server/auth/authgroup/192"
+        response = self.Login.request('get', resource)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
+
+    def clientModule(self):
+        '''
+        获取模块
+        '''
+        resource = f"/auth-server/auth/clientModule"
+        response = self.Login.request('get', resource)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_in_key(response.get("source_response"), "productId")
+
+    def logout(self):
+        '''
+        退出登录接口
+        '''
+        resource = "/auth-server/auth/logout"
+        response = self.Login.request('get', resource)
+        Assertions().assert_equal_value(response["status_code"], 200)
+
+    def login(self):
+        self.getToken()
+        self.getEnterprises()
+        self.enterprise()
+        self.client()
+        self.authgroup()
+        self.clientModule()
+        return self.Login
+
 class Token:
     '''
     通用token登录类，所以标准版本token登录可使用这个类来登录
@@ -953,9 +1045,9 @@ class Token:
         获取token接口
         '''
         resource = "/auth-server/auth/token"
-        body = {"loginType": "CLIENT_WEB","password": self.password,"username": self.username}
+        body = {"loginType": "CENTER_WEB","password": self.password,"username": self.username}
         response = self.Login.request('post', resource, body)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
         if len(response.get("data")) > 0:
             self.access_token = response.get("data")[0]
             Global_Map().set("access_token", response.get("data")[0])
@@ -969,7 +1061,7 @@ class Token:
         '''
         resource = f"/auth-server/auth/enterprises/productId/{self.productId}"
         response = self.Login.request('get', resource,header={"access-token":self.access_token},flush_header=True)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
         if len(response.get("data_epid")) > 0:
             self.epid = response.get("data_epid")[0]
             Global_Map().set("epid", response.get("data_epid")[0])
@@ -982,7 +1074,7 @@ class Token:
         resource = f"/auth-server/auth/enterprise"
         body = {"epid": self.epid}
         response = self.Login.request('put', resource,body)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
 
     def logout(self):
         '''
@@ -990,7 +1082,7 @@ class Token:
         '''
         resource = "/auth-server/auth/logout"
         response = self.Login.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
 
     def login(self):
         self.getToken()
