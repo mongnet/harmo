@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 # @TIME    : 2020/7/27 17:55
 # @Author  : system
-# @File    : {{file_name}}.py
+# @File    : test_{{file_name}}.py
 
 import pytest
 import allure
 from luban_common.base_assert import Assertions
-from swagger.{{file_name}} import {{class_name}}
+from swagger.{{directory}}.{{file_name}} import {{class_name}}
 
 @allure.feature("{{name}}")
 class Test_{{class_name}}:
@@ -17,11 +17,11 @@ class Test_{{class_name}}:
 
     {{# interfaces}}
     @allure.title('{{name_cn}}')
-    def test_{{name_en}}(self, item_fixture):
+    def test_{{name_en}}(self, token):
         '''
         {{name_cn}}
         '''
-        response = {{class_name}}().{{name_en}}(item_fixture{{# params_args}}, {{{.}}}{{/ params_args}})
+        response = {{class_name}}().{{name_en}}(token{{# params_args}}, {{{.}}}{{/ params_args}})
         Assertions.assert_all_code(response,200,200)
         Assertions.assert_equal_value(response.get("success")[0],True)
 

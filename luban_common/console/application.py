@@ -1,6 +1,7 @@
 from cleo import Application as BaseApplication
 
 from luban_common.__version__ import __version__
+from .cases_command import CasesCommand
 from .youdu_msg_command import YouduMsgCommand
 from .weixin_msg_command import WeixinMsgCommand
 from .swagger_command import SwaggerCommand
@@ -19,7 +20,8 @@ class Application(BaseApplication):
             NewCommand(),
             SwaggerCommand(),
             WeixinMsgCommand(),
-            YouduMsgCommand()
+            YouduMsgCommand(),
+            CasesCommand()
         ]
 
         return commands

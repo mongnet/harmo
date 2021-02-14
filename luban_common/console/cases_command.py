@@ -14,7 +14,7 @@ from datetime import datetime
 
 class CasesCommand(BaseCommand):
     """
-    Swagger generates cases
+    通过 Swagger 生成测试用例
 
     swaggerCase
         {swagger-url-json : Swagger url地址，必须是json地址，必填参数}
@@ -50,10 +50,14 @@ class CasesCommand(BaseCommand):
                 path.mkdir(mode=0o777, parents=True, exist_ok=True)
                 package_init = path / "__init__.py"
                 package_init.touch(exist_ok=True)
+                # 生成 __init__.py
+                if Path.cwd().glob(f"swagger/__init__.py"):
+                    testcases_init = Path.cwd() /"swagger"/ "__init__.py"
+                    testcases_init.touch(exist_ok=True)
                 current_path = os.path.dirname(os.path.realpath(__file__))
                 # 是否覆盖文件
                 for group in values:
-                    if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f"test_{group['file_name']}.py")):
+                    if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
                         self.line("")
                         question = (f"Some file already exists, do you want to replace it?")
                         if self.confirm(question, True):
@@ -61,9 +65,9 @@ class CasesCommand(BaseCommand):
                             Global_Map().set("prompt",1)
                         else:
                             Global_Map().set("replace",1)
-                    if Global_Map().get("replace") and list(path.glob(f"test_{group['file_name']}.py")):
+                    if Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
                         # file already exists.
-                        self.line(f"<fg=red>test_{group['file_name']}.py</> file already exists, Don't replace")
+                        self.line(f"<fg=red>{group['file_name']}.py</> file already exists, Don't replace")
                         continue
                     group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M')}}
                     # 生成文件
@@ -76,7 +80,7 @@ class CasesCommand(BaseCommand):
                                 interfaces = chevron.render(mustache, {**group, **{"project": ''.join(["/",self.option("project")])}})
                         else:
                             interfaces = chevron.render(mustache, group)
-                        interface_file = path/f"test_{group['file_name']}.py"
+                        interface_file = path/f"{group['file_name']}.py"
                         with interface_file.open("w", encoding="utf-8") as f:
                             f.write(interfaces.replace("'$","").replace("$'","").replace("$",""))
                         self.line("Created file: <fg=green>{}</>".format(interface_file))
@@ -93,7 +97,10 @@ class CasesCommand(BaseCommand):
             raise FileExistsError("数据类型错误，传入的数据必须为dict")
         for key, values in data.items():
             if "groups" in key:
-                path = Path.cwd() /"swagger"/ Path(self.argument("directory"))
+                if self.option("project"):
+                    path = Path.cwd() /"testcases"/ Path(self.argument("directory")) / Path(self.option("project"))
+                else:
+                    path = Path.cwd() / "testcases" / Path(self.argument("directory"))
                 if path.exists():
                     if list(path.glob("*")):
                         self.line("")
@@ -109,6 +116,13 @@ class CasesCommand(BaseCommand):
                 path.mkdir(mode=0o777, parents=True, exist_ok=True)
                 package_init = path / "__init__.py"
                 package_init.touch(exist_ok=True)
+                # 生成 __init__.py
+                if Path.cwd().glob(f"testcases/__init__.py"):
+                    testcases_init = Path.cwd() /"testcases"/ "__init__.py"
+                    testcases_init.touch(exist_ok=True)
+                if Path.cwd().glob(f"testcases/directory/__init__.py"):
+                    directory_init = Path.cwd() /"testcases" / Path(self.argument("directory")) /"__init__.py"
+                    directory_init.touch(exist_ok=True)
                 current_path = os.path.dirname(os.path.realpath(__file__))
                 # 是否覆盖文件
                 for group in values:
@@ -124,17 +138,10 @@ class CasesCommand(BaseCommand):
                         # file already exists.
                         self.line(f"<fg=red>test_{group['file_name']}.py</> file already exists, Don't replace")
                         continue
-                    group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M')}}
+                    group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M'),"directory":self.argument("directory")}}
                     # 生成文件
-                    with open(f'{current_path}/../config/interface.mustache', 'r') as mustache:
-                        if self.option("project"):
-                            # 添加项目名称
-                            if self.option("project").startswith("/"):
-                                interfaces = chevron.render(mustache, {**group, **{"project":self.option("project")}})
-                            else:
-                                interfaces = chevron.render(mustache, {**group, **{"project": ''.join(["/",self.option("project")])}})
-                        else:
-                            interfaces = chevron.render(mustache, group)
+                    with open(f'{current_path}/../config/cases.mustache', 'r') as mustache:
+                        interfaces = chevron.render(mustache, group)
                         interface_file = path/f"test_{group['file_name']}.py"
                         with interface_file.open("w", encoding="utf-8") as f:
                             f.write(interfaces.replace("'$","").replace("$'","").replace("$",""))
