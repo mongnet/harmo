@@ -1053,7 +1053,7 @@ class Token:
             Global_Map().set("access_token", response.get("data")[0])
         # 验证token中账号是否正确
         userinfo = json.loads(base_utils.FromBase64(self.access_token.split(".")[1]))
-        Assertions().assert_in_value(userinfo,self.username)
+        Assertions().assert_in_value(userinfo,str(self.username))
 
     def getEnterprises(self):
         '''

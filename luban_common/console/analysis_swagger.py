@@ -453,14 +453,15 @@ if __name__ == '__main__':
 
 
     # js.generator_interface_file(result)
-    # http://192.168.3.195:8989/LBprocess/swagger-ui.html
-    # http://192.168.13.233:8080/auth-server/doc.html
-    # http://192.168.3.195:8080/Plan/swagger/index.html
-    # http://192.168.13.202:8084/openapi/swagger/index.html
-    # http://192.168.3.236:8083/monitor/swagger-ui.html#/
-    # http://192.168.3.199:9083/misc/swagger-ui.html
-    # http://192.168.3.195/gateway/pdscommon/swagger/index.html
     # http://192.168.13.206:8083/pds/rs/api/api-docs?url=/pds/rs/api/swagger.json
-    # http://192.168.3.195/gateway/business-data/swagger/index.html#/
+    # http://192.168.3.195/gateway/auth-server/doc.html
+    # http://192.168.3.195/gateway/monitor/swagger-ui.html
+    # http://192.168.3.195/gateway/misc/swagger-ui.html
+    # http://192.168.3.195/gateway/openapi/swagger/index.html
+    # http://192.168.3.195/gateway/plan/swagger/index.html
     # http://192.168.3.195/gateway/process/swagger-ui.html
+    # http://192.168.3.195/gateway/pdscommon/swagger/index.html
+    # http://192.168.3.195/gateway/businessdata/swagger/index.html
+    # http://192.168.3.195/gateway/process/swagger-ui.html
+    # http://192.168.3.195/gateway/builder/doc.html
 
