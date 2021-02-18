@@ -418,7 +418,8 @@ headers:
     soap_header : '{"Content-Type": "text/xml;charset=utf-8","Accept-Encoding": "gzip, deflate","SOAPAction": ""}'"""
 
 CONFIG_DEFAULT = """pds : http://app.lbuilder.cn
-auth_url: http://app.lbuilder.cn
+ac: http://ac.myluban.com
+auth_url: http://service.lbuilder.cn
 youdu_users: "胡彪"
 weixin_toparty: 2
 center:
@@ -1311,7 +1312,7 @@ class Org:
         '''
         查询组织机构树（包括项目部）
         '''
-        resource = '/org/nodes'
+        resource = '/builder/org/nodes'
         response = CenterBuilder.request('get', resource)
         return response
 
@@ -1324,7 +1325,7 @@ class Org:
         dataType：数据类型,1、组织数据类型2、项目部门数据类型
         type：组织类型 0:分公司,2:部门(已废弃)
         '''
-        resource = f'/org/{orgId}/subs'
+        resource = f'/builder/org/{orgId}/subs'
         body = {
             "name": orgName,
             "remarks": orgName+"的备注",
@@ -1344,7 +1345,7 @@ class Org:
         orgId：组织机构节点ID
         orgName：创建的组织机构名称
         '''
-        resource = f'/org/{orgId}'
+        resource = f'/builder/org/{orgId}'
         body = {
             "labels": [],
             "latitude": "121.517675",
@@ -1361,7 +1362,7 @@ class Org:
         删除组织机构
         orgId：组织机构节点ID
         '''
-        resource = f'/org/{orgId}'
+        resource = f'/builder/org/{orgId}'
         response = CenterBuilder.request('delete', resource)
         return response"""
 
@@ -1416,24 +1417,24 @@ class TestOrg:
     @allure.story("组织机构")
     @allure.title("编辑组织机构")
     @pytest.mark.parametrize("dataType", [1,2])
-    def test_org_edit(self, center_builder, dataType):
+    def test_org_edit(self, CenterToken, dataType):
         '''
         编辑组织机构接口测试
         '''
         # 查询组织机构树
-        response = Org().org_nodes(center_builder)
+        response = Org().org_nodes(CenterToken)
         rootID = response["result_id"][response["result_root"].index(True)]
         # 创建组织机构
         orgName = '接口测试新增机构' + base_utils.generate_random_str()
-        org_add = Org().org_orgId_add(center_builder, rootID, orgName=orgName, dataType=dataType)
+        org_add = Org().org_orgId_add(CenterToken, rootID, orgName=orgName, dataType=dataType)
         org_id = org_add["result_id"][0]
         org_pathId = org_add["result_pathId"][0]
         org_path = org_add["result_path"][0]
         # 编辑组织机构
         newOrgName = '接口测试编辑机构' + base_utils.generate_random_str()
-        org_edit = Org().org_orgId_edit(center_builder, orgId=org_id, orgName=newOrgName)
+        org_edit = Org().org_orgId_edit(CenterToken, orgId=org_id, orgName=newOrgName)
         # 查询组织机构树
-        response = Org().org_nodes(center_builder)
+        response = Org().org_nodes(CenterToken)
         try:
             Assertions().assert_all_code(response, 200, 200)
             # 验证编辑组织接口是否正常
@@ -1454,7 +1455,7 @@ class TestOrg:
             Assertions().assert_equal_value(response["result_dataType"][response["result_id"].index(org_id)],dataType)
         finally:
             # 删除组织机构
-            Org().org_orgId_del(center_builder, orgId=org_id)
+            Org().org_orgId_del(CenterToken, orgId=org_id)
 
 
 if __name__ == '__main__':
