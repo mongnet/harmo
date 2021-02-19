@@ -34,7 +34,7 @@ class Assertions:
     def assert_code(self, response, reality_code, expected_code):
         '''
         验证response响应体中的code或status_code状态码
-        assert_code 后期会废弃，建议统一使用 assert_equal_value 方法
+        assert_code 相对 assert_equal_value ,assert_code可返回全部响应信息，方便code错误时查看响应信息
         :param response: 响应体
         :param reality_code: 响应体中的code或status_code状态码
         :param expected_code: 预期code或status_code状态码

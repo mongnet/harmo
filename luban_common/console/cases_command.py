@@ -14,12 +14,13 @@ from datetime import datetime
 
 class CasesCommand(BaseCommand):
     """
-    通过 Swagger 生成测试用例
+    通过 Swagger 生成测试用例，须要在项目根目录下执行，会在对应的 `swagger` 和 `testcases` 目录下同时生成swagger接口方法和对应测试用例
 
     swaggerCase
         {swagger-url-json : Swagger url地址，必须是json地址，必填参数}
-        {directory : 生成到指定的目录，一般为项目名称，必填参数}
-        {--p|project=? : 项目名，会把项目名和接口地址合并成新的接口地址，接口文件中的 resource 字段，可选参数}
+        {project-directory : 接口文件生成到的目录，一般为接口所属项目名称，会在swagger目录下生成指定的目录，必填参数}
+        {case-directory : 用例生成到的目录，一般为用例分类，会在testcases目录下生成指定的目录，必填参数}
+        {--p|project=? : 项目名，当swagger中接口的path不包含项目名时，需要指定当前参数，会把项目名和接口地址合并成新的接口地址，接口文件中的 resource 字段，可选参数}
     """
 
     def handle(self):
@@ -34,7 +35,7 @@ class CasesCommand(BaseCommand):
             raise FileExistsError("数据类型错误，传入的数据必须为dict")
         for key, values in data.items():
             if "groups" in key:
-                path = Path.cwd() /"swagger"/ Path(self.argument("directory"))
+                path = Path.cwd() /"swagger"/ Path(self.argument("project-directory"))
                 if path.exists():
                     if list(path.glob("*")):
                         self.line("")
@@ -97,10 +98,7 @@ class CasesCommand(BaseCommand):
             raise FileExistsError("数据类型错误，传入的数据必须为dict")
         for key, values in data.items():
             if "groups" in key:
-                if self.option("project"):
-                    path = Path.cwd() /"testcases"/ Path(self.argument("directory")) / Path(self.option("project"))
-                else:
-                    path = Path.cwd() / "testcases" / Path(self.argument("directory"))
+                path = Path.cwd() / "testcases" / Path(self.argument("case-directory"))
                 if path.exists():
                     if list(path.glob("*")):
                         self.line("")
@@ -120,8 +118,8 @@ class CasesCommand(BaseCommand):
                 if Path.cwd().glob(f"testcases/__init__.py"):
                     testcases_init = Path.cwd() /"testcases"/ "__init__.py"
                     testcases_init.touch(exist_ok=True)
-                if Path.cwd().glob(f"testcases/directory/__init__.py"):
-                    directory_init = Path.cwd() /"testcases" / Path(self.argument("directory")) /"__init__.py"
+                if Path.cwd().glob(f'testcases/{Path(self.argument("case-directory"))}/__init__.py'):
+                    directory_init = Path.cwd() /"testcases" / Path(self.argument("case-directory")) /"__init__.py"
                     directory_init.touch(exist_ok=True)
                 current_path = os.path.dirname(os.path.realpath(__file__))
                 # 是否覆盖文件
@@ -138,7 +136,7 @@ class CasesCommand(BaseCommand):
                         # file already exists.
                         self.line(f"<fg=red>test_{group['file_name']}.py</> file already exists, Don't replace")
                         continue
-                    group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M'),"directory":self.argument("directory")}}
+                    group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M'),"project-directory":self.argument("project-directory")}}
                     # 生成文件
                     with open(f'{current_path}/../config/cases.mustache', 'r') as mustache:
                         interfaces = chevron.render(mustache, group)

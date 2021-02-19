@@ -2,7 +2,7 @@
 
 ## 一、介绍
 
-luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架。他的设计理念是把所有接口看成一个个的模块，像搭积木一样，把相关接口组装起来，行成场景测试用例；说到场景用例那肯定有单接口测试，单接口测试会直接通过框架来生成，无需人工参与或少量参与即可完成，我们的目标是把可标准化、重复性的工作让机器来完成，让测试人员更多的关注场景和其它异常类测试。
+luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架。他的设计理念是把所有接口看成一个个的模块，像搭积木一样，把相关接口进行组装，行成场景测试用例；说到场景用例那肯定有单接口测试，单接口测试会直接通过框架来生成，无需人工参与或少量参与即可完成，我们的目标是把可标准化、重复性的工作让机器来完成，让测试人员更多的关注场景和其它异常类测试。
 
 ### 1.1 为什么创建这套框架
 
@@ -33,6 +33,8 @@ luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架�
 - 通过 `luban new` 创建项目脚手架命令，可快速构建一个完整的项目目录结构
 
 - 通过 `luban swagger` 生成 `swagger` 接口命令，可快速生成接口方法
+
+- 通过 `luban swaggerCase` 生成测试用例命令，可快速生成简单的测试用例
 
   
 
@@ -65,6 +67,8 @@ pip install git+https://github.com/mongnet/luban_common@master
 ```python
 pip install -U luban-common
 pip install -U git+https://github.com/mongnet/luban_common@master
+或
+pip install -U luban_common-0.5.27-py3-none-any.whl
 ```
 
 ### 2.3 安装验证
@@ -228,10 +232,10 @@ send.send_message_markdown(content=markdown_content,toparty=3)
 
 ##### 3.1.2.1 图文消息
 
-send_youdu() 函数可发送图文消息，需要传五个参数，调用方式如下：
+send_msg() 函数可发送图文消息，需要传五个参数，调用方式如下：
 
 ```python
-send_youdu(title,content,sendTo,file=None,session=0)
+send_msg(title,content,sendTo,file=None,session=0)
 ```
 
 [^title]: 消息窗口标题
@@ -244,10 +248,10 @@ send_youdu(title,content,sendTo,file=None,session=0)
 例：
 
 ```python
-from luban_common.msg.youdu import send_youdu
+from luban_common.msg.youdu import send_msg
 
 file_path="../../data/Quality_check_lib.xls"
-send_youdu(title="测试消息标题", content="测试消息内容\n换行", sendTo="胡彪_教授", files=file_path, session="{F635290E-8685-414E-9FAF-2FA4FEEBB4E8}")
+send_msg(title="测试消息标题", content="测试消息内容\n换行", sendTo="胡彪_教授", files=file_path, session="{F635290E-8685-414E-9FAF-2FA4FEEBB4E8}")
 ```
 
 
@@ -410,7 +414,7 @@ get_yaml_data(file_path='../../data/config.yaml')
 
 ### 3.3 base_requests.py
 
-封装了 requests 库，处理了302跳转问题
+封装了 requests 库，处理了单点登录时302跳转问题
 
 
 
@@ -689,6 +693,68 @@ Assertions.assert_list_repetition(list)
 from luban_common.base_assert import Assertions
 
 Assertions.assert_list_repetition(list)
+```
+
+
+
+#### 3.4.14 校验code或status_code
+
+assert_code()函数可校验response响应体中的code或status_code状态码，调用格式如下：
+
+```python
+Assertions.assert_code(response, reality_code, expected_code)
+```
+
+[^response]: 响应数据
+[^reality_code]: 预期的code状态码
+[^expected_code]: 实际code状态码
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+Assertions.assert_code(response, 200, 200)
+```
+
+
+
+#### 3.4.15 校验为空
+
+assert_isEmpty()函数可校验传传入的数据是为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空，调用格式如下：
+
+```python
+Assertions.assert_isEmpty(reality_value)
+```
+
+[^reality_value]: 实际值
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+Assertions.assert_isEmpty(reality_value)
+```
+
+
+
+#### 3.4.16 校验不为空
+
+assert_isNotEmpty()函数可校验传传入的数据是不为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空，调用格式如下：
+
+```python
+Assertions.assert_isEmpty(reality_value)
+```
+
+[^reality_value]: 实际值
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+Assertions.assert_isNotEmpty(reality_value)
 ```
 
 
@@ -1197,86 +1263,122 @@ Global_Map().get('username','age')
 
 在 luban-common 安装成功后，系统中会新增如下命令：
 
-- `luban` ：核心命令，不可单独执行，必须携带参数
+`luban` ：核心命令，不可单独执行，必须携带参数
 
-  
+#### 4.1.1 新建项目
 
-- `luban new`：可通过 `new` 快速构建一个完整的项目目录结构，格式如下：
+`luban new`：可通过 `new` 快速构建一个完整的项目目录结构，格式如下：
 
-  ```python
-  luban new <name>
-  ```
+```python
+luban new <name>
+```
 
-  [^name]: 项目名称
+[^name]:项目名称
 
-  例：
+例：
 
-  ```python
-  luban new centerApi
-  ```
+```python
+luban new centerApi
+```
 
-  
 
-- `luban swagger`：生成 `swagger` 接口命令，可快速生成接口方法，格式如下：
 
-  ```python
-  luban swagger [-d [<...>]] <swagger-url-json>
-  ```
+#### 4.1.2 通过Swagger生成接口文件
 
-  [^-d]: 生成到指定的目录，可选参数，不指定时生成到当前目录
-  [^swaggger-url-json]: swagger url 地址（必须要是json地址）
-  
-  例：生成到当前目录
-  
-  ```python
-  luban swagger http://192.168.13.197:8989/builder/v2/api-docs
-  ```
-  
-  例：生成到 `builder` 目录
-  
-  ```python
-  luban swagger http://192.168.13.197:8989/builder/v2/api-docs -d builder
-  ```
-  
-  
-  
-- `luban weixin`：发送 `企业微信` 消息命令，格式如下：
+`luban swagger`：生成 `swagger` 接口命令，可快速生成接口方法，格式如下：
 
-  ```python
-  luban weixin [-t <...>] [-c <...>] [-d <...>] [-o <...>]
-  ```
+```python
+luban swagger [-p [<...>]] <swagger-url-json> <project-directory>
+```
 
-  [^-t]: 消息标题
-  [^-c]: 消息内容
-  [^-d]: 发送部门ID，这个ID需要到企业微信中查看
-  [^-o]: 消息类型，三种消息类型`text`、`card`、`markdown`
+[^swaggger-url-json]:swagger url 地址（必须要是json地址），必填参数
+[^project-directory]:生成到指定的目录，必填参数
+[^-p]:项目名，会把项目名和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
-  例：发送一个文本消息
+例：生成到当前 `builder` 目录
 
-  ```
-  luban weixin -t 标题 -c 内容 -d 3 -o text
-  ```
+```python
+luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder
+```
 
-  
+例：生成到 `builder` 目录，且指定项目名为 `builder` 
 
-- `luban youdu`：发送 `有度` 消息命令，格式如下：
+```python
+luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
+```
 
-  ```python
-  luban youdu [-t <...>] [-c <...>] [-s <...>] [-e <...>]
-  ```
 
-  [^-t]: 消息标题
-  [^-c]: 消息内容
-  [^-s]: 发送给谁，多个用户之间用下划线分隔，如“胡彪_邵君兰”
-  [^-e]: 会话session，当session=0时，会新建一个新的会话窗口，默认为新建会话窗口
 
-  例：给指定的 session 发一条消息
+#### 4.1.3 通过Swagger生成Case
 
-  ```
-  luban youdu -t 标题 -c 内容 -s 胡彪 -e {BEF08267-B1C2-4C5F-A284-075F0774729C}
-  ```
+`luban swaggerCase`：生成测试用例命令，可快速生成简单测试用例，格式如下：
+注：必须要在项目根目录下执行，会在对应的 `swagger` 和 `testcases` 目录下同时生成swagger接口方法和对应测试用例，如果指定了 `-p` 参数时会在 `testcases` 目录下生成对应的项目目录，并把测试用例放在里面
 
-  
+```python
+luban swaggerCase [-p [<...>]] <swagger-url-json> <project-directory> <case-directory>
+```
+
+[^swaggger-url-json]: swagger url 地址（必须要是json地址），必填参数
+[^project-directory]: 接口文件生成到的目录，一般为接口所属项目名称，会在swagger目录下生成指定的目录，必填参数
+[^case-directory]: 用例生成到的目录，一般为用例分类，会在testcases目录下生成指定的目录，必填参数
+[^-p]: 项目名，会把项目名和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
+
+例：生成接口文件到 `builder` 目录，生成测试用例到 `center` 目录
+
+```python
+luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center
+```
+
+例：生成接口文件到 `builder` 目录，生成测试用例到 `center` 目录，且指定项目名为 `builder` 
+
+```python
+luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center -p builder
+```
+
+
+
+#### 4.1.4 发送微信消息
+
+`luban weixin`：发送 `企业微信` 消息命令，格式如下：
+
+```python
+luban weixin [-o <...>] <title> <content> <department>
+```
+
+[^title]:消息标题，必填参数
+[^content]:消息内容，必填参数
+[^department]:发送部门ID，这个ID需要到企业微信中查看，必填参数
+[^-o]:消息类型，三种消息类型`text`、`card`、`markdown`，可选参数
+
+例：发送一个文本消息
+
+```python
+luban weixin title 标题 content 内容 department 3 -o text
+```
+
+
+
+#### 4.1.5 发送有度消息
+
+`luban youdu`：发送 `有度` 消息命令，格式如下：
+
+```python
+luban youdu [-f <...>] [-e <...>] <title> <content> <sendTo>
+```
+
+[^title]:消息标题，必填参数
+[^content]:消息内容，必填参数
+[^sendTo]:发送给谁，多个用户之间用下划线分隔，如“胡彪_邵君兰”，必填参数
+[^-f]:要发送文件的路径，可选参数
+[^-e]:会话session，当session=0时，会新建一个新的会话窗口，默认为新建会话窗口，可选参数
+
+例：给指定的 session 发一条消息
+
+```python
+luban youdu title 标题 content 内容 sendTo 胡彪 -f 文件地址 -e {BEF08267-B1C2-4C5F-A284-075F0774729C}
+```
+
+
 
 ### 4.2 pytest.ini 配置
 
@@ -1296,7 +1398,7 @@ Global_Map().get('username','age')
 
 - `globalConf` ：通用配置文件，把固定不变的内容配置到这里
 
-- `message_switch` ：有度消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为True
+- `message_switch` ：有度消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为Flase
 
 - `success_message` ： 成功时是否发送消息通知，默认为False
 
@@ -1344,7 +1446,7 @@ global_cache.set("rootid",rootid)
 例：设置部署类型
 
 ```python
-def getDeployType(self):
+def getDeployType(self,global_cache):
     '''
     获取部署类型
     :return:
@@ -1353,7 +1455,7 @@ def getDeployType(self):
     response = self.CenterLogin.request('get', resource)
     Assertions().assert_code(response, response["status_code"], 200)
     deployType = response["Response_body"]
-    self.cache.set('deployType', deployType)
+    global_cache.set('deployType', deployType)
 ```
 
 当设置的变量名称已存在时，会进行覆盖操作。
@@ -1371,13 +1473,13 @@ global_cache.get("builder", False)
 例：获取企业id
 
 ```python
-def switchCompany(self):
+def switchCompany(self,global_cache):
     '''
     切换到指定企业
     :return:
     '''
     resource = f"/rs/casLogin/casLogin"
-    body = {"epid": self.cache.set("epid", False)}
+    body = {"epid": global_cache.get("epid", False)}
     response = self.casLogin.request('post', resource,body)
     Assertions().assert_code(response, response["status_code"], 200)
 ```
@@ -1421,7 +1523,7 @@ def __init__(self,username,password,envConf,global_cache):
 
 ### 5.1 创建项目
 
-我们定位到需要创建项目的目录，如：`E:\Automation` ，然后在命令行中输入如下命令并回车
+定位到需要创建项目的目录，如：`E:\Automation` ，然后在命令行中输入如下命令并回车
 
 ```python
 luban new CenterAutomation
@@ -1530,7 +1632,7 @@ luban new iworksweb
 在命令行中输入如下命令生成 swagger 接口方法
 
 ```python
-luban swagger http://192.168.13.202:8081/Plan/rs/swagger/swagger.json
+luban swagger http://192.168.13.202:8081/Plan/rs/swagger/swagger.json plan
 ```
 
 ![image-20200903183221966](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200903183221966.png)
