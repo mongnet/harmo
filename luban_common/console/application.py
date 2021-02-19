@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @TIME    : 2020/8/15 20:00
+# @Author  : hubiao
+
 from cleo import Application as BaseApplication
 
 from luban_common.__version__ import __version__

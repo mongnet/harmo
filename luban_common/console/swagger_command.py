@@ -18,20 +18,26 @@ class SwaggerCommand(BaseCommand):
     Swagger generates file interfaces
 
     swagger
-        {swagger-url-json : Swagger url地址，必须是json地址，必填参数}
-        {project-directory : 接口文件生成到的目录，一般为接口所属项目名称，必填参数}
-        {--p|project=? : 项目名，当swagger中接口的path不包含项目名时，需要指定当前参数，会把项目名和接口地址合并成新的接口地址，接口文件中的 resource 字段，可选参数}
+        {swagger-url-json : Swagger URL address, must be a JSON address, required parameter}
+        {project-directory : Interface project name, required parameters}
+        {--p|project=? : Project name, which merges the project name and interface address into a new interface address (the Resource field in the interface file), optional}
     """
 
     def handle(self):
-        # 提示
         Global_Map().set("prompt", False)
-        # 覆盖
         Global_Map().set("replace", False)
         js = AnalysisSwaggerJson(self.argument("swagger-url-json"))
         data = js.analysis_json_data()
         if not isinstance(data,dict):
-            raise FileExistsError("数据类型错误，传入的数据必须为dict")
+            raise RuntimeError(
+                f"Destination <fg=yellow>{self.argument('swagger-url-json')}</> "
+                "The data must be dict"
+            )
+        if self.argument("project-directory").find("/") != -1:
+            raise RuntimeError(
+                f"Destination <fg=yellow>{self.argument('project-directory')}</> "
+                "The directory cannot contain /"
+            )
         for key, values in data.items():
             if "groups" in key:
                 path = Path.cwd() / Path(self.argument("project-directory"))
@@ -51,7 +57,7 @@ class SwaggerCommand(BaseCommand):
                 package_init = path / "__init__.py"
                 package_init.touch(exist_ok=True)
                 current_path = os.path.dirname(os.path.realpath(__file__))
-                # 是否覆盖文件
+                # overlay file
                 for group in values:
                     if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
                         self.line("")
@@ -66,10 +72,10 @@ class SwaggerCommand(BaseCommand):
                         self.line(f"<fg=red>{group['file_name']}.py</> file already exists, Don't replace")
                         continue
                     group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M')}}
-                    # 生成文件
+                    # generate file
                     with open(f'{current_path}/../config/interface.mustache', 'r') as mustache:
                         if self.option("project"):
-                            # 添加项目名称
+                            # add project
                             if self.option("project").startswith("/"):
                                 interfaces = chevron.render(mustache, {**group, **{"project":self.option("project")}})
                             else:

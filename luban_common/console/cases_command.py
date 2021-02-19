@@ -14,25 +14,35 @@ from datetime import datetime
 
 class CasesCommand(BaseCommand):
     """
-    通过 Swagger 生成测试用例，须要在项目根目录下执行，会在对应的 `swagger` 和 `testcases` 目录下同时生成swagger接口方法和对应测试用例
+    Test cases generated from Swagger need to be executed in the root of the project. Both the Swagger interface method and the corresponding testcases are generated in the corresponding 'Swagger' and 'testcases' directories
 
     swaggerCase
-        {swagger-url-json : Swagger url地址，必须是json地址，必填参数}
-        {project-directory : 接口文件生成到的目录，一般为接口所属项目名称，会在swagger目录下生成指定的目录，必填参数}
-        {case-directory : 用例生成到的目录，一般为用例分类，会在testcases目录下生成指定的目录，必填参数}
-        {--p|project=? : 项目名，当swagger中接口的path不包含项目名时，需要指定当前参数，会把项目名和接口地址合并成新的接口地址，接口文件中的 resource 字段，可选参数}
+        {swagger-url-json : Swagger URL address, must be a JSON address, required parameter}
+        {project-directory : Interface project name, required parameters}
+        {case-directory : Use case classification, required parameters}
+        {--p|project=? : Project name, which merges the project name and interface address into a new interface address (the Resource field in the interface file), optional}
     """
 
     def handle(self):
-        # swagger 目录
-        # 提示
         Global_Map().set("prompt", False)
-        # 覆盖
         Global_Map().set("replace", False)
         js = AnalysisSwaggerJson(self.argument("swagger-url-json"))
         data = js.analysis_json_data()
         if not isinstance(data,dict):
-            raise FileExistsError("数据类型错误，传入的数据必须为dict")
+            raise RuntimeError(
+                f"Destination <fg=yellow>{self.argument('swagger-url-json')}</> "
+                "The data must be dict"
+            )
+        if self.argument("case-directory").startswith("/"):
+            raise RuntimeError(
+                f"Destination <fg=yellow>{self.argument('case-directory')}</> "
+                "Can't start with /"
+            )
+        if self.argument("project-directory").find("/") != -1:
+            raise RuntimeError(
+                f"Destination <fg=yellow>{self.argument('project-directory')}</> "
+                "The directory cannot contain /"
+            )
         for key, values in data.items():
             if "groups" in key:
                 path = Path.cwd() /"swagger"/ Path(self.argument("project-directory"))
@@ -46,17 +56,17 @@ class CasesCommand(BaseCommand):
                         else:
                             # Directory already exists. Aborting.
                             self.line("")
-                            self.line("Destination <fg=yellow>{}</> is not empty".format(path))
+                            self.line(f"Destination <fg=yellow>{path}</> is not empty")
                             break
                 path.mkdir(mode=0o777, parents=True, exist_ok=True)
                 package_init = path / "__init__.py"
                 package_init.touch(exist_ok=True)
-                # 生成 __init__.py
+                # generate __init__.py
                 if Path.cwd().glob(f"swagger/__init__.py"):
                     testcases_init = Path.cwd() /"swagger"/ "__init__.py"
                     testcases_init.touch(exist_ok=True)
                 current_path = os.path.dirname(os.path.realpath(__file__))
-                # 是否覆盖文件
+                # overlay file
                 for group in values:
                     if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
                         self.line("")
@@ -71,10 +81,10 @@ class CasesCommand(BaseCommand):
                         self.line(f"<fg=red>{group['file_name']}.py</> file already exists, Don't replace")
                         continue
                     group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M')}}
-                    # 生成文件
+                    # generate file
                     with open(f'{current_path}/../config/interface.mustache', 'r') as mustache:
                         if self.option("project"):
-                            # 添加项目名称
+                            # add project
                             if self.option("project").startswith("/"):
                                 interfaces = chevron.render(mustache, {**group, **{"project":self.option("project")}})
                             else:
@@ -87,15 +97,8 @@ class CasesCommand(BaseCommand):
                         self.line("Created file: <fg=green>{}</>".format(interface_file))
                 self.line("<fg=green>Successfully generate swagger</>")
                 self.line("")
-        # cases 目录
-        # 提示
         Global_Map().set("prompt", False)
-        # 覆盖
         Global_Map().set("replace", False)
-        js = AnalysisSwaggerJson(self.argument("swagger-url-json"))
-        data = js.analysis_json_data()
-        if not isinstance(data,dict):
-            raise FileExistsError("数据类型错误，传入的数据必须为dict")
         for key, values in data.items():
             if "groups" in key:
                 path = Path.cwd() / "testcases" / Path(self.argument("case-directory"))
@@ -109,20 +112,22 @@ class CasesCommand(BaseCommand):
                         else:
                             # Directory already exists. Aborting.
                             self.line("")
-                            self.line("Destination <fg=yellow>{}</> is not empty".format(path))
+                            self.line(f"Destination <fg=yellow>{path}</> is not empty")
                             break
                 path.mkdir(mode=0o777, parents=True, exist_ok=True)
                 package_init = path / "__init__.py"
                 package_init.touch(exist_ok=True)
-                # 生成 __init__.py
+                # generate __init__.py
                 if Path.cwd().glob(f"testcases/__init__.py"):
                     testcases_init = Path.cwd() /"testcases"/ "__init__.py"
                     testcases_init.touch(exist_ok=True)
-                if Path.cwd().glob(f'testcases/{Path(self.argument("case-directory"))}/__init__.py'):
-                    directory_init = Path.cwd() /"testcases" / Path(self.argument("case-directory")) /"__init__.py"
-                    directory_init.touch(exist_ok=True)
+                case_directory = self.argument("case-directory").split('/')
+                for cas in range(len(case_directory)):
+                    if Path.cwd().glob(f'testcases/{Path("/".join(case_directory[0:cas + 1]))}/__init__.py'):
+                        directory_init = Path.cwd() /"testcases" / Path("/".join(case_directory[0:cas + 1])) /"__init__.py"
+                        directory_init.touch(exist_ok=True)
                 current_path = os.path.dirname(os.path.realpath(__file__))
-                # 是否覆盖文件
+                # overlay file
                 for group in values:
                     if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f"test_{group['file_name']}.py")):
                         self.line("")
@@ -137,7 +142,7 @@ class CasesCommand(BaseCommand):
                         self.line(f"<fg=red>test_{group['file_name']}.py</> file already exists, Don't replace")
                         continue
                     group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M'),"project-directory":self.argument("project-directory")}}
-                    # 生成文件
+                    # generate file
                     with open(f'{current_path}/../config/cases.mustache', 'r') as mustache:
                         interfaces = chevron.render(mustache, group)
                         interface_file = path/f"test_{group['file_name']}.py"
