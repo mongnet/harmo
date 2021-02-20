@@ -33,11 +33,6 @@ class CasesCommand(BaseCommand):
                 f"Destination <fg=yellow>{self.argument('swagger-url-json')}</> "
                 "The data must be dict"
             )
-        if self.argument("case-directory").startswith("/"):
-            raise RuntimeError(
-                f"Destination <fg=yellow>{self.argument('case-directory')}</> "
-                "Can't start with /"
-            )
         if self.argument("project-directory").find("/") != -1:
             raise RuntimeError(
                 f"Destination <fg=yellow>{self.argument('project-directory')}</> "
@@ -99,9 +94,11 @@ class CasesCommand(BaseCommand):
                 self.line("")
         Global_Map().set("prompt", False)
         Global_Map().set("replace", False)
+        directory = self.argument("case-directory")[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory")
+        case_directory = directory.split('/')
         for key, values in data.items():
             if "groups" in key:
-                path = Path.cwd() / "testcases" / Path(self.argument("case-directory"))
+                path = Path.cwd() / f"testcases/{directory}"
                 if path.exists():
                     if list(path.glob("*")):
                         self.line("")
@@ -121,7 +118,6 @@ class CasesCommand(BaseCommand):
                 if Path.cwd().glob(f"testcases/__init__.py"):
                     testcases_init = Path.cwd() /"testcases"/ "__init__.py"
                     testcases_init.touch(exist_ok=True)
-                case_directory = self.argument("case-directory").split('/')
                 for cas in range(len(case_directory)):
                     if Path.cwd().glob(f'testcases/{Path("/".join(case_directory[0:cas + 1]))}/__init__.py'):
                         directory_init = Path.cwd() /"testcases" / Path("/".join(case_directory[0:cas + 1])) /"__init__.py"
