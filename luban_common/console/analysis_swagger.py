@@ -44,8 +44,8 @@ class AnalysisSwaggerJson():
         except Exception as e:
             raise e
 
-        self.data = res['paths']  # 取接口地址返回的path数据,包括了请求的路径
-        self.basePath = res['basePath'] if len(res['basePath']) > 1 else ""  # 获取接口的根路径
+        self.data = res.get('paths')  # 取接口地址返回的path数据,包括了请求的路径
+        self.basePath = res.get('basePath') if res.get('basePath') else ""  # 获取接口的根路径
         # 第一错，swagger文档是ip地址，使用https协议会错误,注意接口地址的请求协议
         self.host = 'http://' + res.get('host') if res.get('host') else ''
         self.title = res['info']['title']  # 获取接口的标题
@@ -53,9 +53,9 @@ class AnalysisSwaggerJson():
         self.http_interface_group['config']['name_en'] = self.url.split('/')[3].lower().replace('-', '_') if self.url.startswith("http") else self.url.split('/')[1].lower().replace('-', '_')
         self.http_interface_group['config']['host'] = self.host
         self.http_interface_group['config']['base_url'] = self.basePath
-        self.definitions = res['definitions']  # body参数
+        self.definitions = res.get('definitions')  # body参数
 
-        for tag_dict in res['tags']:
+        for tag_dict in res.get('tags'):
             self.tags_list.append(tag_dict)
         if isinstance(self.data, dict):  # 判断接口返回的paths数据类型是否dict类型
             # 前面已经把接口返回的结果tags分别写入了tags_list空列表,再从json对应的tag往里面插入数据
@@ -67,7 +67,7 @@ class AnalysisSwaggerJson():
                         params = value[method]
                         # deprecated字段标识：接口是否被弃用，暂时无法判断
                         if not 'deprecated' in value.keys():
-                            if params['tags'][0] == tag.get('name'):
+                            if params.get('tags')[0] == tag.get('name'):
                                 self.group['name'] = tag.get('name')
                                 interface = self.wash_params(params, uri, method)
                                 self.group['interfaces'].append(interface)
@@ -109,6 +109,7 @@ class AnalysisSwaggerJson():
             "uri": "",
             "basePath": "",
             "method": "",
+            "produces": "",
             "headers": {},
             'body':{},
             "body_params_args": [],
@@ -143,6 +144,7 @@ class AnalysisSwaggerJson():
         http_interface['basePath'] = self.basePath
         parameters = params.get('parameters')  # 未解析的参数字典
         responses = params.get('responses')
+        produces = params.get('produces')
 
         if not parameters:  # 确保参数字典存在
             parameters = {}
@@ -254,6 +256,9 @@ class AnalysisSwaggerJson():
             else:
                 if len(http_interface['validate']) != 1:
                     http_interface['validate'].append({"eq": []})
+
+        if produces:
+            print(produces)
 
         # 接口请求参数为空字典，则删除这些key
         for k in list(http_interface.keys()):
@@ -434,6 +439,7 @@ if __name__ == '__main__':
     url11 = 'http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(客户端)'
     url12 = 'http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json'
     url13 = 'http://192.168.3.195/gateway/process/v2/api-docs'
+    url14 = 'http://192.168.3.195/gateway/luban-meter/v2/api-docs?group=V1.0.0'
 
 
     # print(AnalysisSwaggerJson(url7).analysis_json_data())
@@ -444,12 +450,13 @@ if __name__ == '__main__':
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
     # print(AnalysisSwaggerJson(url3).analysis_json_data())
     # print(AnalysisSwaggerJson(url4).analysis_json_data())
-    print(AnalysisSwaggerJson(url5).analysis_json_data())
+    # print(AnalysisSwaggerJson(url5).analysis_json_data())
     # print(AnalysisSwaggerJson(url6).analysis_json_data())
     # print(AnalysisSwaggerJson(url9).analysis_json_data())
     # print(AnalysisSwaggerJson(url10).analysis_json_data())
     # print(AnalysisSwaggerJson(url11).analysis_json_data())
     # print(AnalysisSwaggerJson(url13).analysis_json_data())
+    print(AnalysisSwaggerJson(url14).analysis_json_data())
 
 
     # js.generator_interface_file(result)
