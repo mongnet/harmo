@@ -85,10 +85,10 @@ class AnalysisSwaggerJson():
                         for i in uri_list:
                             k2 = i.split('/{', 1)[0].split('/')[1:]
                             k1 = k1 if not list(sorted(set(k1).intersection(set(k2)), key=k1.index)) else list(sorted(set(k1).intersection(set(k2)), key=k1.index))
-                        file_name = "_".join(k1).replace('-', '_')
+                        file_name = "_".join(k1).replace('-', '_').title().replace('_', '')
                         break
-                    self.group['class_name'] = file_name.capitalize()
-                    self.group['file_name'] = file_name
+                    self.group['class_name'] = file_name
+                    self.group['file_name'] = file_name[0].lower()+file_name[1:]
                 self.http_interface_group['groups'].append(self.group)
         else:
             return 'error'
@@ -246,19 +246,19 @@ class AnalysisSwaggerJson():
                     i = 0
                     for k, v in res.items():
                         if 'example' in v.keys():
-                            http_interface['validate'].append({"eq": []})
-                            http_interface['validate'][i]['eq'].append('content.' + k)
-                            http_interface['validate'][i]['eq'].append(v['example'])
+                            http_interface['validate'].append({'eq': []})
+                            http_interface['validate'][i]['eq'].append({k:v.get('example')})
+                            http_interface['validate'][i]['eq'].append({'description':v.get('description')})
+                            # http_interface['validate'][i]['eq'].append('content.' + k)
+                            # http_interface['validate'][i]['eq'].append(v.get('example'))
+                            # http_interface['validate'][i]['eq'].append(v.get('description'))
                             i += 1
-                else:
-                    if len(http_interface['validate']) != 1:
-                        http_interface['validate'].append({"eq": []})
-            else:
-                if len(http_interface['validate']) != 1:
-                    http_interface['validate'].append({"eq": []})
-
-        if produces:
-            print(produces)
+            #     else:
+            #         if len(http_interface['validate']) != 1:
+            #             http_interface['validate'].append({'eq': []})
+            # else:
+            #     if len(http_interface['validate']) != 1:
+            #         http_interface['validate'].append({'eq': []})
 
         # 接口请求参数为空字典，则删除这些key
         for k in list(http_interface.keys()):

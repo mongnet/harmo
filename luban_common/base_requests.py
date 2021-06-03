@@ -27,9 +27,13 @@ class Send:
         '''
         self.host = host
         self.cache = global_cache
-        self.header = envConf["headers"]["json_header"] if header is None else header
         self.session = requests.session()
-        self.pdsUrl = envConf["pds"]
+        if "headers" in envConf:
+            self.header = envConf["headers"]["json_header"] if header is None else header
+            self.pdsUrl = envConf["pds"]
+        else:
+            # wgj新增，不动原有逻辑，不传入pds
+            self.header = envConf
 
     def request(self, method, address, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,timeout=60,**kwargs):
         '''

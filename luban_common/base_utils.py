@@ -101,7 +101,7 @@ def ToBase64(String):
     '''
     if not isinstance(String,str):
         raise TypeError("只支持字符串类型")
-    base64Str = base64.b64encode(String.encode("utf-8"))
+    base64Str = base64.urlsafe_b64encode(String.encode("utf-8"))
     return str(base64Str,'utf-8')
 
 def FromBase64(String):
@@ -115,7 +115,7 @@ def FromBase64(String):
     missing_padding = 4 - len(String) % 4
     if missing_padding:
         String += '=' * missing_padding
-    return str(base64.b64decode(String),'utf-8')
+    return str(base64.urlsafe_b64decode(String), 'utf-8')
 
 def getUnix(date=None):
     '''
@@ -421,4 +421,8 @@ if __name__ == "__main__":
     print(get_all_value(data=dict4))
     print(get_all_value(data=dict3))
     print(get_all_value(data=dict5))
+    name="我是中国人"
+    ToBa =ToBase64(name)
+    print(ToBa)
+    print(FromBase64(ToBa))
 

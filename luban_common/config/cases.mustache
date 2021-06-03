@@ -7,7 +7,7 @@
 import pytest
 import allure
 from luban_common.base_assert import Assertions
-from swagger.{{project-directory}}.{{file_name}} import {{class_name}}
+from swagger.{{project_directory}}.{{file_name}} import {{class_name}}
 
 @allure.feature("{{name}}")
 class Test_{{class_name}}:
@@ -22,7 +22,16 @@ class Test_{{class_name}}:
         {{name_cn}}
         '''
         response = {{class_name}}().{{name_en}}(token{{# params_args}}, {{{.}}}{{/ params_args}})
-        Assertions.assert_all_code(response,200,200)
-        Assertions.assert_equal_value(response.get("success")[0],True)
+        Assertions.assert_code(response,response.get("status_code"),200)
+        {{# validate}}
+            {{# eq}}
+                {{#code}}
+        Assertions.assert_equal_value(response.get("code")[0],{{code}})
+                {{/code}}
+                {{#msg}}
+        Assertions.assert_equal_value(response.get("msg")[0],{{msg}})
+                {{/msg}}
+            {{/ eq}}
+        {{/ validate}}
 
     {{/ interfaces}}

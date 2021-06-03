@@ -137,7 +137,7 @@ class CasesCommand(BaseCommand):
                         # file already exists.
                         self.line(f"<fg=red>test_{group['file_name']}.py</> file already exists, Don't replace")
                         continue
-                    group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M'),"project-directory":self.argument("project-directory")}}
+                    group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M'),"project_directory":self.argument("project-directory")}}
                     # generate file
                     with open(f'{current_path}/../config/cases.mustache', 'r') as mustache:
                         interfaces = chevron.render(mustache, group)

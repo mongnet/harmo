@@ -46,21 +46,21 @@ class Assertions:
     @allure.step('校验数据集中指定key的值，预期key为:{2}，预期值为:{3}')
     def assert_assign_attribute_value(self, data,key,expected_value):
         """
-        校验数据集中指定key的值
+        校验数据集中指定key的值是否等于预期值
         :param data:校验的data
         :param key:预期key
         :param expected_value:预期值
         :return:
         """
+        if not isinstance(expected_value, (str,int,float)):
+            assert False, f'当前传入的预期值类型为{type(expected_value)},暂只支持预期值类型为str,int,float的情况'
         if isinstance(data[key], list):
-            if expected_value != data[key]:
-                if [False for value in expected_value if value not in data[key]]:
-                    assert False, f'预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}'
-        elif isinstance(data[key], str):
-            assert data[key] != "" and data[key] != None, '实际值不能为空'
+            if [value for value in data[key] if value != expected_value]:
+                assert False, f'预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}'
+        elif isinstance(data[key], (str,int,float)):
             assert data[key] == expected_value, f'预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}'
         else:
-            assert False, '只支持list和str的校验，其余暂不支持'
+            assert False, f'当前传入的实际值类型为{type(data[key])},现只支持list,str,int,float的校验,其余暂不支持'
 
     @classmethod
     @allure.step('校验数据集中存在预期值，预期值为:{2}')
@@ -72,7 +72,11 @@ class Assertions:
         :return:
         """
         if isinstance(data,(list,dict)):
-            assert expected_value in base_utils.get_all_value(data),f'响应结果中不存在预期值为：{expected_value} 的数据'
+            if isinstance(expected_value, str):
+                assert expected_value in base_utils.get_all_value(data), f'响应结果中不存在预期值为：{expected_value} 的数据'
+            elif isinstance(expected_value, list):
+                for value in expected_value:
+                    assert value in base_utils.get_all_value(data), f'响应结果中不存在预期值为：{expected_value} 的数据'
         else:
             assert False, f"{type(data)}数据类型不支持"
 
@@ -156,6 +160,17 @@ class Assertions:
         :return:
         """
         assert expected_value == reality_value, f"实际值不等于预期值,实际值为:{reality_value},预期值为:{expected_value}"
+
+    @classmethod
+    @allure.step('校验等于预期值，预期值为:{2}')
+    def assert_not_equal_value(self, reality_value, expected_value):
+        """
+        校验等于预期值
+        :param reality_value: 实际值
+        :param expected_value: 预期值
+        :return:
+        """
+        assert expected_value != reality_value, f"实际值等于预期值,实际值为:{reality_value},预期值为:{expected_value}"
 
     @classmethod
     @allure.step('校验是否等于None')
@@ -250,24 +265,37 @@ class Assertions:
 if __name__ == '__main__':
     dict1 = {"projId":113692,"ppid":130817,"projName":"BW接口用工程-勿删160711"}
     dict2 = {"projId":113692,"projName":"BW接口用工程-勿删160711","ppid":130817}
-    dict3 = {'hu':[1111,'adfaf','胡彪']}
+    dict3 = {'hu':[1111,'adf','胡彪']}
+    dict4 = {"name":"hubiao","chengji":[10,20,30],"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}
+    dict5 = {'hu':'adf'}
+    dict6 = {'hu':[]}
+    dict7 = {'hu':''}
+    dict8 = {'hu':['胡彪']}
+    dict9 = {'hu':50}
+    dict10 = {'hu':1.32}
     list1 = [1111,'adfaf','胡彪']
     list2 = [1111,'胡彪','adfaf']
-    dict5 = {'hu':'adf'}
     list3 = ['89010001#89','89010001#89','89010001#89', '96003010#96']
     list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
     list5 = [['89010001#89','89010001#89','89010001#89', '96003010#96'],{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
-    dict4 = {"name":"hubiao","chengji":[10,20,30],"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}
+
     str1 = "haha"
-    Assertions.assert_dictOrList_eq(dict1,dict2)
-    Assertions.assert_dictOrList_eq(list1,list2)
-    Assertions.assert_assign_attribute_value(dict5, 'hu', 'adf')
-    Assertions.assert_assign_attribute_value(dict3, "hu", ['adfaf',1111, '胡彪'])
+    # Assertions.assert_dictOrList_eq(dict1,dict2)
+    # Assertions.assert_dictOrList_eq(list1,list2)
+    # Assertions.assert_assign_attribute_value(dict3, "hu", ['adf',1111, '胡彪'])
+    # Assertions.assert_assign_attribute_value(dict5, 'hu', ['adf',1111, '胡彪'])
+    # Assertions.assert_assign_attribute_value(dict3, 'hu', 'adf')
+    # Assertions.assert_assign_attribute_value(dict6, 'hu', [])
+    Assertions.assert_assign_attribute_value(dict7, 'hu', '')
+    Assertions.assert_assign_attribute_value(dict8, 'hu', '胡彪')
+    Assertions.assert_assign_attribute_value(dict9, 'hu', 50)
+    Assertions.assert_assign_attribute_value(dict10, 'hu', 1.32)
+    Assertions.assert_assign_attribute_value(dict10, 'hu', 1.32)
     # Assertions.assert_list_repetition(list3)
     # Assertions.assert_in_value(dict1,"ppid")
     # in_value 和 in_key 等要支持list和dict，现在只部分支持
-    Assertions.assert_in_key(list4, "hu")
-    Assertions.assert_not_in_key(list4, "hdu")
-    Assertions.assert_not_in_value(dict4, 'addf')
+    # Assertions.assert_in_key(list4, "hu")
+    # Assertions.assert_not_in_key(list4, "hdu")
+    # Assertions.assert_not_in_value(dict4, 'addf')
 
 
