@@ -33,11 +33,20 @@ class CasesCommand(BaseCommand):
                 f"Destination <fg=yellow>{self.argument('swagger-url-json')}</> "
                 "The data must be dict"
             )
-        if self.argument("project-directory").find("/") != -1:
+        if not self.argument("project-directory").isalpha():
             raise RuntimeError(
                 f"Destination <fg=yellow>{self.argument('project-directory')}</> "
-                "The directory cannot contain /"
+                "The project directory can only contain letters"
             )
+        case_directory = self.argument("case-directory").split('/')[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory").split('/')
+        for cas in range(len(case_directory)):
+            if len(case_directory[cas]) == 0:
+                continue
+            if not case_directory[cas].isalpha():
+                raise RuntimeError(
+                    f"Destination <fg=yellow>{self.argument('project-directory')}</> "
+                    "The case directory can only contain letters"
+                )
         for key, values in data.items():
             if "groups" in key:
                 path = Path.cwd() /"swagger"/ Path(self.argument("project-directory"))
@@ -94,8 +103,6 @@ class CasesCommand(BaseCommand):
                 self.line("")
         Global_Map().set("prompt", False)
         Global_Map().set("replace", False)
-        directory = self.argument("case-directory")[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory")
-        case_directory = directory.split('/')
         for key, values in data.items():
             if "groups" in key:
                 path = Path.cwd() / f"testcases/{directory}"

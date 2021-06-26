@@ -33,10 +33,15 @@ class SwaggerCommand(BaseCommand):
                 f"Destination <fg=yellow>{self.argument('swagger-url-json')}</> "
                 "The data must be dict"
             )
-        if self.argument("project-directory").find("/") != -1:
+        # if self.argument("project-directory").find("/") != -1:
+        #     raise RuntimeError(
+        #         f"Destination <fg=yellow>{self.argument('project-directory')}</> "
+        #         "The directory cannot contain /"
+        #     )
+        if not self.argument("project-directory").isalpha():
             raise RuntimeError(
                 f"Destination <fg=yellow>{self.argument('project-directory')}</> "
-                "The directory cannot contain /"
+                "The directory can only contain letters"
             )
         for key, values in data.items():
             if "groups" in key:

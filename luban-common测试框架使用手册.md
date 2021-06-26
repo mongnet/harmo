@@ -1697,7 +1697,7 @@ luban new iworksweb
 
 #### 6.1.2 生成swagger接口方法
 
-在 CMD 中进入 `iworksweb` 项目的 `swagger` 目录，找到 swagger 接口地址，如下图
+在 CMD 中进入 `iworksweb` 项目的 `swagger` 目录，然后找到要生成 swagger 脚本的接口地址，如下图
 
 ![image-20200901200704750](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901200704750.png)
 
@@ -1716,8 +1716,6 @@ luban swagger http://192.168.13.202:8081/Plan/rs/swagger/swagger.json plan
 看到 `Successfully generate` 表示接口生成成功，我们用 pycharm 打开 `iworksweb` 项目，生成后的样子如下
 
 ![image-20200903183433540](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200903183433540.png)
-
-> **plan**：这是plan项目的名称是从swagger的url地址中获取，一般一个产品会调用多个swagger项目，所以正常情况下swagger目录下会有多个项目目录
 
 打开一个文件，看看生成的方法是什么样子，打开 `web_plan_scheduledPlanService.py` 文件，查看到 `addPlan` 方法如下
 
