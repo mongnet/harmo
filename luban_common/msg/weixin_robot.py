@@ -139,9 +139,9 @@ class WeiXinMessage:
     @classmethod
     def up_file(self,file):
         '''
-        发送文件
-        :param media_id: 文件id，通过下文的文件上传接口获取
-        :return:
+        上传文件
+        :param file: 文件大小在5B~20M之间
+        :return: media_id
         '''
         if base_utils.getFileSize(file) < 5 or base_utils.getFileSize(file) > 204800000:
             raise ValueError("文件大小在5B~20M之间")
