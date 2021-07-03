@@ -105,7 +105,7 @@ class CasesCommand(BaseCommand):
         Global_Map().set("replace", False)
         for key, values in data.items():
             if "groups" in key:
-                path = Path.cwd() / f"testcases/{directory}"
+                path = Path.cwd() / f"testcases/{'/'.join(case_directory)}"
                 if path.exists():
                     if list(path.glob("*")):
                         self.line("")

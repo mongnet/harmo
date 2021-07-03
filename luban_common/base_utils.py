@@ -3,6 +3,7 @@
 # Created by hubiao on 2017/5/9
 from __future__ import print_function
 
+import ast
 import base64
 import calendar
 import hashlib
@@ -13,8 +14,8 @@ import requests
 import subprocess
 import time
 import yaml
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime,timedelta
+
 
 import jsonpath
 from pathlib2 import Path
@@ -116,6 +117,16 @@ def FromBase64(String):
     if missing_padding:
         String += '=' * missing_padding
     return str(base64.urlsafe_b64decode(String), 'utf-8')
+
+def toFileBase64(file):
+    '''
+    传入一个Base64，返回字符串
+    :param String: 字符串
+    :return: 返回字符串
+    '''
+    with open(file, 'rb') as f:
+        image = f.read()
+    return str(base64.b64encode(image), encoding='utf-8')
 
 def getUnix(date=None):
     '''
@@ -338,7 +349,7 @@ def jpath(data,check_key,check_value=None,sub_key=None):
     :param check_key: 检查key,例子中的functionKey
     :param check_value: 检查value,辅助定位,例子中的'D-2'
     :param sub_key: 检查子key,辅助定位,例子中的openStatus,当指定sub_key时,只返回sub_key对应的values,其它数据不返回
-    :return: 返回一个list,当匹配不到数据时,返回False
+    :return: 匹配时返回对应list,否则返回False
     '''
     # if not isinstance(data,dict):
     #     return False
@@ -374,7 +385,7 @@ def get_all_key(data):
 
 def get_all_value(data):
     '''
-    获取全部value，包含list和字典的value值
+    获取全部value，可取list和dict的value值
     :param data:
     :return: value组成的列表，未去重
     '''
@@ -394,6 +405,14 @@ def get_all_value(data):
                     ALLVALUE.append(value)
         return ALLVALUE
     return in_key(data)
+
+def strListToList(string):
+    '''
+    字符串类型的列表转为列表
+    :param string: "['1', '2', '3']" ---> ['1', '2', '3']
+    :return: list
+    '''
+    return ast.literal_eval(string)
 
 if __name__ == "__main__":
     dict1 = {"projId":113692,"ppid":130817,"projName":"BW接口用工程-勿删160711"}
@@ -425,4 +444,7 @@ if __name__ == "__main__":
     ToBa =ToBase64(name)
     print(ToBa)
     print(FromBase64(ToBa))
+    print(toFileBase64("../data/20201222101200.png"))
+    print(toFileBase64("../data/config.yaml"))
+    print(getFileSize("../data/20201222101200.png"))
 
