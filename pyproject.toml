@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "luban_common"
-version = "0.9.70"
+version = "0.9.89"
 description = "鲁班API基础库"
 authors = ["hubiao <250021520@qq.com>"]
 license = "MIT"
@@ -25,6 +25,9 @@ pytest-html = "^2.1.1"
 pytest-logging = "^2015.11.4"
 xmltodict = "^0.12.0"
 suds-py3 = "^1.4.1"
+imgkit = "^1.2.2"
+pdfkit = "^0.6.1"
+faker = "^8.10.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.4"

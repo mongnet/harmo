@@ -52,15 +52,13 @@ class Assertions:
         :param expected_value:预期值
         :return:
         """
-        if not isinstance(expected_value, (str,int,float)):
-            assert False, f'当前传入的预期值类型为{type(expected_value)},暂只支持预期值类型为str,int,float的情况'
-        if isinstance(data[key], list):
-            if [value for value in data[key] if value != expected_value]:
+        if isinstance(data[key], list) and isinstance(expected_value,list):
+            if data[key] != expected_value:
                 assert False, f'预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}'
         elif isinstance(data[key], (str,int,float)):
             assert data[key] == expected_value, f'预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}'
         else:
-            assert False, f'当前传入的实际值类型为{type(data[key])},现只支持list,str,int,float的校验,其余暂不支持'
+            assert False, f'当前传入的实际值类型为{type(data[key])},预期值类型为{type(expected_value)},现只支持list,str,int,float的校验,其余暂不支持'
 
     @classmethod
     @allure.step('校验数据集中存在预期值，预期值为:{2}')
