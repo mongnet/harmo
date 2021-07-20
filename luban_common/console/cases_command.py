@@ -14,7 +14,7 @@ from datetime import datetime
 
 class CasesCommand(BaseCommand):
     """
-    Test cases generated from Swagger need to be executed in the root of the project. Both the Swagger interface method and the corresponding testcases are generated in the corresponding 'Swagger' and 'testcases' directories
+    Test cases generated from Swagger need to be executed in the root of the project. Both the Swagger interface method and the corresponding testcases are generated in the corresponding "Swagger" and "testcases" directories
 
     swaggerCase
         {swagger-url-json : Swagger URL address, must be a JSON address, required parameter}
@@ -30,21 +30,21 @@ class CasesCommand(BaseCommand):
         data = js.analysis_json_data()
         if not isinstance(data,dict):
             raise RuntimeError(
-                f"Destination <fg=yellow>{self.argument('swagger-url-json')}</> "
+                f'Destination <fg=yellow>{self.argument("swagger-url-json")}</>'
                 "The data must be dict"
             )
         if not self.argument("project-directory").isalpha():
             raise RuntimeError(
-                f"Destination <fg=yellow>{self.argument('project-directory')}</> "
+                f'Destination <fg=yellow>{self.argument("project-directory")}</> '
                 "The project directory can only contain letters"
             )
-        case_directory = self.argument("case-directory").split('/')[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory").split('/')
+        case_directory = self.argument("case-directory").split("/")[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory").split("/")
         for cas in range(len(case_directory)):
             if len(case_directory[cas]) == 0:
                 continue
             if not case_directory[cas].isalpha():
                 raise RuntimeError(
-                    f"Destination <fg=yellow>{self.argument('project-directory')}</> "
+                    f'Destination <fg=yellow>{self.argument("project-directory")}</> '
                     "The case directory can only contain letters"
                 )
         for key, values in data.items():
@@ -72,7 +72,7 @@ class CasesCommand(BaseCommand):
                 current_path = os.path.dirname(os.path.realpath(__file__))
                 # overlay file
                 for group in values:
-                    if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
+                    if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f'{group["file_name"]}.py')):
                         self.line("")
                         question = (f"Some file already exists, do you want to replace it?")
                         if self.confirm(question, True):
@@ -80,22 +80,22 @@ class CasesCommand(BaseCommand):
                             Global_Map().set("prompt",1)
                         else:
                             Global_Map().set("replace",1)
-                    if Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
+                    if Global_Map().get("replace") and list(path.glob(f'{group["file_name"]}.py')):
                         # file already exists.
-                        self.line(f"<fg=red>{group['file_name']}.py</> file already exists, Don't replace")
+                        self.line(f'<fg=red>{group["file_name"]}.py</> file already exists, Don"t replace')
                         continue
-                    group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M')}}
+                    group = {**group,**{"generated_time":datetime.now().strftime("%Y/%m/%d %H:%M")}}
                     # generate file
-                    with open(f'{current_path}/../config/interface.mustache', 'r') as mustache:
+                    with open(f"{current_path}/../config/interface.mustache", "r") as mustache:
                         if self.option("project"):
                             # add project
                             if self.option("project").startswith("/"):
                                 interfaces = chevron.render(mustache, {**group, **{"project":self.option("project")}})
                             else:
-                                interfaces = chevron.render(mustache, {**group, **{"project": ''.join(["/",self.option("project")])}})
+                                interfaces = chevron.render(mustache, {**group, **{"project": "".join(["/",self.option("project")])}})
                         else:
                             interfaces = chevron.render(mustache, group)
-                        interface_file = path/f"{group['file_name']}.py"
+                        interface_file = path/f'{group["file_name"]}.py'
                         with interface_file.open("w", encoding="utf-8") as f:
                             f.write(interfaces.replace("'$","").replace("$'","").replace("$",""))
                         self.line("Created file: <fg=green>{}</>".format(interface_file))
@@ -105,7 +105,7 @@ class CasesCommand(BaseCommand):
         Global_Map().set("replace", False)
         for key, values in data.items():
             if "groups" in key:
-                path = Path.cwd() / f"testcases/{'/'.join(case_directory)}"
+                path = Path.cwd() / f'testcases/{"/".join(case_directory)}'
                 if path.exists():
                     if list(path.glob("*")):
                         self.line("")
@@ -132,7 +132,7 @@ class CasesCommand(BaseCommand):
                 current_path = os.path.dirname(os.path.realpath(__file__))
                 # overlay file
                 for group in values:
-                    if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f"test_{group['file_name']}.py")):
+                    if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f'test_{group["file_name"]}.py')):
                         self.line("")
                         question = (f"Some file already exists, do you want to replace it?")
                         if self.confirm(question, True):
@@ -140,15 +140,15 @@ class CasesCommand(BaseCommand):
                             Global_Map().set("prompt",1)
                         else:
                             Global_Map().set("replace",1)
-                    if Global_Map().get("replace") and list(path.glob(f"test_{group['file_name']}.py")):
+                    if Global_Map().get("replace") and list(path.glob(f'test_{group["file_name"]}.py')):
                         # file already exists.
-                        self.line(f"<fg=red>test_{group['file_name']}.py</> file already exists, Don't replace")
+                        self.line(f'<fg=red>test_{group["file_name"]}.py</> file already exists, Don"t replace')
                         continue
-                    group = {**group,**{"generated_time":datetime.now().strftime('%Y/%m/%d %H:%M'),"project_directory":self.argument("project-directory")}}
+                    group = {**group,**{"generated_time":datetime.now().strftime("%Y/%m/%d %H:%M"),"project_directory":self.argument("project-directory")}}
                     # generate file
-                    with open(f'{current_path}/../config/cases.mustache', 'r') as mustache:
+                    with open(f"{current_path}/../config/cases.mustache", "r") as mustache:
                         interfaces = chevron.render(mustache, group)
-                        interface_file = path/f"test_{group['file_name']}.py"
+                        interface_file = path/f'test_{group["file_name"]}.py'
                         with interface_file.open("w", encoding="utf-8") as f:
                             f.write(interfaces.replace("'$","").replace("$'","").replace("$",""))
                         self.line("Created file: <fg=green>{}</>".format(interface_file))

@@ -8,19 +8,19 @@ from luban_common import base_utils
 
 
 class WeiXin:
-    '''
+    """
     企业微信机器人消息
-    '''
+    """
 
     @classmethod
     def send_message_text(self,hookkey,content,mentioned_mobile_list=None):
-        '''
+        """
         发送文本消息
         :param hookkey: webhook的key
         :param content: 文本内容，最长不超过2048个字节，必须是utf8编码
         :param mentioned_mobile_list: 手机号列表，提醒手机号对应的群成员(@某个成员)，@all表示提醒所有人，例如：["13800001111","@all"]
         :return:
-        '''
+        """
         if len(content.encode()) > 2048:
             raise ValueError("文本内容，最长不超过2048个字节")
         if len(hookkey) != 36:
@@ -41,12 +41,12 @@ class WeiXin:
 
     @classmethod
     def send_message_markdown(self,hookkey,content):
-        '''
+        """
         发送markdown消息
         :param hookkey: webhook的key
         :param content: markdown内容，最长不超过4096个字节，必须是utf8编码
         :return:
-        '''
+        """
         if len(content.encode()) > 4096:
             raise ValueError("文本内容，最长不超过4096个字节")
         if len(hookkey) != 36:
@@ -67,7 +67,7 @@ class WeiXin:
 
     @classmethod
     def send_message_card(self,hookkey,title,url,content=None,picurl="http://www.lubansoft.com/uploads/1540977656.jpg"):
-        '''
+        """
         图文消息
         :param hookkey: webhook的key
         :param title: 标题，不超过128个字节，超过会自动截断
@@ -75,7 +75,7 @@ class WeiXin:
         :param url: 点击后跳转的链接。
         :param picurl: 图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图 1068*455，小图150*150。
         :return:
-        '''
+        """
         if len(hookkey) != 36:
             raise ValueError("hookkey错误，hookkey应该是一个36位的字符串")
         wechat_json = {
@@ -101,12 +101,12 @@ class WeiXin:
 
     @classmethod
     def send_image(self,hookkey,file):
-        '''
+        """
         发送图片
         :param hookkey: webhook的key
         :param imgBase64: 图片（base64编码前）最大不能超过2M，支持JPG,PNG格式
         :return:
-        '''
+        """
         if len(hookkey) != 36:
             raise ValueError("hookkey错误，hookkey应该是一个36位的字符串")
         if base_utils.getFileSize(file) > 20480000 or file.split(".")[-1].lower() not in ["png","jpg"]:
@@ -129,12 +129,12 @@ class WeiXin:
 
     @classmethod
     def send_file(self,hookkey,file):
-        '''
+        """
         发送文件
         :param hookkey: webhook的key
         :param media_id: 文件id，通过下文的文件上传接口获取
         :return:
-        '''
+        """
         if len(hookkey) != 36:
             raise ValueError("hookkey错误，hookkey应该是一个36位的字符串")
         wechat_json = {
@@ -153,16 +153,16 @@ class WeiXin:
 
     @classmethod
     def up_file(self,hookkey,file):
-        '''
+        """
         上传文件
         :param hookkey: webhook的key
         :param file: 文件大小在5B~20M之间
         :return: media_id
-        '''
+        """
         if base_utils.getFileSize(file) < 5 or base_utils.getFileSize(file) > 204800000:
             raise ValueError("文件大小在5B~20M之间")
         url = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key={hookkey}&type=file"
-        files = {'file1': open(file, 'rb')}
+        files = {"file1": open(file, "rb")}
         response = requests.post(url,files=files).json()
         if response["errcode"] == 0 and response["errmsg"] == "ok":
             print("上传文件成功")
@@ -170,7 +170,7 @@ class WeiXin:
             print("上传文件失败")
         return response["media_id"]
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     send = WeiXin()
     send.send_message_text(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content="这里是消息内容，http://work.weixin.qq.com 使用很方便。",mentioned_mobile_list=["18019463445","13916829124"] )
     # markdown_content = """
@@ -186,6 +186,6 @@ if __name__ == '__main__':
     #                 >
     #                 >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
     # send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=markdown_content)
-    # send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title='这是卡片消息(PASS)',content='这里是消息内容，可以点击查看更多跳转到网页',url="www.qq.com")
+    # send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页",url="www.qq.com")
     # send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
     # send.send_image(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="../../data/20201222101200.png")

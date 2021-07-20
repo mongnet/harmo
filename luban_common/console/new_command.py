@@ -16,14 +16,12 @@ import time
 
 import pytest
 from luban_common import base_requests
-from luban_common.msg.weixin import WeiXinMessage
-from luban_common.msg.youdu import send_msg
+from luban_common.msg.robot import WeiXin
 from luban_common.operation import yaml_file
 
 from business import public_login
 from swagger.jump import Jump
 from utils.utils import file_absolute_path
-from py._xmlgen import html
 
 def pytest_addoption(parser):
     '''
@@ -37,17 +35,17 @@ def pytest_addoption(parser):
     parser.addini('message_switch', help='message_switch configuration')
     parser.addini('success_message', help='success_message configuration')
     # 注册命令行参数
-    group = parser.getgroup("testing environment configuration")
-    group.addoption("--lb-driver",
-                    default=os.getenv("Pytest_Driver", "chrome"),
-                    choices=["chrome", "firefox", "ie"],
-                    help="set Browser")
-    group.addoption("--lb-base-url",
-                    default=os.getenv("Pytest_Base_Url", None),
-                    help="base url for the application under test")
-    group.addoption("--lb-env",
-                    default=os.getenv("Pytest_Env", None),
-                    help="set testing environment")
+    group = parser.getgroup('testing environment configuration')
+    group.addoption('--lb-driver',
+                    default=os.getenv('Pytest_Driver', 'chrome'),
+                    choices=['chrome', 'firefox', 'ie'],
+                    help='set Browser')
+    group.addoption('--lb-base-url',
+                    default=os.getenv('Pytest_Base_Url', None),
+                    help='base url for the application under test')
+    group.addoption('--lb-env',
+                    default=os.getenv('Pytest_Env', None),
+                    help='set testing environment')
 
 def pytest_configure(config):
     '''
@@ -55,9 +53,9 @@ def pytest_configure(config):
     :param config:
     :return:
     '''
-    envConf = config.getoption("--lb-env")
-    browser = config.getoption("--lb-driver")
-    baseUrl = config.getoption("--lb-base-url")
+    envConf = config.getoption('--lb-env')
+    browser = config.getoption('--lb-driver')
+    baseUrl = config.getoption('--lb-base-url')
     if hasattr(config, '_metadata'):
         if envConf is not None:
             config._metadata['运行配置'] = envConf
@@ -73,29 +71,29 @@ def pytest_report_header(config):
     :param startdir:
     :return:
     '''
-    envConf = config.getoption("--lb-env")
-    browser = config.getoption("--lb-driver")
-    baseUrl = config.getoption("--lb-base-url")
+    envConf = config.getoption('--lb-env')
+    browser = config.getoption('--lb-driver')
+    baseUrl = config.getoption('--lb-base-url')
     if envConf:
-        return f"browser: {browser}, baseUrl: {baseUrl}, configuration: {envConf}"
+        return f'browser: {browser}, baseUrl: {baseUrl}, configuration: {envConf}'
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def env_conf(pytestconfig):
     '''
     获取lb-env和globalConf环境配置文件
     :return:
     '''
-    envConf = pytestconfig.getoption("--lb-env")
-    globalConf = pytestconfig.getini("globalConf")
+    envConf = pytestconfig.getoption('--lb-env')
+    globalConf = pytestconfig.getini('globalConf')
     if envConf:
         if globalConf:
             return {**yaml_file.get_yaml_data(file_absolute_path(envConf)), **yaml_file.get_yaml_data(file_absolute_path(globalConf))}
         return yaml_file.get_yaml_data(file_absolute_path(envConf))
     else:
-        raise RuntimeError("Configuration --lb-env not found")
+        raise RuntimeError('Configuration --lb-env not found')
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def base_url(pytestconfig):
     '''
     base URL
@@ -105,7 +103,7 @@ def base_url(pytestconfig):
     if base_url:
         return base_url
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def global_cache(request):
     '''
     全局缓存，当前执行生命周期有效
@@ -117,7 +115,7 @@ def global_cache(request):
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     '''收集测试结果并发送到对应IM'''
     # 读取配置文件
-    envConf = yaml_file.get_yaml_data(file_absolute_path(config.getoption("--lb-env")))
+    envConf = yaml_file.get_yaml_data(file_absolute_path(config.getoption('--lb-env')))
     # 定义测试结果
     total = terminalreporter._numcollected
     passed = len([i for i in terminalreporter.stats.get('passed', []) if i.when != 'teardown'])
@@ -125,30 +123,40 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     error = len([i for i in terminalreporter.stats.get('error', []) if i.when != 'teardown'])
     skipped = len([i for i in terminalreporter.stats.get('skipped', []) if i.when != 'teardown'])
     total_times = time.time() - terminalreporter._sessionstarttime
-    message_switch = True if config.getini("message_switch") == "True" else False
-    success_message = True if config.getini("success_message") == "True" else False
-    html_report = config.getoption("--html")
+    message_switch = True if config.getini('message_switch') == 'True' else False
+    success_message = True if config.getini('success_message') == 'True' else False
+    html_report = config.getoption('--html')
     # 判断是否要发送消息
     if message_switch:
-        send = WeiXinMessage()
-        youdu_users = envConf.get("youdu_users")
-        weixin_toparty = envConf.get("weixin_toparty")
+        send = WeiXin()
+        weixin_robot = envConf.get('weixin_robot')
         # 通过jenkins构件时，可以获取到JOB_NAME
-        JOB_NAME = "通用" if config._metadata.get('JOB_NAME') is None else config._metadata.get('JOB_NAME')
-        if failed + error != 0:
-            content = f"共执行 {total} 条用例\n有 {passed} 条执行成功\n有 {failed} 条执行失败\n有 {error} 条执行出错\n有 {skipped} 条跳过"
-            if weixin_toparty:
-                send.send_message_textcard(title=f"警告！{JOB_NAME} 巡检出现异常", content=content, toparty=weixin_toparty)
-            if youdu_users:
-                send_msg(title=f"警告！{JOB_NAME} 巡检出现异常", content=content, sendTo=youdu_users+"_FAIL", session=0, file=html_report)
-        elif success_message:
-            content = f"共执行 {total} 条用例，全部执行通过，耗时 {round(total_times,2)} 秒"
-            if weixin_toparty:
-                send.send_message_textcard(title=f"恭喜，{JOB_NAME} 巡检通过，请放心", content=content, toparty=weixin_toparty)
-            if youdu_users:
-                send_msg(title=f"恭喜，{JOB_NAME} 巡检通过，请放心", content=content, sendTo=youdu_users+"_PASS", session=0, file=html_report)
+        JOB_NAME = '通用' if config._metadata.get('JOB_NAME') is None else config._metadata.get('JOB_NAME')
+        if failed + error != 0 and weixin_robot:
+            markdown_content = f'''
+                                # 警告！`{JOB_NAME}` 巡检出现异常
+                                >通知范围：@所有人
+                                >本次共执行 **{total}** 条用例
+                                >有 <font color=\'info\'>**{passed}**</font> 条执行成功
+                                >有 <font color='warning'>**{failed}**</font> 条执行失败
+                                >有 `**{error}**` 条执行出错
+                                >有 <font color=\'comment\'>**{skipped}**</font> 条跳过
+                                >共耗时 <font color=\'comment\'>**{round(total_times,2)}**</font> 秒
+                                >
+                                >可点击下方 report 文件查看详情'''
+            send.send_message_markdown(hookkey=weixin_robot,content=markdown_content)
+            send.send_file(hookkey=weixin_robot, file=html_report)
+        elif success_message and weixin_robot:
+            markdown_content = f'''
+                                # 恭喜 <font color=\'info\'>{JOB_NAME}</font> 巡检通过，请放心
+                                >通知范围：@全部成员
+                                >本次共执行 **{total}** 条用例，<font color=\'info\'>**全部执行通过**</font>，耗时 **{round(total_times,2)}** 秒
+                                >
+                                >可点击下方 report 文件查看详情'''
+            send.send_message_markdown(hookkey=weixin_robot, content=markdown_content)
+            send.send_file(hookkey=weixin_robot, file=html_report)
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def bimadmin_login(env_conf, global_cache):
     '''
     BIM Aadmin运维管理系统登录
@@ -157,244 +165,223 @@ def bimadmin_login(env_conf, global_cache):
     BimAdminLogin = public_login.BimAdmin(env_conf).login()
     yield BimAdminLogin
 
-
-@pytest.fixture(scope="session")
-def center_cas(env_conf, global_cache):
-    '''
-    获取Center CAS登录凭证
-    :return:
-    '''
-    public_login.Center(env_conf["center"]["username"], env_conf["center"]["password"], env_conf, global_cache).login()
-    yield
-
-
-@pytest.fixture(scope="session")
-def center_builder(center_cas, env_conf, global_cache):
-    '''
-    获取Builder登录凭证
-    :return:
-    '''
-    CenterBuilder = base_requests.Send(global_cache.get("builder", False), env_conf, global_cache)
-    yield CenterBuilder
-
-
-@pytest.fixture(scope="session")
-def center_process(center_cas, env_conf, global_cache):
-    '''
-    获取Process登录凭证
-    :return:
-    '''
-    CenterProcess = base_requests.Send(global_cache.get("process", False), env_conf, global_cache)
-    yield CenterProcess
-
-
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def iworks_app_cas(env_conf, global_cache):
     '''
     获取PDS登录凭证
     :return:
     '''
-    public_login.IworksApp(env_conf["iworksApp"]["username"], env_conf["iworksApp"]["password"], env_conf, global_cache).login()
+    public_login.IworksApp(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'], env_conf, global_cache).login()
     yield
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def lbbv(iworks_app_cas, env_conf, global_cache):
     '''
     获取LBBV登录凭证
     :return:
     '''
-    LBBV = base_requests.Send(global_cache.get("lbbv", False), env_conf, global_cache)
+    LBBV = base_requests.Send(global_cache.get('lbbv', False), env_conf, global_cache)
     yield LBBV
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def bimco(iworks_app_cas, env_conf, global_cache):
     '''
     获取BimCO登录凭证
     :return:
     '''
-    BimCO = base_requests.Send(global_cache.get("bimco", False), env_conf, global_cache)
+    BimCO = base_requests.Send(global_cache.get('bimco', False), env_conf, global_cache)
     yield BimCO
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def process(iworks_app_cas, env_conf, global_cache):
     '''
     获取Process登录凭证
     :return:
     '''
-    Process = base_requests.Send(global_cache.get("lbprocess", False), env_conf, global_cache)
+    Process = base_requests.Send(global_cache.get('lbprocess', False), env_conf, global_cache)
     yield Process
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def pds_common(iworks_app_cas, env_conf, global_cache):
     '''
     获取PDSCommon登录凭证
     :return:
     '''
-    PDSCommon = base_requests.Send(global_cache.get("pdscommon", False), env_conf, global_cache)
+    PDSCommon = base_requests.Send(global_cache.get('pdscommon', False), env_conf, global_cache)
     yield PDSCommon
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def pds_doc(iworks_app_cas, env_conf, global_cache):
     '''
     获取pdsdoc登录凭证
     :return:
     '''
-    PDSDoc = base_requests.Send(global_cache.get("pdsdoc", False), env_conf, global_cache)
+    PDSDoc = base_requests.Send(global_cache.get('pdsdoc', False), env_conf, global_cache)
     yield PDSDoc
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def builder_common_business_data(iworks_app_cas, env_conf, global_cache):
     '''
     获取BusinessData登录凭证
     :return:
     '''
-    builderCommonBusinessData = base_requests.Send(global_cache.get("buildercommonbusinessdata", False), env_conf, global_cache)
+    builderCommonBusinessData = base_requests.Send(global_cache.get('buildercommonbusinessdata', False), env_conf, global_cache)
     yield builderCommonBusinessData
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def bimapp_login(env_conf, global_cache):
     '''
     BIMApp 通行证系统登录
     :return:
     '''
-    BimAppLogin = public_login.Bimapp(env_conf["bimapp"]["username"], env_conf["bimapp"]["password"], env_conf,
+    BimAppLogin = public_login.Bimapp(env_conf['bimapp']['username'], env_conf['bimapp']['password'], env_conf,
                                       global_cache).login()
     yield BimAppLogin
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def myluban_web_login(env_conf, global_cache):
     '''
     Myluban web 登录
     :return:
     '''
-    MylubanWebLogin = public_login.MylubanWeb(env_conf["MylubanWeb"]["username"], env_conf["MylubanWeb"]["password"],
+    MylubanWebLogin = public_login.MylubanWeb(env_conf['MylubanWeb']['username'], env_conf['MylubanWeb']['password'],
                                               env_conf, global_cache).login()
     yield MylubanWebLogin
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def bussiness_login(env_conf, global_cache):
     '''
     Bussiness 业务管理系统登录
     :return:
     '''
-    BussinessLogin = public_login.Bussiness(env_conf["Bussiness"]["username"], env_conf["Bussiness"]["password"], env_conf,
+    BussinessLogin = public_login.Bussiness(env_conf['Bussiness']['username'], env_conf['Bussiness']['password'], env_conf,
                                             global_cache).login()
     yield BussinessLogin
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def lubansoft_login(env_conf, global_cache):
     '''
     算量软件登录
     :return:
     '''
-    LubansoftLogin = public_login.LubanSoft(env_conf["lubansoft"]["username"], env_conf["lubansoft"]["password"], env_conf,
+    LubansoftLogin = public_login.LubanSoft(env_conf['lubansoft']['username'], env_conf['lubansoft']['password'], env_conf,
                                             global_cache).login()
     yield LubansoftLogin
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def iworks_web_cas(env_conf, global_cache):
     '''
     获取cas登录凭证
     :return:
     '''
-    public_login.IworksWeb(env_conf["iworksWeb"]["username"], env_conf["iworksWeb"]["password"], env_conf, global_cache).login()
+    public_login.IworksWeb(env_conf['iworksWeb']['username'], env_conf['iworksWeb']['password'], env_conf, global_cache).login()
     yield
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def iworks_web_common(iworks_web_cas, env_conf, global_cache):
     '''
     获取common登录凭证
     :return:
     '''
-    resule = base_requests.Send(global_cache.get("pdscommon", False), env_conf, global_cache)
+    resule = base_requests.Send(global_cache.get('pdscommon', False), env_conf, global_cache)
     # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
     Jump().jump(resule,resource='/rs/jump')
     yield resule
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def iworks_web_process(iworks_web_cas, env_conf, global_cache):
     '''
     获取process登录凭证
     :return:
     '''
-    resule = base_requests.Send(global_cache.get("LBprocess", False), env_conf, global_cache)
+    resule = base_requests.Send(global_cache.get('LBprocess', False), env_conf, global_cache)
     # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
     Jump().jump(resule,resource='/process/jump')
     yield resule
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def iworks_web_businessdata(iworks_web_cas, env_conf, global_cache):
     '''
     获取businessdata登录凭证
     :return:
     '''
-    resule = base_requests.Send(global_cache.get("BuilderCommonBusinessdata", False), env_conf, global_cache)
+    resule = base_requests.Send(global_cache.get('BuilderCommonBusinessdata', False), env_conf, global_cache)
     # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
     Jump().jump(resule,resource='/jump')
     yield resule
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def iworks_web_plan(iworks_web_cas, env_conf, global_cache):
     '''
     获取plan登录凭证
     :return:
     '''
-    resule = base_requests.Send(global_cache.get("LBSP", False), env_conf, global_cache)
+    resule = base_requests.Send(global_cache.get('LBSP', False), env_conf, global_cache)
     # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
     Jump().jump(resule,resource='/rs/jump')
     yield resule
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def iworks_web_bimco(iworks_web_cas, env_conf, global_cache):
     '''
     获取bimco登录凭证
     :return:
     '''
-    resule = base_requests.Send(global_cache.get("bimco", False), env_conf, global_cache)
+    resule = base_requests.Send(global_cache.get('bimco', False), env_conf, global_cache)
     # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
     Jump().jump(resule,resource='/rs/co/jump')
     yield resule
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def iworks_web_pdsdoc(iworks_web_cas, env_conf, global_cache):
     '''
     获取doc登录凭证
     :return:
     '''
-    resule = base_requests.Send(global_cache.get("pdsdoc", False), env_conf, global_cache)
+    resule = base_requests.Send(global_cache.get('pdsdoc', False), env_conf, global_cache)
     # 处理第一次 302跳转接口不能是post、put、update接口,必须用get接口调用
     Jump().jump(resule,resource='/rs/jump')
     yield resule
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def token(env_conf):
     '''
     数据管理平台获取登录凭证
     :return:
     '''
-    resule = public_login.WebToken(env_conf["iworksWeb"]["username"], env_conf["iworksWeb"]["password"],env_conf['iworksWebProductId'], env_conf)
+    resule = public_login.WebToken(env_conf['iworksWeb']['username'], env_conf['iworksWeb']['password'],env_conf['iworksWebProductId'], env_conf)
     yield  resule.login()
     resule.logout()
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
 def CenterToken(env_conf):
     '''
     Center获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf["center"]["username"], env_conf["center"]["password"],env_conf['centerProductid'], env_conf)
+    resule = public_login.Token(env_conf['center']['username'], env_conf['center']['password'],env_conf['centerProductid'], env_conf)
     yield  resule.login()
     resule.logout()
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope='session')
+def appToken(env_conf):
+    '''
+    appToken获取登录凭证
+    :return:
+    '''
+    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['iworksAppProductId'], env_conf,env_conf['iworksAppProductId'])
+    yield  resule.login()
+    resule.logout()
+
+@pytest.fixture(scope='session')
 def openapi_motor_token(token, env_conf, global_cache):
     '''
     获取openapi_motor_token
@@ -403,11 +390,7 @@ def openapi_motor_token(token, env_conf, global_cache):
     resule = public_login.OpenApiMotorToken(token).login()
     yield  resule"""
 
-GLOBAL_CONFIG_DEFAULT = """weixin :
-  corpid : ww7cfc110509f4c78c
-  secret : 0fmsVQuSrClZG9225BjvpiSdPCBuaQdukPY
-  agentid : 100000
-centerProductid : 100
+GLOBAL_CONFIG_DEFAULT = """centerProductid : 100
 iworksAppProductId : 94
 iworksWebProductId: 192
 headers:
@@ -420,8 +403,7 @@ headers:
 CONFIG_DEFAULT = """pds : http://app.lbuilder.cn
 ac: http://ac.myluban.com
 auth_url: http://service.lbuilder.cn
-youdu_users: "胡彪"
-weixin_toparty: 2
+weixin_robot: "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
 center:
   username: lb91247
   password: 264f0c676e143da03019f1698304c468
@@ -464,7 +446,7 @@ def file_absolute_path(rel_path):
     '''
     current_path = os.path.abspath(os.path.dirname(__file__))
     file_path = os.path.join(current_path,'..', rel_path)
-    return file_path
+    return base_utils.file_is_exist(file_path)
 
 @allure.step("上传文件")
 def upFiles(item_fixture, resource, filePath):
@@ -956,7 +938,8 @@ class WebToken:
         resource = "/auth-server/auth/token"
         body = {"loginType": "192","password": self.password,"username": self.username}
         response = self.Login.request('post', resource, body)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data")) > 0:
             self.access_token = response.get("data")[0]
             Global_Map().set("access_token", response.get("data")[0])
@@ -970,7 +953,8 @@ class WebToken:
         '''
         resource = f"/auth-server/auth/enterprises"
         response = self.Login.request('get', resource,header={"access-token":self.access_token},flush_header=True)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data_epid")) > 0:
             self.epid = response.get("data_epid")[0]
             Global_Map().set("epid", response.get("data_epid")[0])
@@ -983,7 +967,8 @@ class WebToken:
         resource = f"/auth-server/auth/enterprise"
         body = {"epid": self.epid}
         response = self.Login.request('put', resource,body)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
 
     def client(self):
         '''
@@ -991,24 +976,27 @@ class WebToken:
         '''
         resource = f"/auth-server/auth/client"
         response = self.Login.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
         Assertions().assert_in_value(response.get("data_productId"),192)
 
     def authgroup(self):
         '''
-        获取权限码，加切登录产品
+        并登录产品，获取权限码
         '''
         resource = f"/auth-server/auth/authgroup/192"
         response = self.Login.request('get', resource)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
 
     def clientModule(self):
         '''
-        获取模块
+        获取模块权限
         '''
         resource = f"/auth-server/auth/clientModule"
         response = self.Login.request('get', resource)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
         Assertions().assert_in_key(response.get("source_response"), "productId")
 
     def logout(self):
@@ -1017,7 +1005,8 @@ class WebToken:
         '''
         resource = "/auth-server/auth/logout"
         response = self.Login.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
 
     def login(self):
         self.getToken()
@@ -1030,9 +1019,9 @@ class WebToken:
 
 class Token:
     '''
-    通用token登录类，所以标准版本token登录可使用这个类来登录
+    通用token登录类，所有标准版本token登录可使用这个类来登录
     '''
-    def __init__(self,username,password,productId,envConf):
+    def __init__(self,username,password,productId,envConf,loginType=None):
         self.productId = productId
         self.username = username
         self.password = password
@@ -1040,15 +1029,17 @@ class Token:
         self.Login = base_requests.Send(envConf['auth_url'], envConf)
         self.epid = ''
         self.access_token = ""
+        self.loginType = "CENTER_WEB" if loginType is None else loginType
 
     def getToken(self):
         '''
         获取token接口
         '''
         resource = "/auth-server/auth/token"
-        body = {"loginType": "CENTER_WEB","password": self.password,"username": self.username}
+        body = {"loginType": self.loginType,"password": self.password,"username": self.username}
         response = self.Login.request('post', resource, body)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data")) > 0:
             self.access_token = response.get("data")[0]
             Global_Map().set("access_token", response.get("data")[0])
@@ -1062,7 +1053,8 @@ class Token:
         '''
         resource = f"/auth-server/auth/enterprises/productId/{self.productId}"
         response = self.Login.request('get', resource,header={"access-token":self.access_token},flush_header=True)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data_epid")) > 0:
             self.epid = response.get("data_epid")[0]
             Global_Map().set("epid", response.get("data_epid")[0])
@@ -1075,7 +1067,8 @@ class Token:
         resource = f"/auth-server/auth/enterprise"
         body = {"epid": self.epid}
         response = self.Login.request('put', resource,body)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
 
     def logout(self):
         '''
@@ -1083,7 +1076,8 @@ class Token:
         '''
         resource = "/auth-server/auth/logout"
         response = self.Login.request('get', resource)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
 
     def login(self):
         self.getToken()

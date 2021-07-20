@@ -21,7 +21,7 @@ from luban_common.msg import weixin
 
 def sendCardReport(title,toparty,PassIsSend=False,file="../report/report.xml"):
     '''
-    发送报告信息
+    pytest xml报告,发送报告信息
     :param title: 报告标题
     :param toparty: 发送给的部门
     :param PassIsSend: 用例全部通过时是否发送消息，默认不发送

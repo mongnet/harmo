@@ -7,21 +7,21 @@
 import allure
 
 class {{class_name}}:
-    '''
+    """
     {{name}}
-    '''
+    """
 
     {{# interfaces}}
-    @allure.step('{{name_cn}}')
+    @allure.step("{{name_cn}}")
     def {{name_en}}(self, item_fixture{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}}):
-        '''
+        """
         {{name_cn}}
         :param item_fixture: item fixture,
         {{# params_description_list}}
         :param {{{.}}}
         {{/ params_description_list}}
-        '''
-        resource = f'{{project}}{{uri}}'
+        """
+        resource = f"{{project}}{{uri}}"
         {{# body}}
         body = {{{body}}}
         {{/ body}}
@@ -31,7 +31,7 @@ class {{class_name}}:
         {{# cookie_params}}
         cookies_kwargs = {{{cookie_params}}}
         {{/ cookie_params}}
-        response = item_fixture.request('{{method}}', resource{{# body}}, body{{/ body}}{{# query_params}}, params = query_params{{/ query_params}}{{# cookie_params}}, cookies_kwargs = cookies_kwargs{{/ cookie_params}})
+        response = item_fixture.request("{{method}}", resource{{# body}}, body{{/ body}}{{# query_params}}, params = query_params{{/ query_params}}{{# cookie_params}}, cookies_kwargs = cookies_kwargs{{/ cookie_params}})
         return response
 
     {{/ interfaces}}

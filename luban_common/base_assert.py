@@ -12,38 +12,52 @@ from luban_common import base_utils
 
 
 class Assertions:
-    '''
+    """
     公共断言方法
-    '''
+    """
 
     @classmethod
-    @allure.step('校验status_code和code')
+    @allure.step("校验status_code和code")
     def assert_all_code(self, response, expected_http_code, expected_code):
-        '''
+        """
+        即将废弃
         校验status_code和code状态码
         :param response: 响应数据
         :param expected_http_code: 预期的http状态码
         :param expected_code: 预期code状态码
         :return:
-        '''
-        assert response.get("status_code") == expected_http_code,f'校验失败,实际值为:{response.get("status_code")},预期值为:{expected_http_code},响应信息为:{response.get("source_response")}'
-        assert response.get("code")[0] == expected_code,f'校验失败,实际值为:{response.get("code")[0]},预期值为:{expected_code},响应信息为:{response.get("source_response")}'
+        """
+        assert response.get("code")[0] == expected_code and response.get("status_code") == expected_http_code,f'''校验失败,实际值为:{response.get("code")[0]},预期值为:{expected_code}
+        
+        请求URL:{response.get("request_url")}
+        请求Method:{response.get("request_method")}
+        请求Params:{response.get("request_params")}
+        请求Payload{response.get("request_payload")}
+        响应status_code:{response.get("status_code")}
+        响应信息:{response.get("source_response")}'''
 
     @classmethod
-    @allure.step('校验状态码，实际值为:{2},预期值为:{3}')
+    @allure.step("校验状态码，实际值为:{2},预期值为:{3}")
     def assert_code(self, response, reality_code, expected_code):
-        '''
+        """
         验证response响应体中的code或status_code状态码
-        assert_code 相对 assert_equal_value ,assert_code可返回全部响应信息，方便code错误时查看响应信息
+        assert_code 相对于 assert_equal_value 断言 assert_code 可返回全部响应信息，方便code错误时查看响应信息
         :param response: 响应体
         :param reality_code: 响应体中的code或status_code状态码
         :param expected_code: 预期code或status_code状态码
         :return:
-        '''
-        assert reality_code == expected_code, f'校验失败,实际值为:{reality_code},预期值为:{expected_code},响应信息为:{response.get("source_response")}'
+        """
+        assert reality_code == expected_code, f'''校验失败,实际值为:{reality_code},预期值为:{expected_code}
+        
+        请求URL:{response.get("request_url")}
+        请求Method:{response.get("request_method")}
+        请求Params:{response.get("request_params")}
+        请求Payload{response.get("request_payload")}
+        响应status_code:{response.get("status_code")}
+        响应信息:{response.get("source_response")}'''
 
     @classmethod
-    @allure.step('校验数据集中指定key的值，预期key为:{2}，预期值为:{3}')
+    @allure.step("校验数据集中指定key的值，预期key为:{2}，预期值为:{3}")
     def assert_assign_attribute_value(self, data,key,expected_value):
         """
         校验数据集中指定key的值是否等于预期值
@@ -54,14 +68,14 @@ class Assertions:
         """
         if isinstance(data[key], list) and isinstance(expected_value,list):
             if data[key] != expected_value:
-                assert False, f'预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}'
+                assert False, f"预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}"
         elif isinstance(data[key], (str,int,float)):
-            assert data[key] == expected_value, f'预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}'
+            assert data[key] == expected_value, f"预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}"
         else:
-            assert False, f'当前传入的实际值类型为{type(data[key])},预期值类型为{type(expected_value)},现只支持list,str,int,float的校验,其余暂不支持'
+            assert False, f"当前传入的实际值类型为{type(data[key])},预期值类型为{type(expected_value)},现只支持list,str,int,float的校验,其余暂不支持"
 
     @classmethod
-    @allure.step('校验数据集中存在预期值，预期值为:{2}')
+    @allure.step("校验数据集中存在预期值，预期值为:{2}")
     def assert_in_value(self, data,expected_value):
         """
         校验数据集中存在预期值
@@ -71,15 +85,15 @@ class Assertions:
         """
         if isinstance(data,(list,dict)):
             if isinstance(expected_value, str):
-                assert expected_value in base_utils.get_all_value(data), f'响应结果中不存在预期值为：{expected_value} 的数据'
+                assert expected_value in base_utils.get_all_value(data), f"响应结果中不存在预期值为：{expected_value} 的数据"
             elif isinstance(expected_value, list):
                 for value in expected_value:
-                    assert value in base_utils.get_all_value(data), f'响应结果中不存在预期值为：{expected_value} 的数据'
+                    assert value in base_utils.get_all_value(data), f"响应结果中不存在预期值为：{expected_value} 的数据"
         else:
             assert False, f"{type(data)}数据类型不支持"
 
     @classmethod
-    @allure.step('校验以预期值开头，预期值为:{2}')
+    @allure.step("校验以预期值开头，预期值为:{2}")
     def assert_startswith(self, data,expected_value):
         """
         校验以预期值开头
@@ -90,10 +104,10 @@ class Assertions:
         if isinstance(data,str):
             assert data.startswith(expected_value),f"没有以预期值：{expected_value} 开头"
         else:
-            assert False, '只支持 str 的校验，其余暂不支持'
+            assert False, "只支持 str 的校验，其余暂不支持"
 
     @classmethod
-    @allure.step('校验以预期值结尾，预期值为:{2}')
+    @allure.step("校验以预期值结尾，预期值为:{2}")
     def assert_endswith(self, data,expected_value):
         """
         校验以预期值结尾
@@ -104,10 +118,10 @@ class Assertions:
         if isinstance(data,str):
             assert data.endswith(expected_value),f"没有以预期值：{expected_value} 结尾"
         else:
-            assert False, '只支持 str 的校验，其余暂不支持'
+            assert False, "只支持 str 的校验，其余暂不支持"
 
     @classmethod
-    @allure.step('校验字典中存在预期key，预期值为:{2}')
+    @allure.step("校验字典中存在预期key，预期值为:{2}")
     def assert_in_key(self, data,key):
         """
         校验字典中存在预期key
@@ -121,7 +135,7 @@ class Assertions:
             assert False,f"{type(data)}数据类型不支持"
 
     @classmethod
-    @allure.step('校验数据集中不存在预期值，预期值为:{2}')
+    @allure.step("校验数据集中不存在预期值，预期值为:{2}")
     def assert_not_in_value(self, data,expected_value):
         """
         校验数据集中不存在预期值
@@ -135,7 +149,7 @@ class Assertions:
             assert False,f"{type(data)}数据类型不支持"
 
     @classmethod
-    @allure.step('校验字典中不存在预期key，预期值为:{2}')
+    @allure.step("校验字典中不存在预期key，预期值为:{2}")
     def assert_not_in_key(self, data,expected_key):
         """
         验证check_value中不存在预期key
@@ -149,7 +163,7 @@ class Assertions:
             assert False,f"{type(data)}数据类型不支持"
 
     @classmethod
-    @allure.step('校验等于预期值，预期值为:{2}')
+    @allure.step("校验等于预期值，预期值为:{2}")
     def assert_equal_value(self, reality_value, expected_value):
         """
         校验等于预期值
@@ -160,10 +174,38 @@ class Assertions:
         assert expected_value == reality_value, f"实际值不等于预期值,实际值为:{reality_value},预期值为:{expected_value}"
 
     @classmethod
-    @allure.step('校验等于预期值，预期值为:{2}')
+    @allure.step("断言字符串中包含指定字符串，预期值为:{2}")
+    def assert_contains(self, original_value, contains_value):
+        """
+        断言字符串中包含指定字符串
+        :param original_value: 实际字符串
+        :param contains_value: 预期字符串
+        :return:
+        """
+        if isinstance(original_value, str) and isinstance(contains_value, str):
+            assert contains_value in original_value, f"实际值不包含预期值,实际值为:{original_value},预期值为:{contains_value}"
+        else:
+            assert False, "只支持str类型"
+
+    @classmethod
+    @allure.step("断言字符串中不包含指定字符串，预期值为:{2}")
+    def assert_not_contains(self, original_value, contains_value):
+        """
+        断言字符串中不包含指定字符串
+        :param original_value: 实际字符串
+        :param contains_value: 预期字符串
+        :return:
+        """
+        if isinstance(original_value, str) and isinstance(contains_value, str):
+            assert contains_value not in original_value, f"实际值包含预期值,实际值为:{original_value},预期值为:{contains_value}"
+        else:
+            assert False, "只支持str类型"
+
+    @classmethod
+    @allure.step("校验等于预期值，预期值为:{2}")
     def assert_not_equal_value(self, reality_value, expected_value):
         """
-        校验等于预期值
+        校验不等于预期值
         :param reality_value: 实际值
         :param expected_value: 预期值
         :return:
@@ -171,7 +213,7 @@ class Assertions:
         assert expected_value != reality_value, f"实际值等于预期值,实际值为:{reality_value},预期值为:{expected_value}"
 
     @classmethod
-    @allure.step('校验是否等于None')
+    @allure.step("校验是否等于None")
     def assert_isNone(self, reality_value):
         """
         校验是否等于None
@@ -184,7 +226,7 @@ class Assertions:
             assert False, "校验值不等于None"
 
     @classmethod
-    @allure.step('校验为空')
+    @allure.step("校验为空")
     def assert_isEmpty(self, reality_value):
         """
         校验值为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空
@@ -197,7 +239,7 @@ class Assertions:
             assert False, f"校验值不为空,值为:{reality_value}"
 
     @classmethod
-    @allure.step('校验不为空')
+    @allure.step("校验不为空")
     def assert_isNotEmpty(self, reality_value):
         """
         校验值不为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空
@@ -210,7 +252,7 @@ class Assertions:
             assert False, f"校验值为空,值为:{reality_value}"
 
     @classmethod
-    @allure.step('校验时间小于预期，实际值为:{2}，预期值为:{3}')
+    @allure.step("校验时间小于预期，实际值为:{2}，预期值为:{3}")
     def assert_time(self, reality_time, expected_time):
         """
         校验时间小于预期
@@ -221,10 +263,10 @@ class Assertions:
         if reality_time <= expected_time:
             assert True
         else:
-            assert False, f'实际时间大于预期时间,实际值为:{reality_time},预期值为:{expected_time}'
+            assert False, f"实际时间大于预期时间,实际值为:{reality_time},预期值为:{expected_time}"
 
     @classmethod
-    @allure.step('校验字典或列表是否相等，实际值为:{1}，预期值为:{2}')
+    @allure.step("校验字典或列表是否相等，实际值为:{1}，预期值为:{2}")
     def assert_dictOrList_eq(self,reality, expected):
         """
         校验字典或列表是否相等
@@ -236,17 +278,17 @@ class Assertions:
             if operator.eq(reality,expected):
                 assert True
             else:
-                assert False,'二个字典不相等'
+                assert False,"二个字典不相等"
         elif isinstance(reality, list) and isinstance(expected, list):
             if list(set(reality).difference(set(expected))) == [] and list(set(expected).difference(set(reality))) == []:
                 assert True
             else:
-                assert False, '二个列表不相等'
+                assert False, "二个列表不相等"
         else:
-            assert False, '传入的数据不是字典或列表'
+            assert False, "传入的数据不是字典或列表"
 
     @classmethod
-    @allure.step('校验列表中是否有重复项')
+    @allure.step("校验列表中是否有重复项")
     def assert_list_repetition(self, lists):
         """
         校验列表中是否有重复项
@@ -256,44 +298,47 @@ class Assertions:
         if isinstance(lists,list):
             repetition = {key: value for key, value in dict(Counter(lists)).items() if value > 1}
             if repetition:
-                assert False, f'列表中有重复项，重复项为：{repetition}'
+                assert False, f"列表中有重复项，重复项为：{repetition}"
         else:
-            assert False, '传入的数据不是一个list'
+            assert False, "传入的数据不是一个list"
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     dict1 = {"projId":113692,"ppid":130817,"projName":"BW接口用工程-勿删160711"}
     dict2 = {"projId":113692,"projName":"BW接口用工程-勿删160711","ppid":130817}
-    dict3 = {'hu':[1111,'adf','胡彪']}
-    dict4 = {"name":"hubiao","chengji":[10,20,30],"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}
-    dict5 = {'hu':'adf'}
-    dict6 = {'hu':[]}
-    dict7 = {'hu':''}
-    dict8 = {'hu':['胡彪']}
-    dict9 = {'hu':50}
-    dict10 = {'hu':1.32}
-    list1 = [1111,'adfaf','胡彪']
-    list2 = [1111,'胡彪','adfaf']
-    list3 = ['89010001#89','89010001#89','89010001#89', '96003010#96']
-    list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
-    list5 = [['89010001#89','89010001#89','89010001#89', '96003010#96'],{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{'hu':'adf'}]}]}]
-
-    str1 = "haha"
+    dict3 = {"hu":[1111,"adf","胡彪"]}
+    dict4 = {"name":"hubiao","chengji":[10,20,30],"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}
+    dict5 = {"hu":"adf"}
+    dict6 = {"hu":[]}
+    dict7 = {"hu":""}
+    dict8 = {"hu":["胡彪"]}
+    dict9 = {"hu":50}
+    dict10 = {"hu":1.32}
+    list1 = [1111,"adfaf","胡彪"]
+    list2 = [1111,"胡彪","adfaf"]
+    list3 = ["89010001#89","89010001#89","89010001#89", "96003010#96"]
+    list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}]
+    list5 = [["89010001#89","89010001#89","89010001#89", "96003010#96"],{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}]
+    str0 = "彪哥的测试之路"
+    str1 = "彪哥"
+    str2 = "大佬"
     # Assertions.assert_dictOrList_eq(dict1,dict2)
     # Assertions.assert_dictOrList_eq(list1,list2)
-    # Assertions.assert_assign_attribute_value(dict3, "hu", ['adf',1111, '胡彪'])
-    # Assertions.assert_assign_attribute_value(dict5, 'hu', ['adf',1111, '胡彪'])
-    # Assertions.assert_assign_attribute_value(dict3, 'hu', 'adf')
-    # Assertions.assert_assign_attribute_value(dict6, 'hu', [])
-    Assertions.assert_assign_attribute_value(dict7, 'hu', '')
-    Assertions.assert_assign_attribute_value(dict8, 'hu', '胡彪')
-    Assertions.assert_assign_attribute_value(dict9, 'hu', 50)
-    Assertions.assert_assign_attribute_value(dict10, 'hu', 1.32)
-    Assertions.assert_assign_attribute_value(dict10, 'hu', 1.32)
+    # Assertions.assert_assign_attribute_value(dict3, "hu", ["adf",1111, "胡彪"])
+    # Assertions.assert_assign_attribute_value(dict5, "hu", ["adf",1111, "胡彪"])
+    # Assertions.assert_assign_attribute_value(dict3, "hu", "adf")
+    # Assertions.assert_assign_attribute_value(dict6, "hu", [])
+    # Assertions.assert_assign_attribute_value(dict7, "hu", "")
+    # Assertions.assert_assign_attribute_value(dict8, "hu", "胡彪")
+    # Assertions.assert_assign_attribute_value(dict9, "hu", 50)
+    # Assertions.assert_assign_attribute_value(dict10, "hu", 1.32)
+    # Assertions.assert_assign_attribute_value(dict10, "hu", 1.32)
+    Assertions.assert_contains(str0,str1)
+    Assertions.assert_not_contains(str0,str2)
     # Assertions.assert_list_repetition(list3)
     # Assertions.assert_in_value(dict1,"ppid")
     # in_value 和 in_key 等要支持list和dict，现在只部分支持
     # Assertions.assert_in_key(list4, "hu")
     # Assertions.assert_not_in_key(list4, "hdu")
-    # Assertions.assert_not_in_value(dict4, 'addf')
+    # Assertions.assert_not_in_value(dict4, "addf")
 
 

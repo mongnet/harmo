@@ -14,17 +14,17 @@ from luban_common import base_utils
 
 
 class Send:
-    '''
+    """
     发送请求类
-    '''
+    """
     def __init__(self,host,envConf,global_cache=None,header=None):
-        '''
+        """
         请求数据初始化
         :param host：请求的地址前缀
         :param envConf：环境配置信息
         :param global_cache：缓存信息
         :param header：请求头信息
-        '''
+        """
         self.host = host
         self.cache = global_cache
         self.session = requests.session()
@@ -36,7 +36,7 @@ class Send:
             self.header = envConf
 
     def request(self, method, address, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,timeout=60,**kwargs):
-        '''
+        """
         封装request方法，要求传三个参数
         :param method：请求的方式post,get,delete,put等
         :param address：请求的地址
@@ -47,9 +47,9 @@ class Send:
         :param params: URL传参，接收一个字典数据
         :param cookies_kwargs: cookie参数，接收一个字典数据
         :return: 对响应信息进行重组，响应信息中加入status_code和responsetime
-        '''
+        """
         # 如果address不是http开头，组装请求地址
-        self.Url = address if address.startswith("http") else ''.join([self.host,address])
+        self.Url = address if address.startswith("http") else "".join([self.host,address])
         request_header = copy.deepcopy(json.loads(self.header) if not isinstance(self.header, dict) else self.header)
         # 添加header信息，有些接口请求时添加请求头,flush_header用来指定是否更新基线header
         if header is not None:
@@ -78,9 +78,9 @@ class Send:
                 filename = base_utils.getFileName(files)
                 fileType = MimeTypes().guess_type(files)[0]
                 if fileType is None:
-                    files = {'file': (filename,open(files, 'rb'))}
+                    files = {"file": (filename,open(files, "rb"))}
                 else:
-                    files = {'file': (filename, open(files, 'rb'),fileType)}
+                    files = {"file": (filename, open(files, "rb"),fileType)}
         # 判断payload不为str时，dumps成str类型
         if isinstance(payload,list) or (not isinstance(payload,str) and payload):
             payload = json.dumps(payload)
@@ -93,7 +93,7 @@ class Send:
         except requests.exceptions.RequestException as e:
             logging.error("RequestException异常开始分割线start: ".center(60, "#"))
             logging.error("请求的Url: " + self.Url)
-            logging.error("请求数据: " + str(payload).encode('utf-8').decode("unicode_escape"))
+            logging.error("请求数据: " + str(payload).encode("utf-8").decode("unicode_escape"))
             logging.error("发送请求出现异常: " + str(e))
             logging.error("RequestException异常结束分割线end: ".center(60, "#"))
         try:
@@ -104,7 +104,7 @@ class Send:
             logging.info("请求的Url: " + self.Url)
             logging.info("持续时间: " + str(self.Response.elapsed.total_seconds()))
             logging.info("请求头: " + str(self.Response.request.headers))
-            logging.info("请求数据: " + str(payload).encode('utf-8').decode("unicode_escape"))
+            logging.info("请求数据: " + str(payload).encode("utf-8").decode("unicode_escape"))
             logging.info("响应状态: " + str(self.Response.status_code))
             logging.info("响应内容: "+ self.Response.text if "text/html" not in str(self.Response.headers.get("Content-Type")) else "响应内容: 内容为html，隐藏")
             logging.info("结束分割线end: ".center(60, "#"))
@@ -115,6 +115,10 @@ class Send:
         res["response_time"] = self.Response.elapsed.microseconds/1000
         res["response_header"] = self.Response.headers
         res["request_header"] = self.Response.request.headers
+        res["request_url"] = self.Url
+        res["request_method"] = method
+        res["request_params"] = params
+        res["request_payload"] = payload
         # 当响应体为json类型，且响应信息不为空时
         try:
             self.Response.json()
@@ -136,19 +140,19 @@ class Send:
         return res
 
     def hooks(self,r,*args, **kwargs):
-        '''
+        """
         为解决cas 302跳转时，requests无法跨域传递cookie实现的钩子方法，人为指定cookie并手动请求302跳转
         :param r: 原始请求的响应信息
         :param args:
         :param kwargs:
-        '''
+        """
         try:
             # 保存cas和CASTGC Cookie，在cas地址进行302跳转时使用
-            if r.status_code == 200 and 'Cookie' in r.request.headers.keys() and 'CASTGC'in r.request.headers.get('Cookie') and self.pdsUrl in r.request.url:
+            if r.status_code == 200 and "Cookie" in r.request.headers.keys() and "CASTGC"in r.request.headers.get("Cookie") and self.pdsUrl in r.request.url:
                 # 保存cas和CASTGC Cookie，在cas地址进行302跳转时使用
-                self.cache.set("CasCookie", r.request.headers.get('Cookie'))
+                self.cache.set("CasCookie", r.request.headers.get("Cookie"))
             # 如果响应码是302，且location是cas地址的跳转时，要加上cas的cookie并跳转这个location，如果取到的CasCookie为False时不跳转
-            elif r.status_code == 302 and 'Location' in r.headers.keys() and self.pdsUrl in r.headers.get("Location") and self.cache.get("CasCookie",False):
+            elif r.status_code == 302 and "Location" in r.headers.keys() and self.pdsUrl in r.headers.get("Location") and self.cache.get("CasCookie",False):
                 header = json.loads(self.header)
                 header.update({"cookie":self.cache.get("CasCookie",False)})
                 self.session.request(method=r.request.method, url=r.headers.get("Location"), headers=header,
@@ -159,5 +163,5 @@ class Send:
             logging.error("302跳转出现异常: " + str(e))
             logging.error("302异常结束分割线end: ".center(60, "#"))
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass
