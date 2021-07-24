@@ -357,7 +357,7 @@ def token(env_conf):
     数据管理平台获取登录凭证
     :return:
     '''
-    resule = public_login.WebToken(env_conf['iworksWeb']['username'], env_conf['iworksWeb']['password'],env_conf['iworksWebProductId'], env_conf)
+    resule = public_login.WebToken(env_conf['iworksWeb']['username'], env_conf['iworksWeb']['password'],env_conf['productId']['iworksWeb'], env_conf)
     yield  resule.login()
     resule.logout()
 
@@ -367,7 +367,7 @@ def CenterToken(env_conf):
     Center获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf['center']['username'], env_conf['center']['password'],env_conf['centerProductid'], env_conf)
+    resule = public_login.Token(env_conf['center']['username'], env_conf['center']['password'],env_conf['productId']['center'], env_conf)
     yield  resule.login()
     resule.logout()
 
@@ -377,7 +377,7 @@ def appToken(env_conf):
     appToken获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['iworksAppProductId'], env_conf,env_conf['iworksAppProductId'])
+    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['iworksApp'], env_conf,env_conf['productId']['iworksApp'])
     yield  resule.login()
     resule.logout()
 
@@ -388,17 +388,63 @@ def openapi_motor_token(token, env_conf, global_cache):
     :return:
     '''
     resule = public_login.OpenApiMotorToken(token).login()
-    yield  resule"""
+    yield  resule
 
-GLOBAL_CONFIG_DEFAULT = """centerProductid : 100
-iworksAppProductId : 94
-iworksWebProductId: 192
+@pytest.fixture(scope='session')
+def inspectionToken(env_conf):
+    '''
+    web质检获取登录凭证
+    :return:
+    '''
+    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['inspection'], env_conf,env_conf['productId']['inspection'])
+    yield  resule.login()
+    resule.logout()
+
+@pytest.fixture(scope='session')
+def archivesToken(env_conf):
+    '''
+    web档案获取登录凭证
+    :return:
+    '''
+    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['archives'], env_conf,env_conf['productId']['archives'])
+    yield  resule.login()
+    resule.logout()
+
+@pytest.fixture(scope='session')
+def meterToken(env_conf):
+    '''
+    web计量获取登录凭证
+    :return:
+    '''
+    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['meter'], env_conf,env_conf['productId']['meter'])
+    yield  resule.login()
+    resule.logout()
+
+@pytest.fixture(scope='session')
+def occToken(env_conf):
+    '''
+    指挥中心获取登录凭证
+    :return:
+    '''
+    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['meter'], env_conf,env_conf['productId']['occ'])
+    yield  resule.login()
+    resule.logout()"""
+
+GLOBAL_CONFIG_DEFAULT = """productId:
+    iworks: 92
+    iworksApp: 94
+    occ: 96
+    center: 100
+    iworksWeb: 192
+    meter: 193
+    inspection: 195
+    archives: 196
 headers:
-    multipart_header : '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
-    json_header : '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
-    urlencoded_header : '{"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/x-www-form-urlencoded","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"}'
-    plain_header : '{"Accept": "text/plain","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/x-www-form-urlencoded;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"}'
-    soap_header : '{"Content-Type": "text/xml;charset=utf-8","Accept-Encoding": "gzip, deflate","SOAPAction": ""}'"""
+    multipart_header: '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
+    json_header: '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
+    urlencoded_header: '{"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/x-www-form-urlencoded","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"}'
+    plain_header: '{"Accept": "text/plain","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/x-www-form-urlencoded;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"}'
+    soap_header: '{"Content-Type": "text/xml;charset=utf-8","Accept-Encoding": "gzip, deflate","SOAPAction": ""}'"""
 
 CONFIG_DEFAULT = """pds : http://app.lbuilder.cn
 ac: http://ac.myluban.com
@@ -524,7 +570,7 @@ class Center:
     '''
     def __init__(self,centerusername,centerpassword,envConf,global_cache):
         self.cache = global_cache
-        self.productId = envConf['centerProductid']
+        self.productId = envConf['productId']['center']
         self.username = centerusername if isinstance(centerusername,int) else quote(centerusername)
         self.password = centerpassword
         self.header = envConf["headers"]["plain_header"]
@@ -615,7 +661,7 @@ class IworksApp:
     '''
     def __init__(self,username,password,envConf,global_cache):
         self.cache = global_cache
-        self.productId = envConf['iworksAppProductId']
+        self.productId = envConf['productId']['iworksApp']
         self.username = username if isinstance(username,int) else quote(username)
         self.password = password
         self.header = envConf["headers"]["plain_header"]
@@ -702,7 +748,7 @@ class Iworks:
         self.cache = global_cache
         # self.rf = ManageConfig().getConfig(self.section)
         # self.wf = ManageConfig()
-        self.productId = envConf['iWorksProductId']
+        self.productId = envConf['productId']['iworks']
         self.username = username if isinstance(username,int) else quote(username)
         self.password = password
         self.header =envConf["headers"]["soap_header"]
@@ -834,7 +880,7 @@ class IworksWeb:
     '''
     def __init__(self,username,password,envConf,global_cache):
         self.cache = global_cache
-        self.productId = envConf['iworksWebProductId']
+        self.productId = envConf['productId']['iworksWeb']
         self.username = username
         self.password = password
         self.header = envConf["headers"]["json_header"]
@@ -1070,6 +1116,15 @@ class Token:
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
 
+    def authgroup(self):
+        '''
+        获取授权
+        '''
+        resource = f"/auth-server/auth/authgroup/{self.productId}"
+        response = self.Login.request('get', resource)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
+
     def logout(self):
         '''
         退出登录接口
@@ -1083,6 +1138,9 @@ class Token:
         self.getToken()
         self.getEnterprises()
         self.enterprise()
+        # center登录不能调用这个接口，不然会提示没有授权
+        if self.productId != 100:
+            self.authgroup()
         return self.Login
 
 class OpenAPI:
@@ -1102,7 +1160,7 @@ class OpenAPI:
         '''
         resource = f"/rs/token/{self.apikey}/{self.apisecret}/{self.username}"
         response = self.OpenAPIToken.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
         # 获取到响应的token并更新到header中
         header = json.loads(self.OpenAPIToken.header)
         header.update({"token": response["data"][0]})
@@ -1123,6 +1181,7 @@ class OpenApiMotorToken:
         '''
         resource = f'/auth-server/auth/motor/client_token'
         response = token.request('GET', resource)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
         return response
 
     def validateToken(self, item_fixture,WebToken):
@@ -1133,6 +1192,8 @@ class OpenApiMotorToken:
         header = {"access_token": WebToken}
         resource = f'/openapi/motor/v1.0/service/uc/auth/validateToken'
         response = item_fixture.request('GET', resource,header=header,flush_header=True)
+        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
         return response
 
     def login(self):

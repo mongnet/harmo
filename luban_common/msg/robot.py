@@ -25,6 +25,12 @@ class WeiXin:
             raise ValueError("文本内容，最长不超过2048个字节")
         if len(hookkey) != 36:
             raise ValueError("hookkey错误，hookkey应该是一个36位的字符串")
+        if mentioned_mobile_list is not None and isinstance(mentioned_mobile_list, list):
+            for m in mentioned_mobile_list:
+                if len(m) == 11 and m.startswith("1"):
+                    pass
+                else:
+                    raise ValueError(f"{m} 不是一个正确的手机号")
         wechat_json = {
             "msgtype": "text",
             "text": {
@@ -66,7 +72,7 @@ class WeiXin:
             print("markdown消息发送失败")
 
     @classmethod
-    def send_message_card(self,hookkey,title,url,content=None,picurl="http://www.lubansoft.com/uploads/1540977656.jpg"):
+    def send_message_card(self,hookkey,title,url="#",content=None,picurl="http://www.lubansoft.com/uploads/1540977656.jpg"):
         """
         图文消息
         :param hookkey: webhook的key
@@ -83,9 +89,9 @@ class WeiXin:
             "news": {
                "articles" : [
                    {
-                       "title" : title,
+                       "title" : "无标题消息" if title == "None" or title is None else title,
                        "description" : content,
-                       "url" : url,
+                       "url" : "#" if url == "None" or url is None else url,
                        "picurl" : picurl
                    }
                 ]
@@ -104,7 +110,7 @@ class WeiXin:
         """
         发送图片
         :param hookkey: webhook的key
-        :param imgBase64: 图片（base64编码前）最大不能超过2M，支持JPG,PNG格式
+        :param imgBase64: 图片（base64编码）最大不能超过2M，支持JPG,PNG格式
         :return:
         """
         if len(hookkey) != 36:
@@ -132,7 +138,7 @@ class WeiXin:
         """
         发送文件
         :param hookkey: webhook的key
-        :param media_id: 文件id，通过下文的文件上传接口获取
+        :param file: 文件相对路径
         :return:
         """
         if len(hookkey) != 36:
@@ -173,19 +179,19 @@ class WeiXin:
 if __name__ == "__main__":
     send = WeiXin()
     send.send_message_text(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content="这里是消息内容，http://work.weixin.qq.com 使用很方便。",mentioned_mobile_list=["18019463445","13916829124"] )
-    # markdown_content = """
-    #                 ># 这是`markdown`消息
-    #                 >事　项：<font color=\"info\">开会</font>
-    #                 >组织者：@miglioguan
-    #                 >
-    #                 >会议室：<font color=\"info\">上海研发部</font>
-    #                 >日　期：<font color=\"warning\">2020年8月18日</font>
-    #                 >时　间：<font color=\"comment\">上午9:00-11:00</font>
-    #                 >
-    #                 >请**准时**参加会议。
-    #                 >
-    #                 >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
-    # send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=markdown_content)
-    # send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页",url="www.qq.com")
-    # send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
-    # send.send_image(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="../../data/20201222101200.png")
+    markdown_content = """
+                            ># 这是`markdown`消息
+                            >作　者：<font color=\"info\">MonNet</font>
+                            >公众号：彪哥的测试之路
+                            >
+                            >会议室：<font color=\"info\">上海</font>
+                            >日　期：<font color=\"warning\">2020年8月18日</font>
+                            >时　间：<font color=\"comment\">上午9:00-11:00</font>
+                            >
+                            >请**准时**参加会议。
+                            >
+                            >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
+    send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=markdown_content)
+    send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页",url="http://")
+    send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
+    send.send_image(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="../../data/20201222101200.png")

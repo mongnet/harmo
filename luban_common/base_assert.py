@@ -27,8 +27,8 @@ class Assertions:
         :param expected_code: 预期code状态码
         :return:
         """
-        assert response.get("code")[0] == expected_code and response.get("status_code") == expected_http_code,f'''校验失败,实际值为:{response.get("code")[0]},预期值为:{expected_code}
-        
+        assert response.get("code")[0] == expected_code and response.get("status_code") == expected_http_code,f'''校验失败,实际http_code为:{response.get("status_code")},code为:{response.get("code")[0]},预期http_code为:{response.get("status_code")},code为:{response.get("code")[0]}
+               
         请求URL:{response.get("request_url")}
         请求Method:{response.get("request_method")}
         请求Headers:{response.get("request_header")}

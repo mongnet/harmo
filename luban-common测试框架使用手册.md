@@ -148,17 +148,13 @@ luban-common 框架项目结构如下：
 
 ### 3.1 msg 模块 
 
-消息模块，封装了 `企业微信`、`有度` 消息推送功能
+消息模块，封装了 `企业微信机器人`消息推送功能
 
 #### 3.1.1 企业微信消息
 
-当前微信消息使用的是我个人注册的企业微信，如果想收到消息，需要加入我的企业微信，扫描如下二维码添加企业微信
+当前微信机器人消息封装了5种消息格式，分别为 `文本`、`卡片`、`markdown`  、`发送图片`  、`发送文件`  消息，可针对不同场景使用对应消息，消息样式如下
 
-![image-20201211183455067](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20201211183455067.png)
-
-现封装了三种消息格式，分别为 `文本`、`卡片`、`markdown`  消息，可针对不同场景使用对应消息，消息样式如下
-
-![image-20200826212734899](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200826212734899.png)
+![image-20210724192416549](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210724192416549.png)
 
 
 
@@ -167,22 +163,22 @@ luban-common 框架项目结构如下：
 send_message_text() 函数可发送文本消息，需要传三个参数，调用方式如下：
 
 ```python
-send.send_message_text(title,content,toparty)
+send.send_message_text(hookkey,content,mentioned_mobile_list)
 ```
 
-> **title**：消息标题
+> **hookkey**：webhook的key
 
 > **content**：消息内容
 
-> **toparty**：部门id，部门id是企业微信获取来的，当前我未提供这样的接口，可人为查看后指定
+> **mentioned_mobile_list**：手机号列表，提醒手机号对应的群成员(@某个成员)，例如：["13800001111"]
 
 例：
 
 ```python
-from luban_common.msg.weixin import WeiXinMessage
+from luban_common.msg.robot import WeiXin
 
-send = WeiXinMessage()
-send.send_message_text(title='这是文本消息',content='这里是消息内容，\n还可以有<a href=\"http://work.weixin.qq.com\">连接</a>，使用很方便。',toparty=3)
+send = WeiXin()
+send.send_message_text(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content="发现一个公众号：彪哥的测试之路，很不错。",mentioned_mobile_list=["13916829124"] )
 ```
 
 
@@ -192,22 +188,30 @@ send.send_message_text(title='这是文本消息',content='这里是消息内容
 send_message_textcard() 函数可发送卡片消息，传三个参数，调用方式如下：
 
 ```python
-send.send_message_textcard(title,content,toparty)
+send.send_message_textcard(,hookkey,title,url,content,picurl)
 ```
 
 > **title**：消息标题
 
 > **content**：消息内容
 
-> **toparty**：部门id，部门id是企业微信获取来的，当前我未提供这样的接口，可人为查看后指定
+> **hookkey**：webhook的key
+
+> **title**：消息标题
+
+> **url**：点击后跳转的链接
+
+> **picurl**：图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图 1068*455，小图150*150。
+
+
 
 例：
 
 ```python
-from luban_common.msg.weixin import WeiXinMessage
+from luban_common.msg.robot import WeiXin
 
-send = WeiXinMessage()
-send.send_message_textcard(title='这是卡片消息',content='这里是消息内容，可以点击查看更多跳转到网页',toparty='3')
+send = WeiXin()
+send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="测试开发",content="发现一个公众号：彪哥的测试之路，很不错，可以点击查看更多跳转到网页",url="http://")
 ```
 
 
@@ -217,68 +221,81 @@ send.send_message_textcard(title='这是卡片消息',content='这里是消息�
 send_message_markdown() 函数可发送 markdown 消息，需要传二个参数，调用方式如下：
 
 ```python
-send.send_message_markdown(content,toparty)
+send.send_message_markdown(hookkey,content)
 ```
 
 > **content**：消息内容
 
-> **toparty**：部门id，部门id是企业微信获取来的，当前我未提供这样的接口，可人为查看后指定
+> **hookkey**：webhook的key
 
 例：
 
 ```python
-from luban_common.msg.weixin import WeiXinMessage
+from luban_common.msg.robot import WeiXin
 
-send = WeiXinMessage()
-markdown_content = """这是`markdown`消息
-                    >**可以加粗**
-                    >事　项：<font color=\"info\">开会</font>
-                    >组织者：@miglioguan
-                    >
-                    >会议室：<font color=\"info\">上海研发部</font>
-                    >日　期：<font color=\"warning\">2020年8月18日</font>
-                    >时　间：<font color=\"comment\">上午9:00-11:00</font>
-                    > 
-                    >请准时参加会议。
-                    >
-                    >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
-send.send_message_markdown(content=markdown_content,toparty=3)
+send = WeiXin()
+markdown_content = """
+                        ># 这是`markdown`消息
+                        >事　项：<font color=\"info\">公众号</font>
+                        >组织者：@彪哥的测试之路
+                        >
+                        >会议室：<font color=\"info\">上海</font>
+                        >日　期：<font color=\"warning\">2020年8月18日</font>
+                        >时　间：<font color=\"comment\">上午9:00-11:00</font>
+                        >
+                        >请**准时**参加会议。
+                        >
+                        >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
+send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=markdown_content)
 ```
 
 
 
-#### 3.1.2 有度消息
+##### 3.1.1.4 发送图片
 
-有度消息支持文本和图文消息
-
-##### 3.1.2.1 图文消息
-
-send_msg() 函数可发送图文消息，需要传五个参数，调用方式如下：
+send_image() 发送图片，最大不能超过2M，支持JPG,PNG格式，调用方式如下：
 
 ```python
-send_msg(title,content,sendTo,file=None,session=0)
+send.send_image(hookkey,file)
 ```
 
-> **title**：消息窗口标题
+> **imgBase64**：图片（base64编码）最大不能超过2M，支持JPG,PNG格式
 
-> **content**：消息内容
-
-> **sendTo**：发送给谁，有个用户之间用下划线分隔，如“胡彪_教授”
-
-> **file**：要发送文件的路径，当不需要传文件时，file参数传None，默认为None
-
-> **session**：当session=0时，会新建一个session消息窗口，默认为None
-
-> **return**：返回当前会话的session,当session为0时，会返回一个新的session，不为0时返回当前session
+> **hookkey**：webhook的key
 
 例：
 
 ```python
-from luban_common.msg.youdu import send_msg
+from luban_common.msg.robot import WeiXin
 
-file_path="../../data/Quality_check_lib.xls"
-send_msg(title="测试消息标题", content="测试消息内容\n换行", sendTo="胡彪_教授", files=file_path, session="{F635290E-8685-414E-9FAF-2FA4FEEBB4E8}")
+send = WeiXin()
+send.send_image(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="../../data/20201222101200.png")
 ```
+
+
+
+##### 3.1.1.5 发送文件
+
+send_file() 发送其它文件，调用方式如下：
+
+```python
+send.send_file(hookkey,file)
+```
+
+> **file**：文件相对路径
+
+> **hookkey**：webhook的key
+
+例：
+
+```python
+from luban_common.msg.robot import WeiXin
+
+send = WeiXin()
+send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
+```
+
+
 
 
 
@@ -469,6 +486,8 @@ from luban_common.base_assert import Assertions
 
 Assertions.assert_all_code(response,200,200)
 ```
+
+注：推荐使用 assert_code()
 
 
 
@@ -1393,50 +1412,42 @@ luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center 
 
 #### 4.1.4 发送微信消息
 
-`luban weixin`：发送 `企业微信` 消息命令，格式如下：
+`luban weixin`：发送 `企业微信机器人` 消息命令，格式如下：
 
 ```python
 luban weixin [-o <...>] <title> <content> <department>
 ```
 
-> **title**：消息标题，必填参数
+> **hookkey**：webhook连接中的key，必填参数
 
 > **content**：消息内容，必填参数
 
-> **department**：发送部门ID，这个ID需要到企业微信中查看，必填参数
+> **-m**：手机号字符串，多个手机号用|隔开，如："13800138000|13700137000"，`text` 消息有效，可选参数
 
-> **-o**：消息类型，三种消息类型`text`、`card`、`markdown`，可选参数
+> **-t**：消息标题，`card` 消息有效，可选参数
 
-例：发送一个文本消息
+> **-u**：点击后跳转的链接，`card` 消息有效，可选参数
+
+> **-o**：消息类型，三种消息类型`text`、`card`、`markdown`，可选参数，类型为 `markdown` 时，content 支持微信机器人支持的 `markdown` 语法
+
+
+
+例：发送 `text` 消息
 
 ```python
-luban weixin title 标题 content 内容 department 3 -o text
+luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -m "13916829124"
 ```
 
-
-
-#### 4.1.5 发送有度消息
-
-`luban youdu`：发送 `有度` 消息命令，格式如下：
+例：发送 `card` 消息
 
 ```python
-luban youdu [-f <...>] [-e <...>] <title> <content> <sendTo>
+luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "card" -t "测试开发" -u "http://demo.com"
 ```
 
-> **title**：消息标题，必填参数
-
-> **content**：消息内容，必填参数
-
-> **sendTo**：发送部门ID，这个ID需要到企业微信中查看，必填参数
-
-> **-f**：要发送文件的路径，可选参数
-
-> **-e**：会话session，当session=0时，会新建一个新的会话窗口，默认为新建会话窗口，可选参数
-
-例：给指定的 session 发一条消息
+例：发送 `markdown` 消息
 
 ```python
-luban youdu title 标题 content 内容 sendTo 胡彪 -f 文件地址 -e {BEF08267-B1C2-4C5F-A284-075F0774729C}
+luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "markdown"
 ```
 
 

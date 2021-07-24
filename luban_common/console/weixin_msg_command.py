@@ -14,8 +14,8 @@ class WeixinMsgCommand(BaseCommand):
         {hookkey : webhook的key，必填参数}
         {content : 消息内容，必填参数}
         {--m|mobilelist=None : 手机号字符串，多个手机号用|隔开，如："13800138000|13700137000"}
-        {--t|title : 消息标题}
-        {--u|url : 点击后跳转的链接}
+        {--t|title=None : 消息标题}
+        {--u|url=None : 点击后跳转的链接}
         {--o|option=text : 消息类型，三种消息类型text、card、markdown}
     """
 
