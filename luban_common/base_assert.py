@@ -31,10 +31,11 @@ class Assertions:
         
         请求URL:{response.get("request_url")}
         请求Method:{response.get("request_method")}
+        请求Headers:{response.get("request_header")}
         请求Params:{response.get("request_params")}
-        请求Payload{response.get("request_payload")}
+        请求Payload:{response.get("request_payload")}
         响应status_code:{response.get("status_code")}
-        响应信息:{response.get("source_response")}'''
+        响应信息:{response.get("Response_text") if response.get("source_response") is None else response.get("source_response")}'''
 
     @classmethod
     @allure.step("校验状态码，实际值为:{2},预期值为:{3}")
@@ -51,10 +52,11 @@ class Assertions:
         
         请求URL:{response.get("request_url")}
         请求Method:{response.get("request_method")}
+        请求Headers:{response.get("request_header")}
         请求Params:{response.get("request_params")}
-        请求Payload{response.get("request_payload")}
+        请求Payload:{response.get("request_payload")}
         响应status_code:{response.get("status_code")}
-        响应信息:{response.get("source_response")}'''
+        响应信息:{response.get("Response_text") if response.get("source_response") is None else response.get("source_response")}'''
 
     @classmethod
     @allure.step("校验数据集中指定key的值，预期key为:{2}，预期值为:{3}")
