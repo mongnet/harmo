@@ -38,9 +38,9 @@ class AnalysisSwaggerJson():
         """
         # swagger接口文档地址
         try:
-            request = requests.get(self.url)
-            assert request.status_code == 200,f"swagger地址无法访问，响应状态码为{request.status_code}"
-            res = request.json()
+            response = requests.get(self.url)
+            assert response.status_code == 200,f"swagger地址无法访问，响应状态码为{response.status_code}"
+            res = response.json()
         except Exception as e:
             raise e
 
@@ -160,10 +160,11 @@ class AnalysisSwaggerJson():
                 schema = each.get("schema")
                 if schema:
                     self.jiexi(schema, http_interface)
-                    if schema.get("type") == "array":
-                        bady = http_interface["body"]
-                        del http_interface["body"]
-                        http_interface.update({"body": [bady]})
+                    # schema type为array时，已把变量命名成 array_string，后续直接传数组即可
+                    # if schema.get("type") == "array":
+                    #     bady = http_interface["body"]
+                    #     del http_interface["body"]
+                    #     http_interface.update({"body": [bady]})
 
             if each.get("in") == "query":
                 name = each.get("name")
@@ -335,13 +336,13 @@ class AnalysisSwaggerJson():
                 body = "_".join(base_utils.get_all_value(schema))
                 http_interface.update({"body": f"${body}$"})
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
-                http_interface["body_params_kwargs"].append(f"${body}$")
+                http_interface["body_params_args"].append(f"${body}$")
             elif schema.get("type") == "string" and ephemeral_key is None:
                 del http_interface["body"]
                 body = "_".join(base_utils.get_all_value(schema))
                 http_interface.update({"body": f"${body}$"})
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
-                http_interface["body_params_kwargs"].append(f"${body}$")
+                http_interface["body_params_args"].append(f"${body}$")
 
     def recursion(self,data):
         """
@@ -390,7 +391,7 @@ class AnalysisSwaggerJson():
                     kwarg = default_parame[arg]
                 else:
                     # 如果是字符串常量必须要加引号
-                    kwarg = """ + default_parame[arg] + """
+                    kwarg = f'"{default_parame[arg]}"'
             list_kwargs.append(arg + "=" + kwarg)
         # 当parameters_form不是None或不是path参数时，参数默认值设置为None
         elif parameters_form is not None or parameters_form != "path":
@@ -427,7 +428,7 @@ class AnalysisSwaggerJson():
 
 if __name__ == "__main__":
     url = "http://192.168.3.195:8080/Plan/rs/swagger/swagger.json"
-    url1 = "http://192.168.3.195/LBbuilder/v2/api-docs"
+    url1 = "http://192.168.3.195/builder/v2/api-docs"
     url2 = "http://192.168.3.195:8989/LBprocess/v2/api-docs"
     url3 = "http://192.168.3.195/pdscommon/rs/swagger/swagger.json"
     url4 = "http://192.168.3.195/pdsdoc/rs/swagger/swagger.json"
@@ -448,7 +449,7 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url12).analysis_json_data())
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
-    # print(AnalysisSwaggerJson(url1).analysis_json_data())
+    print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
     # print(AnalysisSwaggerJson(url3).analysis_json_data())
     # print(AnalysisSwaggerJson(url4).analysis_json_data())
@@ -460,7 +461,7 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url13).analysis_json_data())
     # print(AnalysisSwaggerJson(url14).analysis_json_data())
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
-    print(AnalysisSwaggerJson(url15).analysis_json_data())
+    # print(AnalysisSwaggerJson(url15).analysis_json_data())
 
 
     # js.generator_interface_file(result)

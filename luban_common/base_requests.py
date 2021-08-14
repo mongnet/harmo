@@ -93,7 +93,7 @@ class Send:
                 self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, params=params, timeout=timeout, files=files)
 
             try:
-                # 打印请求和响应数据
+                # 获取请求和响应数据
                 logging.info("开始分割线start: ".center(60, "#"))
                 logging.info("请求方法: " + method)
                 logging.info(list(kwargs.keys())[0]+": "+kwargs[list(kwargs.keys())[0]]) if kwargs!={} else None
@@ -104,16 +104,16 @@ class Send:
                 logging.info("响应状态: " + str(self.Response.status_code))
                 logging.info("响应内容: "+ self.Response.text if "text/html" not in str(self.Response.headers.get("Content-Type")) else "响应内容: 内容为html，隐藏")
                 logging.info("结束分割线end: ".center(60, "#"))
+                res["status_code"] = self.Response.status_code
+                res["response_time"] = self.Response.elapsed.microseconds/1000
+                res["response_header"] = self.Response.headers
+                res["request_header"] = self.Response.request.headers
+                res["request_url"] = self.Url
+                res["request_method"] = method
+                res["request_params"] = params
+                res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")
             except BaseException as e:
-                logging.error("打印请求和响应数据出现异常：" + str(e))
-            res["status_code"] = self.Response.status_code
-            res["response_time"] = self.Response.elapsed.microseconds/1000
-            res["response_header"] = self.Response.headers
-            res["request_header"] = self.Response.request.headers
-            res["request_url"] = self.Url
-            res["request_method"] = method
-            res["request_params"] = params
-            res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")
+                logging.error("获取请求和响应信息出现异常：" + str(e))
             # 当响应体为json类型，且响应信息不为空时
             try:
                 self.Response.json()
@@ -139,9 +139,7 @@ class Send:
             logging.error("发送请求出现异常: " + str(e))
             logging.error("RequestException异常结束分割线end: ".center(60, "#"))
             res["status_code"] = 10004
-            res["response_time"] = self.Response.elapsed.microseconds/1000
-            res["response_header"] = self.Response.headers
-            res["request_header"] = self.Response.request.headers
+            res["request_header"] = request_header
             res["request_url"] = self.Url
             res["request_method"] = method
             res["request_params"] = params
