@@ -17,11 +17,19 @@ class Test_{{class_name}}:
 
     {{# interfaces}}
     @allure.title("{{name_cn}}")
-    def test_{{name_en}}(self, token):
+    def test_{{name_en}}(self, {{token}}):
         """
         {{name_cn}}
         """
-        response = {{class_name}}().{{name_en}}(token{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}})
+        {{# isbody}}
+            {{# body}}
+        body = {{{body}}}
+            {{/ body}}
+        response = {{class_name}}().{{name_en}}({{token}}{{# params_args_nobody}}, {{{.}}}{{/ params_args_nobody}}{{# params_kwargs_nobody}}, {{{.}}}{{/ params_kwargs_nobody}}{{# isbody}}{{# body}}, bodyKwargs=body{{/ body}}{{/ isbody}})
+        {{/ isbody}}
+        {{^ isbody}}
+        response = {{class_name}}().{{name_en}}({{token}}{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}})
+        {{/ isbody}}
         Assertions.assert_code(response,response.get("status_code"),200)
         {{# validate}}
             {{# eq}}

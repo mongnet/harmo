@@ -81,14 +81,22 @@ class AnalysisSwaggerJson():
                 if isinstance(uri_list,list):
                     file_name = ""
                     for uri in uri_list:
-                        k1 = uri.split("/{", 1)[0].split("/")[1:]
+                        k1 = uri.split("?")[0].split("/{", 1)[0].split("/")[1:]
                         for i in uri_list:
-                            k2 = i.split("/{", 1)[0].split("/")[1:]
+                            k2 = i.split("?")[0].split("/{", 1)[0].split("/")[1:]
                             k1 = k1 if not list(sorted(set(k1).intersection(set(k2)), key=k1.index)) else list(sorted(set(k1).intersection(set(k2)), key=k1.index))
                         file_name = "_".join(k1).replace("-", "_").title().replace("_", "")
                         break
                     self.group["class_name"] = file_name
                     self.group["file_name"] = file_name[0].lower()+file_name[1:]
+                # 合并相同file_name
+                groups = base_utils.jpath(self.http_interface_group.get("groups"), check_key="file_name", sub_key="file_name")
+                if groups:
+                    if self.group.get("file_name") in groups:
+                        things = self.http_interface_group.get("groups")[groups.index(self.group.get("file_name"))]
+                        things["name"] = "_".join([things.get("name"),self.group.get("name")])
+                        things["interfaces"].extend(self.group.get("interfaces"))
+                        continue
                 self.http_interface_group["groups"].append(self.group)
         else:
             return "error"
@@ -161,10 +169,13 @@ class AnalysisSwaggerJson():
                 if schema:
                     self.jiexi(schema, http_interface)
                     # schema type为array时，已把变量命名成 array_string，后续直接传数组即可
-                    # if schema.get("type") == "array":
-                    #     bady = http_interface["body"]
-                    #     del http_interface["body"]
-                    #     http_interface.update({"body": [bady]})
+                    if schema.get("type") == "array":
+                        if isinstance(http_interface["body"],str) and http_interface["body"].startswith("$array_"):
+                            pass
+                        else:
+                            bady = http_interface["body"]
+                            del http_interface["body"]
+                            http_interface.update({"body": [bady]})
 
             if each.get("in") == "query":
                 name = each.get("name")
@@ -218,6 +229,8 @@ class AnalysisSwaggerJson():
         # 把 args、kwargs 组装在一起，方便后续调用
         http_interface["params_args"] = list(set(http_interface["path_params_args"] + http_interface["cookie_params_args"] + http_interface["query_params_args"] + http_interface["body_params_args"]))
         http_interface["params_kwargs"] = list(set(http_interface["path_params_kwargs"]+http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"] + http_interface["body_params_kwargs"]))
+        http_interface["params_args_nobody"] = list(set(http_interface["path_params_args"] + http_interface["cookie_params_args"] + http_interface["query_params_args"]))
+        http_interface["params_kwargs_nobody"] = list(set(http_interface["path_params_kwargs"]+http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"]))
         # 把 params_description 组装成 params_description_list 生成用例时,生成字段备注使用
         if "params_description" in http_interface.keys():
             params_description = []
@@ -428,52 +441,39 @@ class AnalysisSwaggerJson():
 
 if __name__ == "__main__":
     url = "http://192.168.3.195:8080/Plan/rs/swagger/swagger.json"
-    url1 = "http://192.168.3.195/builder/v2/api-docs"
+    url1 = "http://service.lbuilder.cn/builder/v2/api-docs"
     url2 = "http://192.168.3.195:8989/LBprocess/v2/api-docs"
     url3 = "http://192.168.3.195/pdscommon/rs/swagger/swagger.json"
     url4 = "http://192.168.3.195/pdsdoc/rs/swagger/swagger.json"
     url5 = "http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json"
     url6 = "http://192.168.13.233:8080/auth-server/v2/api-docs"
     url7 = "http://192.168.3.195/openapi/rs/swagger/swagger.json"
-    url9 = "http://192.168.3.236:8083/monitor/v2/api-docs?group=center"
-    url10 = "http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(center端)"
-    url11 = "http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(客户端)"
+    # url9 = "http://192.168.3.236:8083/monitor/v2/api-docs?group=center"
+    # url10 = "http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(center端)"
+    # url11 = "http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(客户端)"
     url12 = "http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json"
     url13 = "http://192.168.3.195/gateway/process/v2/api-docs"
-    url14 = "http://192.168.3.195/gateway/luban-meter/v2/api-docs?group=V1.0.0"
+    url14 = "http://192.168.13.193:8182/gateway/luban-meter/v2/api-docs?group=V1.0.0"
     url15 = "http://192.168.13.240:8182/gateway-240/luban-infrastructure-center/v2/api-docs?group=V1.0.0"
     url16 = "http://192.168.13.240:8885/luban-misc/v2/api-docs?group=V1.0.0"
+    url17 = "http://192.168.13.66:7790/things/v2/api-docs?group=%E4%B8%9A%E5%8A%A1%E6%8E%A5%E5%8F%A3"
 
-
-    # print(AnalysisSwaggerJson(url7).analysis_json_data())
-    # print(AnalysisSwaggerJson(url12).analysis_json_data())
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
-    print(AnalysisSwaggerJson(url1).analysis_json_data())
+    # print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
     # print(AnalysisSwaggerJson(url3).analysis_json_data())
     # print(AnalysisSwaggerJson(url4).analysis_json_data())
     # print(AnalysisSwaggerJson(url5).analysis_json_data())
+    # print(AnalysisSwaggerJson(url7).analysis_json_data())
     # print(AnalysisSwaggerJson(url6).analysis_json_data())
     # print(AnalysisSwaggerJson(url9).analysis_json_data())
     # print(AnalysisSwaggerJson(url10).analysis_json_data())
     # print(AnalysisSwaggerJson(url11).analysis_json_data())
+    # print(AnalysisSwaggerJson(url12).analysis_json_data())
     # print(AnalysisSwaggerJson(url13).analysis_json_data())
     # print(AnalysisSwaggerJson(url14).analysis_json_data())
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
-
-
-    # js.generator_interface_file(result)
-    # http://192.168.13.206:8083/pds/rs/api/api-docs?url=/pds/rs/api/swagger.json
-    # http://192.168.3.195/gateway/auth-server/doc.html
-    # http://192.168.3.195/gateway/monitor/swagger-ui.html
-    # http://192.168.3.195/gateway/misc/swagger-ui.html
-    # http://192.168.3.195/gateway/openapi/swagger/index.html
-    # http://192.168.3.195/gateway/plan/swagger/index.html
-    # http://192.168.3.195/gateway/process/swagger-ui.html
-    # http://192.168.3.195/gateway/pdscommon/swagger/index.html
-    # http://192.168.3.195/gateway/businessdata/swagger/index.html
-    # http://192.168.3.195/gateway/process/swagger-ui.html
-    # http://192.168.3.195/gateway/builder/doc.html
+    # print(AnalysisSwaggerJson(url17).analysis_json_data())
 

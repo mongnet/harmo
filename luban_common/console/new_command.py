@@ -456,7 +456,7 @@ center:
 iworksApp :
   username : test
   password : 96e79218965eb72c92a549dd5a325612
-  clientVersion: 1.9.0"""
+  clientVersion: 2.1.0"""
 
 PYTESTINI_DEFAULT = """[pytest]
 addopts =
@@ -561,7 +561,7 @@ class BimAdmin:
         '''
         resource = "/login.htm"
         response = self.BimAdminLogin.request("post", resource, self.body, self.header)
-        Assertions().assert_equal_value(response["status_code"],200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         return self.BimAdminLogin
 
 class Center:
@@ -582,7 +582,7 @@ class Center:
         '''
         resource = '/rs/centerLogin/serverurl'
         response = self.CenterLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"],200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         assert len(response["serverURL"]) != 0
         for server in response["serverURL"]:
             number = response["serverURL"].index(server)
@@ -595,7 +595,7 @@ class Center:
         '''
         resource = '/rs/centerLogin/deployType'
         response = self.CenterLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         deployType = response["Response_text"]
         self.cache.set('deployType', deployType)
 
@@ -606,7 +606,7 @@ class Center:
         '''
         resource = '/login'
         response = self.CenterLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         html = response["Response_text"]
         pattern = 'value="LT(.+?)" />'
         lt = re.findall(pattern, html)[0]
@@ -620,7 +620,7 @@ class Center:
         resource = '/login'#?service=+serverlist[6]["serverURL"].replace("://","%3A%2F%2F")
         body = f'_eventId=submit&execution=e1s1&lt=LT{self.getLT()}&password={self.password}&productId={self.productId}&submit=%25E7%2599%25BB%25E5%25BD%2595&username={self.username}'
         response = self.CenterLogin.request('post', resource, body, self.header)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def getCompanyList(self):
         '''
@@ -630,7 +630,7 @@ class Center:
         resource = "/rs/centerLogin/companyList"
         body = {"password": self.password,"username": self.username}
         response = self.CenterLogin.request('post', resource, body)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         if len(response["epid"]) > 0:
             self.cache.set('CenterEpid',response["epid"][0])
 
@@ -642,7 +642,7 @@ class Center:
         resource = "/rs/centerLogin/login"
         body = {"epid":self.cache.get("CenterEpid",False),"password": self.password,"username": self.username}
         response = self.CenterLogin.request('post', resource, body)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def login(self):
         '''
@@ -675,7 +675,7 @@ class IworksApp:
         '''
         resource = '/rs/casLogin/serverUrl'
         response = self.casLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         assert len(response["serverURL"]) != 0
         for server in response["serverURL"]:
             number = response["serverURL"].index(server)
@@ -688,7 +688,7 @@ class IworksApp:
         '''
         resource = '/login'
         response = self.casLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         html = response["Response_text"]
         pattern = 'value="LT(.+?)" />'
         lt = re.findall(pattern, html)[0]
@@ -702,7 +702,7 @@ class IworksApp:
         resource = '/login'#?service=+serverlist[6]["serverURL"].replace("://","%3A%2F%2F")
         body = f'_eventId=submit&execution=e1s1&lt=LT{self.getLT()}&password={self.password}&productId={self.productId}&submit=%25E7%2599%25BB%25E5%25BD%2595&username={self.username}'
         response = self.casLogin.request('post', resource, body, self.header)
-        Assertions().assert_equal_value(response["status_code"],200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def getCompanyList(self):
         '''
@@ -715,7 +715,7 @@ class IworksApp:
          "token": "f54d6c8c13445a723a2863a72d460e5aec48010560ea2351bda6474de5164899", "systemVersion": "13.5.1",
          "hardwareCodes": "3465192946d57f13482640578c77ffa77d1f66a4"}
         response = self.casLogin.request('post', resource, body)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         if len(response["enterpriseId"]) > 0:
             self.cache.set('iworksAppEpid', response["enterpriseId"][0])
             self.epid = response["enterpriseId"][0]
@@ -728,7 +728,7 @@ class IworksApp:
         '''
         resource = f"/rs/casLogin/changeEnterprise/{self.epid}"
         response = self.casLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def login(self):
         '''
@@ -768,8 +768,8 @@ class Iworks:
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>'''
         response = self.casLogin.request('post',resource,body)
-        Assertions().assert_equal_value(response["status_code"], 200)
-        convertedXml = xmltodict.parse(response['Response_text'])
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        convertedXml = xmltodict.parse(response.get('Response_text'))
         Response_serverURL= base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:getServUrlResponse_return_list'][0]
         assert len(Response_serverURL)!=0,"serverURL不能为空"
         for server in Response_serverURL:
@@ -782,7 +782,7 @@ class Iworks:
         '''
         resource = '/login'
         response = self.casLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         html = response["Response_text"]
         pattern = 'value="LT(.+?)" />'
         lt = re.findall(pattern, html)[0]
@@ -796,7 +796,7 @@ class Iworks:
         resource = '/login'#?service=+serverlist[6]["serverURL"].replace("://","%3A%2F%2F")
         body = f'_eventId=submit&execution=e1s1&lt=LT{self.getLT()}&password={self.password}&productId={self.productId}&submit=%25E7%2599%25BB%25E5%25BD%2595&username={self.username}'
         response = self.casLogin.request('post',resource,body,self.header1)
-        Assertions().assert_equal_value(response["status_code"],200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def getCompanyList(self):
         '''
@@ -812,10 +812,9 @@ class Iworks:
     </soapenv:Body>
 </soapenv:Envelope>'''
         response = self.casLogin.request('post',resource,body)
-        Assertions().assert_equal_value(response["status_code"], 200)
-        convertedXml = xmltodict.parse(response['Response_text'])
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        convertedXml = xmltodict.parse(response.get('Response_text'))
         enterpriseId = base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:getCompanyListResponse_return_enterpriseId']
-        print(enterpriseId)
         if len(enterpriseId) > 0:
             epids = eval(json.dumps(enterpriseId))[0]
             self.cache.set('epid', epids)
@@ -829,7 +828,7 @@ class Iworks:
         '''
         resource = f"/rs/casLogin/changeEnterprise/{self.epid}"
         response = self.casLogin.request('get',resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def casLoginService(self):
         '''
@@ -860,8 +859,8 @@ class Iworks:
 </soapenv:Envelope>
 '''
         response = self.casLogin.request('post',resource,body,self.header)
-        Assertions().assert_equal_value(response["status_code"], 200)
-        convertedXml = xmltodict.parse(response['Response_text'])
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        convertedXml = xmltodict.parse(response.get('Response_text'))
         Response_authCodes = base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:casLoginResponse_return_clientAuthGroupResultList_list']
         print(Response_authCodes)
     def login(self):
@@ -893,11 +892,11 @@ class IworksWeb:
         '''
         resource = '/rs/casLogin/serverUrl'
         response = self.casLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
-        assert len(response["serverURL"]) != 0
-        for server in response["serverURL"]:
-            number = response["serverURL"].index(server)
-            self.cache.set(response["serverName"][number],response["serverURL"][number])
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        assert len(response.get("serverURL")) != 0
+        for server in response.get("serverURL"):
+            number = response.get("serverURL").index(server)
+            self.cache.set(response.get("serverName")[number],response.get("serverURL")[number])
 
     def getTGC(self):
         '''
@@ -907,7 +906,7 @@ class IworksWeb:
         resource = '/rs/v2/tickets/tgt?'
         body = {"password": self.password,"username": self.username,"productId":self.productId}
         response = self.casLogin.request('post', resource, body, self.header)
-        Assertions().assert_equal_value(response["status_code"],200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def getCompanyList(self):
         '''
@@ -916,12 +915,12 @@ class IworksWeb:
         '''
         resource = "/rs/v2/casLogin/listCompany"
         response = self.casLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
-        if len(response["data_enterpriseId"]) > 0:
-            self.cache.set('iworksWebEpid', response["data_enterpriseId"][0])
-            self.epid = response["data_enterpriseId"][0]
-            Global_Map().set("epid", response["data_enterpriseId"][0])
-            Global_Map().set("enterpriseName", response["data_enterpriseName"][0])
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        if len(response.get("data_enterpriseId")) > 0:
+            self.cache.set('iworksWebEpid', response.get("data_enterpriseId")[0])
+            self.epid = response.get("data_enterpriseId")[0]
+            Global_Map().set("epid", response.get("data_enterpriseId")[0])
+            Global_Map().set("enterpriseName", response.get("data_enterpriseName")[0])
             return self.epid
 
     def switchCompany(self):
@@ -932,7 +931,7 @@ class IworksWeb:
         resource = f"/rs/casLogin/casLogin"
         body = {"epid": self.epid}
         response = self.casLogin.request('post', resource,body)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def enterpriseInfo(self):
         '''
@@ -941,7 +940,7 @@ class IworksWeb:
         '''
         resource = f"/rs/casLogin/enterpriseInfo"
         response = self.casLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def authgroup(self):
         '''
@@ -950,7 +949,7 @@ class IworksWeb:
         '''
         resource = f"/rs/v2/casLogin/authgroup/{self.productId}"
         response = self.casLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def login(self):
         '''
@@ -975,7 +974,7 @@ class WebToken:
         self.header = envConf["headers"]["json_header"]
         self.Login = base_requests.Send(envConf['auth_url'], envConf)
         self.epid = ''
-        self.access_token = ""
+        self.token = ""
 
     def getToken(self):
         '''
@@ -987,10 +986,10 @@ class WebToken:
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data")) > 0:
-            self.access_token = response.get("data")[0]
-            Global_Map().set("access_token", response.get("data")[0])
+            self.token = response.get("data")[0]
+            Global_Map().set("token", response.get("data")[0])
         # 验证token中账号是否正确
-        userinfo = json.loads(base_utils.FromBase64(self.access_token.split(".")[1]))
+        userinfo = json.loads(base_utils.FromBase64(self.token.split(".")[1]))
         Assertions().assert_in_value(userinfo,self.username)
 
     def getEnterprises(self):
@@ -998,7 +997,7 @@ class WebToken:
         获取企业列表
         '''
         resource = f"/auth-server/auth/enterprises"
-        response = self.Login.request('get', resource,header={"access-token":self.access_token},flush_header=True)
+        response = self.Login.request('get', resource,header={"access-token":self.token},flush_header=True)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data_epid")) > 0:
@@ -1074,7 +1073,7 @@ class Token:
         self.header = envConf["headers"]["json_header"]
         self.Login = base_requests.Send(envConf['auth_url'], envConf)
         self.epid = ''
-        self.access_token = ""
+        self.token = ""
         self.loginType = "CENTER_WEB" if loginType is None else loginType
 
     def getToken(self):
@@ -1087,10 +1086,10 @@ class Token:
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data")) > 0:
-            self.access_token = response.get("data")[0]
-            Global_Map().set("access_token", response.get("data")[0])
+            self.token = response.get("data")[0]
+            Global_Map().set("token", response.get("data")[0])
         # 验证token中账号是否正确
-        userinfo = json.loads(base_utils.FromBase64(self.access_token.split(".")[1]))
+        userinfo = json.loads(base_utils.FromBase64(self.token.split(".")[1]))
         Assertions().assert_in_value(userinfo,str(self.username))
 
     def getEnterprises(self):
@@ -1098,7 +1097,7 @@ class Token:
         获取企业列表
         '''
         resource = f"/auth-server/auth/enterprises/productId/{self.productId}"
-        response = self.Login.request('get', resource,header={"access-token":self.access_token},flush_header=True)
+        response = self.Login.request('get', resource,header={"access-token":self.token},flush_header=True)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data_epid")) > 0:
@@ -1160,10 +1159,10 @@ class OpenAPI:
         '''
         resource = f"/rs/token/{self.apikey}/{self.apisecret}/{self.username}"
         response = self.OpenAPIToken.request('get', resource)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         # 获取到响应的token并更新到header中
         header = json.loads(self.OpenAPIToken.header)
-        header.update({"token": response["data"][0]})
+        header.update({"token": response.get("data")[0]})
         self.OpenAPIToken.header = json.dumps(header)
         return self.OpenAPIToken
 
@@ -1181,7 +1180,7 @@ class OpenApiMotorToken:
         '''
         resource = f'/auth-server/auth/motor/client_token'
         response = token.request('GET', resource)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         return response
 
     def validateToken(self, item_fixture,WebToken):
@@ -1192,7 +1191,7 @@ class OpenApiMotorToken:
         header = {"access_token": WebToken}
         resource = f'/openapi/motor/v1.0/service/uc/auth/validateToken'
         response = item_fixture.request('GET', resource,header=header,flush_header=True)
-        Assertions().assert_equal_value(response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         return response
 
@@ -1223,7 +1222,7 @@ class Bimapp:
         '''
         resource = "/login.htm"
         response = self.BimappLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
     def getAcAddress(self):
         '''
@@ -1231,7 +1230,7 @@ class Bimapp:
         '''
         resource = "/getAcAddress.htm"
         response = self.BimappLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         if response["Response_text"] is not None:
             self.AcAddress = response["Response_text"]
 
@@ -1241,8 +1240,8 @@ class Bimapp:
         '''
         resource = f"{self.AcAddress}/rs/rest/user/login/{self.username}/{self.password}"
         response = self.BimappLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
-        self.token = response['loginToken'][0]
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        self.token = response.get('loginToken')[0]
 
     def doLoginWithToken(self):
         '''
@@ -1250,7 +1249,7 @@ class Bimapp:
         '''
         resource = f"/bimapp/doLoginWithToken.htm?token={self.token}"
         response = self.BimappLogin.request('get', resource)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
 
 
     def login(self):
@@ -1282,7 +1281,7 @@ class MylubanWeb:
         resource = "/myluban/rest/login"
         body = {"username":self.username,"password":self.password}
         response = self.MylubanWebLogin.request('post', resource, body)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         return self.MylubanWebLogin
 
 class Bussiness:
@@ -1304,8 +1303,8 @@ class Bussiness:
         resource = "/login"
         body = {"username":self.username,"password":self.password}
         response = self.BussinessLogin.request('post', resource, body)
-        Assertions().assert_equal_value(response["status_code"], 200)
-        Assertions().assert_equal_value(response["rtcode"][0], 0)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response, response.get("rtcode")[0], 0)
         return self.BussinessLogin
 
 class LubanSoft:
@@ -1344,7 +1343,7 @@ class LubanSoft:
         </LBLoginParam>
         </ns6:login></SOAP-ENV:Body></SOAP-ENV:Envelope>'''
         response = self.lubansoftLogin.request('post', resource, body)
-        Assertions().assert_equal_value(response["status_code"], 200)
+        Assertions().assert_code(response,response.get("status_code"), 200)
         return self.lubansoftLogin
 
 if __name__ == '__main__':

@@ -1239,9 +1239,9 @@ base_utils.jpath(data,check_key="functionKey",check_value="D-2",sub_key="openSta
 
 
 
-### 3.6 global_map.py
+### 3.6 Global_Map.py
 
-全局变量函数，效果同 `global_cache` ，为什么有了 `global_cache` 还要再搞一个 global_map 了，因为 `global_cache` 是一个 fixture 函数，调用会有局限性，它只能在 fixture 函数或测试方法下调用，但实际场景有时候需要在其它函数中获取全局变量
+全局变量函数，效果同 `global_cache` ，为什么有了 `global_cache` 还要再搞一个 Global_Map 了，因为 `global_cache` 是一个 fixture 函数，调用会有局限性，它只能在 fixture 函数或测试方法下调用，但实际场景有时候需要在其它函数中获取全局变量
 
 #### 3.6.1 set 设置变量
 
@@ -1390,11 +1390,17 @@ luban swaggerCase [-p [<...>]] <swagger-url-json> <project-directory> <case-dir
 
 > **swaggger-url-json**：swagger url 地址（必须要是json地址），必填参数
 
-> **project-directory**：接口文件生成到的目录，一般为接口所属项目名称，会在swagger目录下生成指定的目录，必填参数
+> **project-directory**：接口文件生成到的目录，一般为接口所属项目名称，会在 swagger 目录下生成指定的目录，也会做为 case 脚本中的引用文件路径，必填参数
 
-> **case-directory**：用例生成到的目录，一般为用例分类，会在testcases目录下生成指定的目录，必填参数
+> **case-directory**：用例生成到的目录，一般为用例分类，会在 testcases 目录下生成指定的目录，必填参数
 
 > **-p**：项目名，会把项目名和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
+
+> **-b**：是否生成请求体，当接口有请求体时，默认生成请求体，可选参数
+
+> **-t**：生成的默认 token fixture 名称，默认为 `token`，可选参数
+
+> **-s**：是否生成 swagger 脚本，默认生成 swagger 脚本，可选参数
 
 例：生成接口文件到 `builder` 目录，生成测试用例到 `center` 目录
 
@@ -1422,13 +1428,13 @@ luban weixin [-o <...>] <title> <content> <department>
 
 > **content**：消息内容，必填参数
 
-> **-m**：手机号字符串，多个手机号用|隔开，如："13800138000|13700137000"，`text` 消息有效，可选参数
+> **-m**：手机号字符串，多个手机号用|隔开，如："13800138000|13700137000"，`text` 消息时有效，可选参数
 
-> **-t**：消息标题，`card` 消息有效，可选参数
+> **-t**：消息标题，`card` 消息时有效，可选参数
 
-> **-u**：点击后跳转的链接，`card` 消息有效，可选参数
+> **-u**：点击后跳转的链接，`card` 消息时有效，可选参数
 
-> **-o**：消息类型，三种消息类型`text`、`card`、`markdown`，可选参数，类型为 `markdown` 时，content 支持微信机器人支持的 `markdown` 语法
+> **-o**：消息类型，三种消息类型`text`、`card`、`markdown`，可选参数，类型为 `markdown` 时，content 支持微信机器人官方支持的 `markdown` 语法
 
 
 
