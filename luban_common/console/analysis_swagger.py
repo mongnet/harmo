@@ -93,10 +93,10 @@ class AnalysisSwaggerJson():
                 groups = base_utils.jpath(self.http_interface_group.get("groups"), check_key="file_name", sub_key="file_name")
                 if groups:
                     if self.group.get("file_name") in groups:
-                        things = self.http_interface_group.get("groups")[groups.index(self.group.get("file_name"))]
-                        things["name"] = "_".join([things.get("name"),self.group.get("name")])
-                        things["interfaces"].extend(self.group.get("interfaces"))
-                        continue
+                        interface_group = self.http_interface_group.get("groups")[groups.index(self.group.get("file_name"))]
+                        interface_group["name"] = "_".join([interface_group.get("name"),self.group.get("name")])
+                        interface_group["interfaces"].extend(self.group.get("interfaces"))
+
                 self.http_interface_group["groups"].append(self.group)
         else:
             return "error"
@@ -475,5 +475,5 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url14).analysis_json_data())
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
-    # print(AnalysisSwaggerJson(url17).analysis_json_data())
+    print(AnalysisSwaggerJson(url17).analysis_json_data())
 

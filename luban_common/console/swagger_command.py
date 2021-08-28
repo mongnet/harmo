@@ -64,6 +64,8 @@ class SwaggerCommand(BaseCommand):
                 current_path = os.path.dirname(os.path.realpath(__file__))
                 # overlay file
                 for group in values:
+                    if len(group['file_name']) < 1:
+                        RuntimeError(f"File name cannot be empty")
                     if not Global_Map().get("prompt") and not Global_Map().get("replace") and list(path.glob(f"{group['file_name']}.py")):
                         self.line("")
                         question = (f"Some file already exists, do you want to replace it?")

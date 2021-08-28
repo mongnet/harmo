@@ -6,10 +6,12 @@
 import copy
 import json
 import logging
-from mimetypes import MimeTypes
-
 import requests
+import urllib3
 
+urllib3.disable_warnings()
+
+from mimetypes import MimeTypes
 from luban_common import base_utils
 
 
@@ -87,10 +89,10 @@ class Send:
         res = {}
         try:
             # 发送POST请求
-            self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, hooks=dict(response=self.hooks), params=params, timeout=timeout, files=files)
+            self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, hooks=dict(response=self.hooks), params=params, timeout=timeout, files=files, verify=False)
             # 解决跨域302跳转后响应成cas登录页面的处理，当出现cas登录界面时自动重试相关接口
             if self.Response.status_code == 200 and "/login?service=" in self.Response.url:
-                self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, params=params, timeout=timeout, files=files)
+                self.Response = self.session.request(method=method, url=self.Url, data=payload, headers=request_header, params=params, timeout=timeout, files=files, verify=False)
 
             try:
                 # 获取请求和响应数据
@@ -164,7 +166,7 @@ class Send:
                 header = json.loads(self.header)
                 header.update({"cookie":self.cache.get("CasCookie",False)})
                 self.session.request(method=r.request.method, url=r.headers.get("Location"), headers=header,
-                                     timeout=60)
+                                     timeout=60, verify=False)
         except BaseException as e:
             logging.error("302异常开始分割线start: ".center(60, "#"))
             logging.error("302跳转Url: " + r.request.url)
