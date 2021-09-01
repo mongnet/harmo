@@ -96,7 +96,7 @@ class AnalysisSwaggerJson():
                         interface_group = self.http_interface_group.get("groups")[groups.index(self.group.get("file_name"))]
                         interface_group["name"] = "_".join([interface_group.get("name"),self.group.get("name")])
                         interface_group["interfaces"].extend(self.group.get("interfaces"))
-
+                        continue
                 self.http_interface_group["groups"].append(self.group)
         else:
             return "error"

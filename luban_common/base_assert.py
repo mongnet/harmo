@@ -97,10 +97,10 @@ class Assertions:
         """
         if isinstance(data,(list,dict)):
             if isinstance(expected_value, str):
-                assert expected_value in base_utils.get_all_value(data), f"响应结果中不存在预期值为：{expected_value} 的数据"
+                assert expected_value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{expected_value} 的数据"
             elif isinstance(expected_value, list):
                 for value in expected_value:
-                    assert value in base_utils.get_all_value(data), f"响应结果中不存在预期值为：{expected_value} 的数据"
+                    assert value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{expected_value} 的数据"
         else:
             assert False, f"{type(data)}数据类型不支持"
 
