@@ -48,16 +48,20 @@ class CasesCommand(BaseCommand):
                 f'Destination <fg=yellow>{self.argument("swagger-url-json")}</>'
                 "The data must be dict"
             )
-        if not self.argument("project-directory").isalpha():
-            raise RuntimeError(
-                f'Destination <fg=yellow>{self.argument("project-directory")}</> '
-                "The project directory can only contain letters"
-            )
-        case_directory = self.argument("case-directory").split("/")[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory").split("/")
-        for cas in range(len(case_directory)):
-            if len(case_directory[cas]) == 0:
+        swagger_directory = self.argument("project-directory").split("/")[1:] if self.argument("project-directory").startswith("/") else self.argument("project-directory").split("/")
+        for case in range(len(swagger_directory)):
+            if len(swagger_directory[case]) == 0:
                 continue
-            if not case_directory[cas].isalpha():
+            if not swagger_directory[case].encode('UTF-8').isalpha():
+                raise RuntimeError(
+                    f'Destination <fg=yellow>{self.argument("project-directory")}</> '
+                    "The swagger directory can only contain letters"
+                )
+        case_directory = self.argument("case-directory").split("/")[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory").split("/")
+        for case in range(len(case_directory)):
+            if len(case_directory[case]) == 0:
+                continue
+            if not case_directory[case].encode( 'UTF-8' ).isalpha():
                 raise RuntimeError(
                     f'Destination <fg=yellow>{self.argument("case-directory")}</> '
                     "The case directory can only contain letters"
@@ -66,7 +70,7 @@ class CasesCommand(BaseCommand):
         if self.option("swagger") is None:
             for key, values in data.items():
                 if "groups" in key:
-                    path = Path.cwd() /"swagger"/ Path(self.argument("project-directory"))
+                    path = Path.cwd() / f'swagger/{"/".join(swagger_directory)}'
                     if path.exists():
                         if list(path.glob("*")):
                             self.line("")
@@ -84,8 +88,13 @@ class CasesCommand(BaseCommand):
                     package_init.touch(exist_ok=True)
                     # generate __init__.py
                     if Path.cwd().glob(f"swagger/__init__.py"):
-                        testcases_init = Path.cwd() /"swagger"/ "__init__.py"
-                        testcases_init.touch(exist_ok=True)
+                        swagger_init = Path.cwd() / "swagger" / "__init__.py"
+                        swagger_init.touch(exist_ok=True)
+                    for cas in range(len(swagger_directory)):
+                        if Path.cwd().glob(f'swagger/{Path("/".join(swagger_directory[0:cas + 1]))}/__init__.py'):
+                            directory_init = Path.cwd() / "swagger" / Path(
+                                "/".join(swagger_directory[0:cas + 1])) / "__init__.py"
+                            directory_init.touch(exist_ok=True)
                     current_path = os.path.dirname(os.path.realpath(__file__))
                     # overlay file
                     for group in values:
@@ -166,7 +175,7 @@ class CasesCommand(BaseCommand):
                         # file already exists.
                         self.line(f'<fg=red>test_{group["file_name"]}.py</> file already exists, Don"t replace')
                         continue
-                    group = {**group,**{"generated_time":datetime.now().strftime("%Y/%m/%d %H:%M"),"project_directory":self.argument("project-directory"),"token":self.option("token"),"isbody": [1] if self.option("body") is None else None}}
+                    group = {**group,**{"generated_time":datetime.now().strftime("%Y/%m/%d %H:%M"),"project_directory":".".join(swagger_directory),"token":self.option("token"),"isbody": [1] if self.option("body") is None else None}}
                     # generate file
                     with open(f"{current_path}/../config/cases.mustache", "r") as mustache:
                         interfaces = chevron.render(mustache, group)

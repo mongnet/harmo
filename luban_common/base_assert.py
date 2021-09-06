@@ -97,10 +97,10 @@ class Assertions:
         """
         if isinstance(data,(list,dict)):
             if isinstance(expected_value, str):
-                assert expected_value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{expected_value} 的数据"
+                assert expected_value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{expected_value} 的数据,实际数据为：{data}"
             elif isinstance(expected_value, list):
                 for value in expected_value:
-                    assert value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{expected_value} 的数据"
+                    assert value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{expected_value} 的数据,实际数据为：{data}"
         else:
             assert False, f"{type(data)}数据类型不支持"
 
@@ -114,7 +114,7 @@ class Assertions:
         :return:
         """
         if isinstance(data,str):
-            assert data.startswith(expected_value),f"没有以预期值：{expected_value} 开头"
+            assert data.startswith(expected_value),f"实际数据没有以预期值：{expected_value} 开头,实际数据为：{data}"
         else:
             assert False, "只支持 str 的校验，其余暂不支持"
 
@@ -128,7 +128,7 @@ class Assertions:
         :return:
         """
         if isinstance(data,str):
-            assert data.endswith(expected_value),f"没有以预期值：{expected_value} 结尾"
+            assert data.endswith(expected_value),f"实际数据没有以预期值：{expected_value} 结尾,实际数据为：{data}"
         else:
             assert False, "只支持 str 的校验，其余暂不支持"
 
@@ -142,7 +142,7 @@ class Assertions:
         :return:
         """
         if isinstance(data,(list,dict)):
-            assert key in base_utils.get_all_key(data),f"结果中不存在预期为:{key} 的数据"
+            assert key in base_utils.get_all_key(data),f"实际数据不存在预期为:{key} 的数据,实际数据为：{data}"
         else:
             assert False,f"{type(data)}数据类型不支持"
 
@@ -156,7 +156,7 @@ class Assertions:
         :return:
         """
         if isinstance(data,(list,dict)):
-            assert expected_value not in base_utils.get_all_value(data),f"结果中存在预期值为：{expected_value} 的数据"
+            assert expected_value not in base_utils.get_all_value(data),f"实际数据存在预期值为：{expected_value} 的数据,实际数据为：{data}"
         else:
             assert False,f"{type(data)}数据类型不支持"
 
@@ -170,7 +170,7 @@ class Assertions:
         :return:
         """
         if isinstance(data,(list,dict)):
-            assert expected_key not in base_utils.get_all_key(data),f"结果中存在预期key为：{expected_key} 的数据"
+            assert expected_key not in base_utils.get_all_key(data),f"实际数据存在预期key为：{expected_key} 的数据,实际数据为：{data}"
         else:
             assert False,f"{type(data)}数据类型不支持"
 
