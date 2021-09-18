@@ -7,6 +7,7 @@ import os
 
 import chevron
 import requests
+import copy
 from datetime import datetime
 from pathlib2 import Path
 
@@ -120,6 +121,7 @@ class AnalysisSwaggerJson():
             "produces": "",
             "headers": {},
             "body":{},
+            "body_field_type":{},
             "body_params_args": [],
             "body_params_kwargs": [],
             "params_description":{},
@@ -157,7 +159,7 @@ class AnalysisSwaggerJson():
         if not parameters:  # 确保参数字典存在
             parameters = {}
         # 调试用
-        # if name != "创建评分（部位树支持）":
+        # if name != "工程模版条目保存接口(清空原数据)":
         #     return
         # if name != "创建任务中检查信息 （iworksweb）":
         #     return
@@ -223,6 +225,7 @@ class AnalysisSwaggerJson():
         if "body" in http_interface.keys() and http_interface["body"]:
             self.args = []
             self.kwargs = []
+            http_interface["body_field_type"] = copy.deepcopy(http_interface["body"])
             self.recursion(http_interface["body"])
             http_interface["body_params_args"] = (list(set(self.args)) if http_interface["body_params_args"]==[] else http_interface["body_params_args"])
             http_interface["body_params_kwargs"] = (list(set(self.kwargs)) if http_interface["body_params_kwargs"]==[] else http_interface["body_params_kwargs"])
@@ -440,7 +443,7 @@ class AnalysisSwaggerJson():
 
 
 if __name__ == "__main__":
-    url = "http://192.168.3.195:8080/Plan/rs/swagger/swagger.json"
+    url = "http://192.168.13.246:8182/Plan/rs/swagger/swagger.json"
     url1 = "http://service.lbuilder.cn/builder/v2/api-docs"
     url2 = "http://192.168.3.195:8989/LBprocess/v2/api-docs"
     url3 = "http://192.168.3.195/pdscommon/rs/swagger/swagger.json"
@@ -455,11 +458,11 @@ if __name__ == "__main__":
     url13 = "http://192.168.3.195/gateway/process/v2/api-docs"
     url14 = "http://192.168.13.193:8182/gateway/luban-meter/v2/api-docs?group=V1.0.0"
     url15 = "http://192.168.13.240:8182/gateway-240/luban-infrastructure-center/v2/api-docs?group=V1.0.0"
-    url16 = "http://192.168.13.240:8885/luban-misc/v2/api-docs?group=V1.0.0"
+    url16 = "http://192.168.13.246:8182/gateway/luban-misc/v2/api-docs?group=V1.0.0"
     url17 = "http://192.168.13.66:7790/things/v2/api-docs?group=%E4%B8%9A%E5%8A%A1%E6%8E%A5%E5%8F%A3"
 
 
-    # print(AnalysisSwaggerJson(url).analysis_json_data())
+    print(AnalysisSwaggerJson(url).analysis_json_data())
     # print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
     # print(AnalysisSwaggerJson(url3).analysis_json_data())
@@ -475,5 +478,5 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url14).analysis_json_data())
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
-    print(AnalysisSwaggerJson(url17).analysis_json_data())
+    # print(AnalysisSwaggerJson(url16).analysis_json_data())
 

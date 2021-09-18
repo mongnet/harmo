@@ -23,7 +23,7 @@ class Test_{{class_name}}:
         """
         {{# isbody}}
             {{# body}}
-        body = {{{body}}}
+        body = {{{body_field_type}}}
             {{/ body}}
         response = {{class_name}}().{{name_en}}({{token}}{{# params_args_nobody}}, {{{.}}}{{/ params_args_nobody}}{{# params_kwargs_nobody}}, {{{.}}}{{/ params_kwargs_nobody}}{{# isbody}}{{# body}}, bodyKwargs=body{{/ body}}{{/ isbody}})
         {{/ isbody}}

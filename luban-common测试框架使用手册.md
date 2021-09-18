@@ -1365,13 +1365,13 @@ luban swagger [-p [<...>]] <swagger-url-json> <project-directory>
 
 > **-p**：项目名，会把项目名和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
-例：生成到当前 `builder` 目录
+例：生成接口文件到 `builder` 目录
 
 ```python
 luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder
 ```
 
-例：生成到 `builder` 目录，且指定项目名为 `builder` 
+例：生成接口文件到 `builder` 目录，且指定项目名为 `builder` 
 
 ```python
 luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
@@ -1680,13 +1680,13 @@ luban new CenterAutomation
 
 生成项目时默认会生成一份演示数据，进入 `CenterAutomation`  目录，执行测试有二种方式
 
-**直接执行**：在命令行中输入如下命令，表示使用 `pytest.ini` 中的默认配置执行
+**使用默认配置执行**：在命令行中输入如下命令，表示使用 `pytest.ini` 中的默认配置执行测试
 
 ```python
 pytest
 ```
 
-**指定环境执行**：在命令行中输入如下命令，表示使用 `dev` 环境配置执行
+**指定环境执行**：在命令行中输入如下命令，表示使用 `dev` 环境配置执行测试
 
 ```python
 pytest --lb-env config/dev/config.yaml
