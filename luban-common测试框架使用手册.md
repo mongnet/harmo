@@ -1363,7 +1363,7 @@ luban swagger [-p [<...>]] <swagger-url-json> <project-directory>
 
 > **project-directory**：生成到指定的目录，必填参数
 
-> **-p**：项目名，会把项目名和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
+> **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
 例：生成接口文件到 `builder` 目录
 
@@ -1379,7 +1379,7 @@ luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
 
 
 
-#### 4.1.3 通过Swagger生成Case
+#### 4.1.3 通过Swagger生成Case（推荐）
 
 `luban swaggerCase`：生成测试用例命令，可快速生成简单测试用例，格式如下：
 注：必须要在项目根目录下执行，会在对应的 `swagger` 和 `testcases` 目录下同时生成swagger接口方法和对应测试用例，如果指定了 `-p` 参数时会在 `testcases` 目录下生成对应的项目目录，并把测试用例放在里面
@@ -1394,7 +1394,7 @@ luban swaggerCase [-p [<...>]] <swagger-url-json> <project-directory> <case-dir
 
 > **case-directory**：用例生成到的目录，一般为用例分类，会在 testcases 目录下生成指定的目录，必填参数
 
-> **-p**：项目名，会把项目名和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
+> **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
 > **-b**：是否生成请求体，当接口有请求体时，默认生成请求体，可选参数
 
@@ -1712,7 +1712,7 @@ luban new iworksweb
 
 看到 `Successfully Created iworksweb` 表示项目创建成功，生成的项目信息可参考“如何开始”，命令问题可查看“命令行工具”中命令的具体介绍
 
-#### 6.1.2 生成swagger接口方法
+#### 6.1.2 通过swagger生成接口方法和用例
 
 在 CMD 中进入 `iworksweb` 项目的 `swagger` 目录，然后找到要生成 swagger 脚本的接口地址，如下图
 
@@ -1725,10 +1725,10 @@ luban new iworksweb
 在命令行中输入如下命令生成 swagger 接口方法
 
 ```python
-luban swagger http://192.168.13.202:8081/Plan/rs/swagger/swagger.json plan
+luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan plan
 ```
 
-![image-20200903183221966](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200903183221966.png)
+![image-20210918145537477](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918145537477.png)
 
 看到 `Successfully generate` 表示接口生成成功，我们用 pycharm 打开 `iworksweb` 项目，生成后的样子如下
 
@@ -1742,17 +1742,17 @@ luban swagger http://192.168.13.202:8081/Plan/rs/swagger/swagger.json plan
 
 
 
-#### 6.1.3 调整账号配置文件
+#### 6.1.3 修改账号配置文件
 
 进入 config 目录，由于现在演示的这个项目是企业部署项目，所以我们进入了 enterprise 目录，我复制了一个 yaml 配置文件，命名为 202_config.yaml ，修改后的配置内容如下
 
 ![image-20200901210924480](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901210924480.png)
 
-> **注意**：账号和地址信息必须要按默认文件的方式，建议大家在不了解运行机制时，只修改登录地址、用户名、密码，不要调整格式，如果要信息，按已有样式添加即可
+> **注意**：账号和地址信息必须要按默认文件的方式，建议大家在不了解运行机制时，只修改登录地址、用户名、密码，不要调整格式，如果需要添加信息，按已有样式添加即可
 
 
 
-#### 6.1.4 调整pytest.ini配置文件
+#### 6.1.4 修改pytest.ini配置文件
 
 在 `iworksweb` 根目录找到 `pytest.ini` 文件，定位到 `--lb-env` 配置，把 `--lb-env` 配置修改为我们刚新建的 `Config/enterprise/202_config.yaml` 调整后的样子如下图
 

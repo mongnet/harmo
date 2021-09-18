@@ -159,7 +159,7 @@ class AnalysisSwaggerJson():
         if not parameters:  # 确保参数字典存在
             parameters = {}
         # 调试用
-        # if name != "工程模版条目保存接口(清空原数据)":
+        # if name != "获取计划引用模型":
         #     return
         # if name != "创建任务中检查信息 （iworksweb）":
         #     return
@@ -352,13 +352,12 @@ class AnalysisSwaggerJson():
                 body = "_".join(base_utils.get_all_value(schema))
                 http_interface.update({"body": f"${body}$"})
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
-                http_interface["body_params_args"].append(f"${body}$")
+                http_interface["body_params_args"].append(f"${body}$=$None$")
             elif schema.get("type") == "string" and ephemeral_key is None:
-                del http_interface["body"]
                 body = "_".join(base_utils.get_all_value(schema))
                 http_interface.update({"body": f"${body}$"})
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
-                http_interface["body_params_args"].append(f"${body}$")
+                http_interface["body_params_args"].append(f"${body}$=$None$")
 
     def recursion(self,data):
         """
