@@ -8,6 +8,8 @@ import chevron
 from cleo import Command as BaseCommand
 from luban_common.global_map import Global_Map
 from pathlib2 import Path
+
+from luban_common.operation import yaml_file
 from ..console.analysis_swagger import AnalysisSwaggerJson
 from datetime import datetime
 
@@ -66,6 +68,7 @@ class CasesCommand(BaseCommand):
                     f'Destination <fg=yellow>{self.argument("case-directory")}</> '
                     "The case directory can only contain letters"
                 )
+        replace_text = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
         # Generate swagger script
         if self.option("swagger") is None:
             for key, values in data.items():
@@ -124,8 +127,11 @@ class CasesCommand(BaseCommand):
                             else:
                                 interfaces = chevron.render(mustache, group)
                             interface_file = path/f'{group["file_name"]}.py'
+                            interfaces = interfaces.replace("'$", "").replace("$'", "").replace("$", "")
+                            for match in replace_text.get("matchs"):
+                                interfaces = interfaces.replace(match.get("match"), match.get("replace"))
                             with interface_file.open("w", encoding="utf-8") as f:
-                                f.write(interfaces.replace("'$","").replace("$'","").replace("$",""))
+                                f.write(interfaces)
                             self.line("Created file: <fg=green>{}</>".format(interface_file))
                     self.line("<fg=green>Successfully generate swagger</>")
                     self.line("")

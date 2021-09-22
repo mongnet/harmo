@@ -30,6 +30,9 @@ class AnalysisSwaggerJson():
         self.tags_list = []  # 接口分组标签
         # 定义接口分组格式
         self.http_interface_group = {"config": {"name": "","name_en": "","host": "", "base_url": ""},"groups": []}
+        yamlDate = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
+        self.default_parame = yamlDate.get("defaultParame")
+        self.blacklist = yamlDate.get("blacklist")
 
 
     def analysis_json_data(self, isDuplicated=False):
@@ -294,7 +297,7 @@ class AnalysisSwaggerJson():
                 try:
                     param = self.definitions[param_key]["properties"]
                 except KeyError:
-                    print(f"ERROR: {schema}没有properties节点信息，请确认程序生成的swagger信息是否正确")
+                    print(f"警告: {schema}没有properties节点信息，请确认程序生成的swagger信息是否正确")
                     return
                 ephemeral_data = {}
                 for key, value in param.items():
@@ -389,31 +392,28 @@ class AnalysisSwaggerJson():
         :param parameters_form: 传参方式
         :return:
         """
-        current_path = os.path.dirname(os.path.realpath(__file__))
-        default_parame = yaml_file.get_yaml_data(f"{current_path}/../config/default_parame.yaml")
-        blacklist = yaml_file.get_yaml_data(f"{current_path}/../config/blacklist.yaml")
         # 无默认值的参数无需处理
-        if arg in list_args and arg in blacklist:
+        if arg in list_args and arg in self.blacklist:
             return
-        if arg in default_parame.keys():
+        if arg in self.default_parame.keys():
             # 接口传参默认值处理
             kwarg = ""
-            if isinstance(default_parame[arg], int):
-                kwarg = str(default_parame[arg])
-            elif isinstance(default_parame[arg], str):
+            if isinstance(self.default_parame[arg], int):
+                kwarg = str(self.default_parame[arg])
+            elif isinstance(self.default_parame[arg], str):
                 # 前后加$表示变量
-                if default_parame[arg].startswith("$") and default_parame[arg].endswith("$"):
-                    kwarg = default_parame[arg]
+                if self.default_parame[arg].startswith("$") and self.default_parame[arg].endswith("$"):
+                    kwarg = self.default_parame[arg]
                 else:
                     # 如果是字符串常量必须要加引号
-                    kwarg = f'"{default_parame[arg]}"'
+                    kwarg = f'"{self.default_parame[arg]}"'
             list_kwargs.append(arg + "=" + kwarg)
         # 当parameters_form不是None或不是path参数时，参数默认值设置为None
         elif parameters_form is not None or parameters_form != "path":
             list_kwargs.append(arg + "=$None$")
         elif body[arg] == "boolean":
             list_kwargs.append(arg + "=$False$")
-        elif arg not in blacklist:
+        elif arg not in self.blacklist:
             list_args.append(arg)
         # body 请求体参数化处理
         body[arg] = "$" + arg + "$"

@@ -17,8 +17,7 @@ class WeiXinMessage:
 
     @classmethod
     def __init__(self):
-        current_path = os.path.dirname(os.path.realpath(__file__))
-        default_parame = yaml_file.get_yaml_data(f"{current_path}/../config/global_default.yaml")
+        default_parame = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml").get("weixin")
         self.__CorpID = default_parame["weixin"]["corpid"]
         self.__Secret = default_parame["weixin"]["secret"]
         # 企业应用的id
