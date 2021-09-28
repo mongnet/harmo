@@ -162,7 +162,7 @@ class AnalysisSwaggerJson():
         if not parameters:  # 确保参数字典存在
             parameters = {}
         # 调试用
-        # if name != "获取计划引用模型":
+        # if name != "新增标段、单项、单位工程":
         #     return
         # if name != "创建任务中检查信息 （iworksweb）":
         #     return
@@ -343,7 +343,10 @@ class AnalysisSwaggerJson():
                         else:
                             body[ephemeral_key].append(ephemeral_data)
                     else:
-                        http_interface["body"].update({ephemeral_key.split("_")[-1]: [ephemeral_data]})
+                        if isinstance(body,list):
+                            http_interface["body"].update({ephemeral_key.split("_")[-1]: [ephemeral_data]})
+                        else:
+                            http_interface["body"].update({ephemeral_key.split("_")[-1]: ephemeral_data})
         else:
             for key, value in schema.items():
                 if isinstance(value, dict) and "$ref" in value.keys():
@@ -443,7 +446,7 @@ class AnalysisSwaggerJson():
 
 if __name__ == "__main__":
     url = "http://192.168.13.246:8182/Plan/rs/swagger/swagger.json"
-    url1 = "http://service.lbuilder.cn/builder/v2/api-docs"
+    url1 = "http://192.168.13.246:8182/gateway/builder/v2/api-docs"
     url2 = "http://192.168.3.195:8989/LBprocess/v2/api-docs"
     url3 = "http://192.168.3.195/pdscommon/rs/swagger/swagger.json"
     url4 = "http://192.168.3.195/pdsdoc/rs/swagger/swagger.json"
@@ -461,8 +464,8 @@ if __name__ == "__main__":
     url17 = "http://192.168.13.66:7790/things/v2/api-docs?group=%E4%B8%9A%E5%8A%A1%E6%8E%A5%E5%8F%A3"
 
 
-    print(AnalysisSwaggerJson(url).analysis_json_data())
-    # print(AnalysisSwaggerJson(url1).analysis_json_data())
+    # print(AnalysisSwaggerJson(url).analysis_json_data())
+    print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
     # print(AnalysisSwaggerJson(url3).analysis_json_data())
     # print(AnalysisSwaggerJson(url4).analysis_json_data())
