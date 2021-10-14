@@ -23,9 +23,9 @@ class CasesCommand(BaseCommand):
         {project-directory : Interface project name, required parameters}
         {case-directory : Use case classification, required parameters}
         {--p|project=? : Project name, which merges the project name and interface address into a new interface address (the Resource field in the interface file), optional}
-        {--b|body=? : Generate request body, default generated, optional}
+        {--b|body : Generate request body, default generated, optional}
         {--t|token=token : Default token fixture, default is token, optional}
-        {--s|swagger=? : Generate swagger script, default generated, optional}
+        {--s|swagger : Generate swagger script, default generated, optional}
     """
 
     def handle(self):
@@ -70,7 +70,7 @@ class CasesCommand(BaseCommand):
                 )
         replace_text = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
         # Generate swagger script
-        if self.option("swagger") is None:
+        if not self.option("swagger"):
             for key, values in data.items():
                 if "groups" in key:
                     path = Path.cwd() / f'swagger/{"/".join(swagger_directory)}'
@@ -181,7 +181,7 @@ class CasesCommand(BaseCommand):
                         # file already exists.
                         self.line(f'<fg=red>test_{group["file_name"]}.py</> file already exists, Don"t replace')
                         continue
-                    group = {**group,**{"generated_time":datetime.now().strftime("%Y/%m/%d %H:%M"),"project_directory":".".join(swagger_directory),"token":self.option("token"),"isbody": [1] if self.option("body") is None else None}}
+                    group = {**group,**{"generated_time":datetime.now().strftime("%Y/%m/%d %H:%M"),"project_directory":".".join(swagger_directory),"token":self.option("token"),"isbody": [1] if not self.option("body") else None}}
                     # generate file
                     with open(f"{current_path}/../config/cases.mustache", "r") as mustache:
                         interfaces = chevron.render(mustache, group)

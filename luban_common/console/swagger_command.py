@@ -25,6 +25,13 @@ class SwaggerCommand(BaseCommand):
     """
 
     def handle(self):
+        excludes = ["None", "null", "false", "true", "undefined"]
+        if self.option("project") is not None:
+            if self.option("project").lower() in [exclude.lower() for exclude in excludes]:
+                raise RuntimeError(
+                    f'Destination <fg=yellow>{self.option("project")}</> '
+                    "project option cannot be None,null,false,true,undefined"
+                )
         Global_Map().set("prompt", False)
         Global_Map().set("replace", False)
         js = AnalysisSwaggerJson(self.argument("swagger-url-json"))
