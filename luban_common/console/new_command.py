@@ -37,14 +37,14 @@ def pytest_addoption(parser):
     # 注册命令行参数
     group = parser.getgroup('testing environment configuration')
     group.addoption('--lb-driver',
-                    default=os.getenv('Pytest_Driver', 'chrome'),
+                    default=os.getenv('lb_driver', 'chrome'),
                     choices=['chrome', 'firefox', 'ie'],
                     help='set Browser')
     group.addoption('--lb-base-url',
-                    default=os.getenv('Pytest_Base_Url', None),
+                    default=os.getenv('lb_base_url', None),
                     help='base url for the application under test')
     group.addoption('--lb-env',
-                    default=os.getenv('Pytest_Env', None),
+                    default=os.getenv('lb_env', None),
                     help='set testing environment')
 
 def pytest_configure(config):
@@ -53,9 +53,9 @@ def pytest_configure(config):
     :param config:
     :return:
     '''
-    envConf = config.getoption('--lb-env')
-    browser = config.getoption('--lb-driver')
-    baseUrl = config.getoption('--lb-base-url')
+    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption('--lb-env')
+    browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption('--lb-driver')
+    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption('--lb-base-url')
     if hasattr(config, '_metadata'):
         if envConf is not None:
             config._metadata['运行配置'] = envConf
@@ -71,11 +71,11 @@ def pytest_report_header(config):
     :param startdir:
     :return:
     '''
-    envConf = config.getoption('--lb-env')
-    browser = config.getoption('--lb-driver')
-    baseUrl = config.getoption('--lb-base-url')
+    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption('--lb-env')
+    browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption('--lb-driver')
+    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption('--lb-base-url')
     if envConf:
-        return f'browser: {browser}, baseUrl: {baseUrl}, configuration: {envConf}'
+        return f'lb_driver: {browser}, lb_base_url: {baseUrl}, lb_env: {envConf}'
 
 @pytest.fixture(scope='session')
 def env_conf(pytestconfig):
@@ -83,12 +83,16 @@ def env_conf(pytestconfig):
     获取lb-env和globalConf环境配置文件
     :return:
     '''
-    envConf = pytestconfig.getoption('--lb-env')
+    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else pytestconfig.getoption('--lb-env')
     globalConf = pytestconfig.getini('globalConf')
+    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption('--lb-base-url')
     if envConf:
+        envConfDate = yaml_file.get_yaml_data(file_absolute_path(envConf))
+        if baseUrl:
+            envConfDate["base_url"] = baseUrl
         if globalConf:
-            return {**yaml_file.get_yaml_data(file_absolute_path(envConf)), **yaml_file.get_yaml_data(file_absolute_path(globalConf))}
-        return yaml_file.get_yaml_data(file_absolute_path(envConf))
+            return {**envConfDate, **yaml_file.get_yaml_data(file_absolute_path(globalConf))}
+        return envConfDate
     else:
         raise RuntimeError('Configuration --lb-env not found')
 
@@ -99,9 +103,11 @@ def base_url(pytestconfig):
     base URL
     :return:
     '''
-    base_url = pytestconfig.getoption('--lb-base-url')
+    base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption('--lb-base-url')
     if base_url:
         return base_url
+    else:
+        raise RuntimeError('--lb-base-url not found')
 
 @pytest.fixture(scope='session')
 def global_cache(request):
@@ -115,7 +121,9 @@ def global_cache(request):
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     '''收集测试结果并发送到对应IM'''
     # 读取配置文件
-    envConf = yaml_file.get_yaml_data(file_absolute_path(config.getoption('--lb-env')))
+    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption('--lb-env')
+    envConfDate = yaml_file.get_yaml_data(file_absolute_path(envConf))
+    weixin_robot = envConfDate.get('weixin_robot')
     # 定义测试结果
     total = terminalreporter._numcollected
     passed = len([i for i in terminalreporter.stats.get('passed', []) if i.when != 'teardown'])
@@ -127,9 +135,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     success_message = True if config.getini('success_message') == 'True' else False
     html_report = config.getoption('--html')
     # 判断是否要发送消息
-    if message_switch:
+    if message_switch and weixin_robot:
         send = WeiXin()
-        weixin_robot = envConf.get('weixin_robot')
         # 通过jenkins构件时，可以获取到JOB_NAME
         JOB_NAME = '通用' if config._metadata.get('JOB_NAME') is None else config._metadata.get('JOB_NAME')
         if failed + error != 0 and weixin_robot:
@@ -145,7 +152,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
                                 >
                                 >可点击下方 report 文件查看详情'''
             send.send_message_markdown(hookkey=weixin_robot,content=markdown_content)
-            send.send_file(hookkey=weixin_robot, file=html_report)
+            if html_report:
+                send.send_file(hookkey=weixin_robot, file=html_report)
         elif success_message and weixin_robot:
             markdown_content = f'''
                                 # 恭喜 <font color=\'info\'>{JOB_NAME}</font> 巡检通过，请放心
@@ -154,7 +162,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
                                 >
                                 >可点击下方 report 文件查看详情'''
             send.send_message_markdown(hookkey=weixin_robot, content=markdown_content)
-            send.send_file(hookkey=weixin_robot, file=html_report)
+            if html_report:
+                send.send_file(hookkey=weixin_robot, file=html_report)
 
 @pytest.fixture(scope='session')
 def bimadmin_login(env_conf, global_cache):
@@ -448,7 +457,7 @@ headers:
 
 CONFIG_DEFAULT = """pds : http://app.lbuilder.cn
 ac: http://ac.myluban.com
-auth_url: http://service.lbuilder.cn
+base_url: http://service.lbuilder.cn
 weixin_robot: "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
 center:
   username: lb91247
@@ -490,6 +499,8 @@ def file_absolute_path(rel_path):
     :param rel_path: 相对于项目根目录的路径，如data/check_lib.xlsx
     :return:
     '''
+    if os.path.isfile(rel_path):
+        return rel_path
     current_path = os.path.abspath(os.path.dirname(__file__))
     file_path = os.path.join(current_path,'..', rel_path)
     return base_utils.file_is_exist(file_path)
@@ -972,7 +983,7 @@ class WebToken:
         self.username = username
         self.password = password
         self.header = envConf["headers"]["json_header"]
-        self.Login = base_requests.Send(envConf['auth_url'], envConf)
+        self.Login = base_requests.Send(envConf['base_url'], envConf)
         self.epid = ''
         self.token = ""
 
@@ -1071,7 +1082,7 @@ class Token:
         self.username = username
         self.password = password
         self.header = envConf["headers"]["json_header"]
-        self.Login = base_requests.Send(envConf['auth_url'], envConf)
+        self.Login = base_requests.Send(envConf['base_url'], envConf)
         self.epid = ''
         self.token = ""
         self.loginType = "CENTER_WEB" if loginType is None else loginType

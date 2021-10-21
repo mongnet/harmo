@@ -39,7 +39,7 @@ class WeiXin:
             }
         }
         __webhook = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={hookkey}"
-        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=True).json()
+        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=False).json()
         if response["errcode"] == 0 and response["errmsg"] == "ok":
             print("text消息发送成功")
         else:
@@ -65,7 +65,7 @@ class WeiXin:
         }
 
         __webhook = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={hookkey}"
-        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=True).json()
+        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=False).json()
         if response["errcode"] == 0 and response["errmsg"] == "ok":
             print("markdown消息发送成功")
         else:
@@ -99,7 +99,7 @@ class WeiXin:
         }
 
         __webhook = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={hookkey}"
-        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=True).json()
+        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=False).json()
         if response["errcode"] == 0 and response["errmsg"] == "ok":
             print("textcard消息发送成功")
         else:
@@ -127,7 +127,7 @@ class WeiXin:
         }
 
         __webhook = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={hookkey}"
-        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=True).json()
+        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=False).json()
         if response["errcode"] == 0 and response["errmsg"] == "ok":
             print("发送图片成功")
         else:
@@ -151,7 +151,7 @@ class WeiXin:
         }
 
         __webhook = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={hookkey}"
-        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=True).json()
+        response = requests.post(__webhook,data=json.dumps(wechat_json),verify=False).json()
         if response["errcode"] == 0 and response["errmsg"] == "ok":
             print("发送文件成功")
         else:
@@ -169,7 +169,7 @@ class WeiXin:
             raise ValueError("文件大小在5B~20M之间")
         url = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?key={hookkey}&type=file"
         files = {"file1": open(file, "rb")}
-        response = requests.post(url,files=files).json()
+        response = requests.post(url,files=files,verify=False).json()
         if response["errcode"] == 0 and response["errmsg"] == "ok":
             print("上传文件成功")
         else:

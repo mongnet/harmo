@@ -1396,11 +1396,11 @@ luban swaggerCase [-p [<...>]] <swagger-url-json> <project-directory> <case-dir
 
 > **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
-> **-b**：是否生成请求体，当接口有请求体时，默认生成请求体，可选参数
+> **-b**：是否生成请求体，当接口有请求体时，默认生成请求体，可选项
 
 > **-t**：生成的默认 token fixture 名称，默认为 `token`，可选参数
 
-> **-s**：是否生成 swagger 脚本，默认生成 swagger 脚本，可选参数
+> **-s**：是否生成 swagger 脚本，默认生成 swagger 脚本，可选项
 
 例：生成接口文件到 `builder` 目录，生成测试用例到 `center` 目录
 
@@ -1712,9 +1712,9 @@ luban new iworksweb
 
 看到 `Successfully Created iworksweb` 表示项目创建成功，生成的项目信息可参考“如何开始”，命令问题可查看“命令行工具”中命令的具体介绍
 
-#### 6.1.2 通过swagger生成接口方法和用例
+#### 6.1.2 通过swagger生成Case和接口方法
 
-在 CMD 中进入 `iworksweb` 项目的 `swagger` 目录，然后找到要生成 swagger 脚本的接口地址，如下图
+在 CMD 中进入 `iworksweb` 目录，然后找到要生成case的 swagger 接口地址，如下图
 
 ![image-20200901200704750](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901200704750.png)
 
@@ -1722,7 +1722,7 @@ luban new iworksweb
 
 > 第2个是swagger对应的json地址，这个地址就是我们需要的地址
 
-在命令行中输入如下命令生成 swagger 接口方法
+在命令行中输入如下命令生成用例和接口方法
 
 ```python
 luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan plan
@@ -1732,17 +1732,29 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 看到 `Successfully generate` 表示接口生成成功，我们用 pycharm 打开 `iworksweb` 项目，生成后的样子如下
 
-![image-20200903183433540](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200903183433540.png)
+![image-20210918153406255](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153406255.png)
 
-打开一个文件，看看生成的方法是什么样子，打开 `web_plan_scheduledPlanService.py` 文件，查看到 `addPlan` 方法如下
+打开 `webPlanCalendar.py` 接口文件，看看生成的接口方法是什么样子，查看到 `setPlanCalenDar` 方法如下
 
-![image-20200901202429349](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901202429349.png)
+![image-20210918153115409](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153115409.png)
 
-生成好的接口文件就可以直接在 case 中调用了，调用方式和程序的类和方法调用方式一样，没有区别.
+生成好的接口文件就可以直接在用例中调用了，调用方式和程序的类和方法调用方式一样，没有区别.
+
+打开 `test_webPlanCalendar.py` 文件，看看生成的测试用例是什么样子，查看到 `test_setPlanCalenDar` 测试用例如下
+
+![image-20210918153630759](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153630759.png)
+
+生成的测试用例中，默认会带有请求体（如果有），也可以不生成，只要在生成用例时添加-b 参数即可，可根据自己的实际情况确定是否生成
 
 
 
-#### 6.1.3 修改账号配置文件
+#### 6.1.3 修改测试用例文件
+
+
+
+
+
+#### 6.1.4 修改账号配置文件
 
 进入 config 目录，由于现在演示的这个项目是企业部署项目，所以我们进入了 enterprise 目录，我复制了一个 yaml 配置文件，命名为 202_config.yaml ，修改后的配置内容如下
 
@@ -1752,7 +1764,7 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 
 
-#### 6.1.4 修改pytest.ini配置文件
+#### 6.1.5 修改pytest.ini配置文件
 
 在 `iworksweb` 根目录找到 `pytest.ini` 文件，定位到 `--lb-env` 配置，把 `--lb-env` 配置修改为我们刚新建的 `Config/enterprise/202_config.yaml` 调整后的样子如下图
 
@@ -1760,7 +1772,7 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 
 
-#### 6.1.5 新建用例
+#### 6.1.6 运行测试
 
 进入 `testsuites` 目录，新建一个 `test_plan_add.py` 文件
 
