@@ -180,7 +180,7 @@ def iworks_app_cas(env_conf, global_cache):
     获取PDS登录凭证
     :return:
     '''
-    public_login.IworksApp(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'], env_conf, global_cache).login()
+    public_login.IworksApp(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'), env_conf, global_cache).login()
     yield
 
 
@@ -247,7 +247,7 @@ def bimapp_login(env_conf, global_cache):
     BIMApp 通行证系统登录
     :return:
     '''
-    BimAppLogin = public_login.Bimapp(env_conf['bimapp']['username'], env_conf['bimapp']['password'], env_conf,
+    BimAppLogin = public_login.Bimapp(env_conf.get('bimapp').get('username'), env_conf['bimapp']['password'], env_conf,
                                       global_cache).login()
     yield BimAppLogin
 
@@ -258,7 +258,7 @@ def myluban_web_login(env_conf, global_cache):
     Myluban web 登录
     :return:
     '''
-    MylubanWebLogin = public_login.MylubanWeb(env_conf['MylubanWeb']['username'], env_conf['MylubanWeb']['password'],
+    MylubanWebLogin = public_login.MylubanWeb(env_conf.get('MylubanWeb').get('username'), env_conf['MylubanWeb']['password'],
                                               env_conf, global_cache).login()
     yield MylubanWebLogin
 
@@ -269,7 +269,7 @@ def bussiness_login(env_conf, global_cache):
     Bussiness 业务管理系统登录
     :return:
     '''
-    BussinessLogin = public_login.Bussiness(env_conf['Bussiness']['username'], env_conf['Bussiness']['password'], env_conf,
+    BussinessLogin = public_login.Bussiness(env_conf.get('Bussiness').get('username'), env_conf.get('Bussiness').get('password'), env_conf,
                                             global_cache).login()
     yield BussinessLogin
 
@@ -280,7 +280,7 @@ def lubansoft_login(env_conf, global_cache):
     算量软件登录
     :return:
     '''
-    LubansoftLogin = public_login.LubanSoft(env_conf['lubansoft']['username'], env_conf['lubansoft']['password'], env_conf,
+    LubansoftLogin = public_login.LubanSoft(env_conf.get('lubansoft').get('username'), env_conf.get('lubansoft').get('password'), env_conf,
                                             global_cache).login()
     yield LubansoftLogin
 
@@ -291,7 +291,7 @@ def iworks_web_cas(env_conf, global_cache):
     获取cas登录凭证
     :return:
     '''
-    public_login.IworksWeb(env_conf['iworksWeb']['username'], env_conf['iworksWeb']['password'], env_conf, global_cache).login()
+    public_login.IworksWeb(env_conf.get('iworksWeb').get('username'), env_conf.get('iworksWeb').get('password'), env_conf, global_cache).login()
     yield
 
 @pytest.fixture(scope='session')
@@ -366,7 +366,7 @@ def token(env_conf):
     数据管理平台获取登录凭证
     :return:
     '''
-    resule = public_login.WebToken(env_conf['iworksWeb']['username'], env_conf['iworksWeb']['password'],env_conf['productId']['iworksWeb'], env_conf)
+    resule = public_login.WebToken(env_conf.get('iworksWeb').get('username'), env_conf.get('iworksWeb').get('password'),env_conf.get('productId').get('iworksWeb'), env_conf)
     yield  resule.login()
     resule.logout()
 
@@ -376,7 +376,7 @@ def CenterToken(env_conf):
     Center获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf['center']['username'], env_conf['center']['password'],env_conf['productId']['center'], env_conf)
+    resule = public_login.Token(env_conf.get('center').get('username'), env_conf.get('center').get('password'),env_conf.get('productId').get('center'), env_conf)
     yield  resule.login()
     resule.logout()
 
@@ -386,7 +386,7 @@ def appToken(env_conf):
     appToken获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['iworksApp'], env_conf,env_conf['productId']['iworksApp'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksApp'), env_conf,env_conf['productId']['iworksApp'])
     yield  resule.login()
     resule.logout()
 
@@ -405,7 +405,7 @@ def inspectionToken(env_conf):
     web质检获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['inspection'], env_conf,env_conf['productId']['inspection'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('inspection'), env_conf,env_conf.get('productId').get('inspection'))
     yield  resule.login()
     resule.logout()
 
@@ -415,7 +415,7 @@ def archivesToken(env_conf):
     web档案获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['archives'], env_conf,env_conf['productId']['archives'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('archives'), env_conf,env_conf.get('productId').get('archives'))
     yield  resule.login()
     resule.logout()
 
@@ -425,7 +425,7 @@ def meterToken(env_conf):
     web计量获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['meter'], env_conf,env_conf['productId']['meter'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('meter'), env_conf,env_conf.get('productId').get('meter'))
     yield  resule.login()
     resule.logout()
 
@@ -435,7 +435,7 @@ def occToken(env_conf):
     指挥中心获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf['iworksApp']['username'], env_conf['iworksApp']['password'],env_conf['productId']['meter'], env_conf,env_conf['productId']['occ'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('occ'), env_conf,env_conf.get('productId').get('occ'))
     yield  resule.login()
     resule.logout()"""
 
@@ -560,9 +560,9 @@ class BimAdmin:
     BimAdmin 登录类
     '''
     def __init__(self,envConf):
-        self.header = envConf["headers"]["urlencoded_header"]
-        self.body = envConf["sysadmin"]["logininfo"]
-        self.BimAdminLogin = base_requests.Send(envConf["sysadmin"]["host"], envConf)
+        self.header = envConf.get("headers").get("urlencoded_header")
+        self.body = envConf.get("sysadmin").get("logininfo")
+        self.BimAdminLogin = base_requests.Send(envConf.get("sysadmin").get("host"), envConf)
 
     def login(self):
         '''
@@ -581,11 +581,11 @@ class Center:
     '''
     def __init__(self,centerusername,centerpassword,envConf,global_cache):
         self.cache = global_cache
-        self.productId = envConf['productId']['center']
+        self.productId = envConf.get('productId').get('center')
         self.username = centerusername if isinstance(centerusername,int) else quote(centerusername)
         self.password = centerpassword
-        self.header = envConf["headers"]["plain_header"]
-        self.CenterLogin = base_requests.Send(envConf['pds'], envConf, global_cache=self.cache)
+        self.header = envConf.get("headers").get("plain_header")
+        self.CenterLogin = base_requests.Send(envConf.get('pds'), envConf, global_cache=self.cache)
 
     def getServerUrl(self):
         '''
@@ -594,10 +594,10 @@ class Center:
         resource = '/rs/centerLogin/serverurl'
         response = self.CenterLogin.request('get', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        assert len(response["serverURL"]) != 0
-        for server in response["serverURL"]:
-            number = response["serverURL"].index(server)
-            self.cache.set(response["serverName"][number],response["serverURL"][number])
+        assert len(response.get("serverURL")) != 0
+        for server in response.get("serverURL"):
+            number = response.get("serverURL").index(server)
+            self.cache.set(response.get("serverName")[number],response.get("serverURL")[number])
 
     def getDeployType(self):
         '''
@@ -607,7 +607,7 @@ class Center:
         resource = '/rs/centerLogin/deployType'
         response = self.CenterLogin.request('get', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        deployType = response["Response_text"]
+        deployType = response.get("Response_text")
         self.cache.set('deployType', deployType)
 
     def getLT(self):
@@ -618,7 +618,7 @@ class Center:
         resource = '/login'
         response = self.CenterLogin.request('get', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        html = response["Response_text"]
+        html = response.get("Response_text")
         pattern = 'value="LT(.+?)" />'
         lt = re.findall(pattern, html)[0]
         return lt
@@ -642,8 +642,8 @@ class Center:
         body = {"password": self.password,"username": self.username}
         response = self.CenterLogin.request('post', resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        if len(response["epid"]) > 0:
-            self.cache.set('CenterEpid',response["epid"][0])
+        if len(response.get("epid")) > 0:
+            self.cache.set('CenterEpid',response.get("epid")[0])
 
     def switchCompany(self):
         '''
@@ -672,12 +672,12 @@ class IworksApp:
     '''
     def __init__(self,username,password,envConf,global_cache):
         self.cache = global_cache
-        self.productId = envConf['productId']['iworksApp']
+        self.productId = envConf.get('productId').get('iworksApp')
         self.username = username if isinstance(username,int) else quote(username)
         self.password = password
-        self.header = envConf["headers"]["plain_header"]
-        self.clientVersion = envConf["iworksApp"]["clientVersion"]
-        self.casLogin = base_requests.Send(envConf['pds'], envConf, global_cache=self.cache)
+        self.header = envConf.get("headers").get("plain_header")
+        self.clientVersion = envConf.get("iworksApp").get("clientVersion")
+        self.casLogin = base_requests.Send(envConf.get('pds'), envConf, global_cache=self.cache)
         self.epid = ''
 
     def getServerUrl(self):
@@ -687,10 +687,10 @@ class IworksApp:
         resource = '/rs/casLogin/serverUrl'
         response = self.casLogin.request('get', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        assert len(response["serverURL"]) != 0
-        for server in response["serverURL"]:
-            number = response["serverURL"].index(server)
-            self.cache.set(response["serverName"][number],response["serverURL"][number])
+        assert len(response.get("serverURL")) != 0
+        for server in response.get("serverURL"):
+            number = response.get("serverURL").index(server)
+            self.cache.set(response.get("serverName")[number],response.get("serverURL")[number])
 
     def getLT(self):
         '''
@@ -700,7 +700,7 @@ class IworksApp:
         resource = '/login'
         response = self.casLogin.request('get', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        html = response["Response_text"]
+        html = response.get("Response_text")
         pattern = 'value="LT(.+?)" />'
         lt = re.findall(pattern, html)[0]
         return lt
@@ -727,9 +727,9 @@ class IworksApp:
          "hardwareCodes": "3465192946d57f13482640578c77ffa77d1f66a4"}
         response = self.casLogin.request('post', resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        if len(response["enterpriseId"]) > 0:
-            self.cache.set('iworksAppEpid', response["enterpriseId"][0])
-            self.epid = response["enterpriseId"][0]
+        if len(response.get("enterpriseId")) > 0:
+            self.cache.set('iworksAppEpid', response.get("enterpriseId")[0])
+            self.epid = response.get("enterpriseId")[0]
             return self.epid
 
     def switchCompany(self):
@@ -759,12 +759,12 @@ class Iworks:
         self.cache = global_cache
         # self.rf = ManageConfig().getConfig(self.section)
         # self.wf = ManageConfig()
-        self.productId = envConf['productId']['iworks']
+        self.productId = envConf.get('productId').get('iworks')
         self.username = username if isinstance(username,int) else quote(username)
         self.password = password
-        self.header =envConf["headers"]["soap_header"]
-        self.header1 = envConf["headers"]["urlencoded_header"]
-        self.casLogin = base_requests.Send(envConf['pds'], envConf, global_cache=self.cache)
+        self.header =envConf.get("headers").get("soap_header")
+        self.header1 = envConf.get("headers").get("urlencoded_header")
+        self.casLogin = base_requests.Send(envConf.get('pds'), envConf, global_cache=self.cache)
         self.epid = ''
 
     def getServerUrl(self):
@@ -784,7 +784,7 @@ class Iworks:
         Response_serverURL= base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:getServUrlResponse_return_list'][0]
         assert len(Response_serverURL)!=0,"serverURL不能为空"
         for server in Response_serverURL:
-            self.cache.set(dict(server)["serverName"],dict(server)["serverURL"])
+            self.cache.set(dict(server).get("serverName"),dict(server).get("serverURL"))
 
     def getLT(self):
         '''
@@ -794,7 +794,7 @@ class Iworks:
         resource = '/login'
         response = self.casLogin.request('get', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        html = response["Response_text"]
+        html = response.get("Response_text")
         pattern = 'value="LT(.+?)" />'
         lt = re.findall(pattern, html)[0]
         return lt
@@ -890,11 +890,11 @@ class IworksWeb:
     '''
     def __init__(self,username,password,envConf,global_cache):
         self.cache = global_cache
-        self.productId = envConf['productId']['iworksWeb']
+        self.productId = envConf.get('productId').get('iworksWeb')
         self.username = username
         self.password = password
-        self.header = envConf["headers"]["json_header"]
-        self.casLogin = base_requests.Send(envConf['pds'], envConf, global_cache=self.cache)
+        self.header = envConf.get("headers").get("json_header")
+        self.casLogin = base_requests.Send(envConf.get('pds'), envConf, global_cache=self.cache)
         self.epid = ''
 
     def getServerUrl(self):
@@ -982,8 +982,8 @@ class WebToken:
         self.productId = productId
         self.username = username
         self.password = password
-        self.header = envConf["headers"]["json_header"]
-        self.Login = base_requests.Send(envConf['base_url'], envConf)
+        self.header = envConf.get("headers").get("json_header")
+        self.Login = base_requests.Send(envConf.get('base_url'), envConf)
         self.epid = ''
         self.token = ""
 
@@ -1081,8 +1081,8 @@ class Token:
         self.productId = productId
         self.username = username
         self.password = password
-        self.header = envConf["headers"]["json_header"]
-        self.Login = base_requests.Send(envConf['base_url'], envConf)
+        self.header = envConf.get("headers").get("json_header")
+        self.Login = base_requests.Send(envConf.get('base_url'), envConf)
         self.epid = ''
         self.token = ""
         self.loginType = "CENTER_WEB" if loginType is None else loginType
@@ -1161,8 +1161,8 @@ class OpenAPI:
         self.cache = global_cache
         self.apikey = apikey
         self.apisecret = apisecret
-        self.username = envConf["openapi"]['username']
-        self.OpenAPIToken = base_requests.Send(envConf["openapi"]['host'], envConf, global_cache=self.cache)
+        self.username = envConf.get("openapi").get('username')
+        self.OpenAPIToken = base_requests.Send(envConf.get("openapi").get('host'), envConf, global_cache=self.cache)
 
     def login(self):
         '''
@@ -1225,7 +1225,7 @@ class Bimapp:
         self.password = password
         self.token = ''
         self.AcAddress = ''
-        self.BimappLogin = base_requests.Send(envConf["bimapp"]['host'], envConf, global_cache=self.cache)
+        self.BimappLogin = base_requests.Send(envConf.get("bimapp").get('host'), envConf, global_cache=self.cache)
 
     def getCookie(self):
         '''
@@ -1242,8 +1242,8 @@ class Bimapp:
         resource = "/getAcAddress.htm"
         response = self.BimappLogin.request('get', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        if response["Response_text"] is not None:
-            self.AcAddress = response["Response_text"]
+        if response.get("Response_text") is not None:
+            self.AcAddress = response.get("Response_text")
 
     def gettoken(self):
         '''
@@ -1281,7 +1281,7 @@ class MylubanWeb:
         self.cache = global_cache
         self.username = username
         self.password = password
-        self.MylubanWebLogin = base_requests.Send(envConf["MylubanWeb"]['host'], envConf, global_cache = self.cache)
+        self.MylubanWebLogin = base_requests.Send(envConf.get("MylubanWeb").get('host'), envConf, global_cache = self.cache)
 
     def login(self):
         '''
@@ -1303,7 +1303,7 @@ class Bussiness:
         self.cache = global_cache
         self.username = username
         self.password = password
-        self.BussinessLogin = base_requests.Send(envConf["Bussiness"]['host'], envConf, global_cache = self.cache)
+        self.BussinessLogin = base_requests.Send(envConf.get("Bussiness").get('host'), envConf, global_cache = self.cache)
 
     def login(self):
         '''
@@ -1326,8 +1326,8 @@ class LubanSoft:
         self.cache = global_cache
         self.username = username
         self.password = password
-        self.header = envConf["headers"]["soap_header"]
-        self.lubansoftLogin = base_requests.Send(envConf["lubansoft"]['host'], envConf)
+        self.header = envConf.get("headers").get("soap_header")
+        self.lubansoftLogin = base_requests.Send(envConf.get("lubansoft").get('host'), envConf)
 
     def login(self):
         '''
