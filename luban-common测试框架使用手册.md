@@ -1464,15 +1464,23 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "ma
 
 - `--lb-env`：环境配置文件，如 `dev`、`enterprise`、`preRelease`、`release`
 
-  通过如下方式指定需要测试的环境
+  通过如下方式可在命令行中指定需要测试的环境配置
 
   ```python
   pytest --lb-env config/dev/config.yaml
   ```
 
-- `--lb-driver`： UI自动化时使用的 driver 类型
+- `--lb-driver`： UI自动化时使用的 driver 类型可从命令行或配置文件浏览器
 
-- `--lb-base-url`： UI自动化时可独立指定url地址
+  ```
+  pytest --lb-driver firefox
+  ```
+
+- `--lb-base-url`： UI自动化或接口自动化时可从命令行或配置文件指定url地址
+
+  ```
+  pytest --lb-base-url http://www.lbuilder.cn
+  ```
 
 - `globalConf` ：通用配置文件，把固定不变的内容配置到这里
 
@@ -1507,7 +1515,7 @@ def lbbv(iworks_app_cas, env_conf, global_cache):
 
 
 
-####  4.3.1 global_cache
+####  4.3.1 global_cache（推荐使用Global_Map）
 
 全局缓存生命周期内产生的数据，主要用来解决数据依赖问题，比如 serverUrl 返回的项目地址、企业ID、项目部ID等通用数据
 
@@ -1559,7 +1567,7 @@ def switchCompany(self,global_cache):
     resource = f"/rs/casLogin/casLogin"
     body = {"epid": global_cache.get("epid", False)}
     response = self.casLogin.request('post', resource,body)
-    Assertions().assert_code(response, response["status_code"], 200)
+    Assertions.assert_code(response, response.get("status_code"), 200)
 ```
 
 
@@ -1569,7 +1577,7 @@ def switchCompany(self,global_cache):
 环境配置，合并了 `pytest.ini` 配置中 `--lb-env` 和 `globalConf` 文件中的 yaml 数据，使用字典的方式取值，使用方法为：
 
 ```python
-env_conf["center"]["username"]
+env_conf.get("center").get("username")
 ```
 
 例：获取产品id、header信息等
@@ -1592,7 +1600,7 @@ def __init__(self,username,password,envConf,global_cache):
 基础URL，当参数传入对应的函数即可，使用方法为：
 
 ```
-暂未实现
+web框架时使用，暂未
 ```
 
 

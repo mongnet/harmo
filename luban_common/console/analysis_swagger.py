@@ -422,28 +422,6 @@ class AnalysisSwaggerJson():
         body[arg] = "$" + arg + "$"
 
 
-    def generator_interface_file(self,data):
-        """
-        生成接口文件
-        :param data:
-        :return:
-        """
-        if not isinstance(data,dict):
-            raise FileExistsError("数据类型错误，传入的数据必须为dict")
-        for key, values in data.items():
-            if "groups" in key:
-                path = Path.cwd() / data["config"]["name"]
-                path.mkdir(mode=0o777, parents=True, exist_ok=True)
-                package_init = path / "__init__.py"
-                package_init.touch(exist_ok=False)
-                for group in values:
-                    # with open("../config/interface.config", "r") as config:
-                    interfaces = chevron.render(group, group)
-                    interface_file = path/f'test_{group["file_name"]}.py'
-                    with interface_file.open("w", encoding="utf-8") as f:
-                        f.write(interfaces)
-
-
 if __name__ == "__main__":
     url = "http://192.168.13.246:8182/Plan/rs/swagger/swagger.json"
     url1 = "http://192.168.13.246:8182/gateway/builder/v2/api-docs"
