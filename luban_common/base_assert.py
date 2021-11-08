@@ -96,13 +96,37 @@ class Assertions:
         :return:
         """
         if isinstance(data,(list,dict)):
-            if isinstance(expected_value, str):
-                assert expected_value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{expected_value} 的数据,实际数据为：{data}"
+            if isinstance(expected_value, dict):
+                for value in base_utils.get_all_value(expected_value):
+                    assert value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{value} 的数据,实际数据为：{data}"
             elif isinstance(expected_value, list):
                 for value in expected_value:
-                    assert value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{expected_value} 的数据,实际数据为：{data}"
+                    assert value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{value} 的数据,实际数据为：{data}"
+            else:
+                assert expected_value in base_utils.get_all_value(data), f"实际数据中不存在预期值为：{expected_value} 的数据,实际数据为：{data}"
         else:
-            assert False, f"{type(data)}数据类型不支持"
+            assert False, f"{type(data)}数据类型不支持,现只支持list,dict"
+
+    @classmethod
+    @allure.step("校验数据集中不存在预期值，预期值为:{2}")
+    def assert_not_in_value(self, data,expected_value):
+        """
+        校验数据集中不存在预期值
+        :param data: 响应数据
+        :param expected_value: 预期值
+        :return:
+        """
+        if isinstance(data,(list,dict)):
+            if isinstance(expected_value, dict):
+                for value in base_utils.get_all_value(expected_value):
+                    assert value not in base_utils.get_all_value(data), f"实际数据中存在预期值为：{value} 的数据,实际数据为：{data}"
+            elif isinstance(expected_value, list):
+                for value in expected_value:
+                    assert value not in base_utils.get_all_value(data), f"实际数据中存在预期值为：{value} 的数据,实际数据为：{data}"
+            else:
+                assert expected_value not in base_utils.get_all_value(data), f"实际数据中存在预期值为：{expected_value} 的数据,实际数据为：{data}"
+        else:
+            assert False,f"{type(data)}数据类型不支持,现只支持list,dict"
 
     @classmethod
     @allure.step("校验以预期值开头，预期值为:{2}")
@@ -147,20 +171,6 @@ class Assertions:
             assert False,f"{type(data)}数据类型不支持,现只支持list,dict"
 
     @classmethod
-    @allure.step("校验数据集中不存在预期值，预期值为:{2}")
-    def assert_not_in_value(self, data,expected_value):
-        """
-        校验数据集中不存在预期值
-        :param data: 响应数据
-        :param expected_value: 预期值
-        :return:
-        """
-        if isinstance(data,(list,dict)):
-            assert expected_value not in base_utils.get_all_value(data),f"实际数据中存在预期值为：{expected_value} 的数据,实际数据为：{data}"
-        else:
-            assert False,f"{type(data)}数据类型不支持,现只支持list,dict"
-
-    @classmethod
     @allure.step("校验字典中不存在预期key，预期值为:{2}")
     def assert_not_in_key(self, data,expected_key):
         """
@@ -186,7 +196,7 @@ class Assertions:
         if isinstance(reality_value,type(expected_value)):
             assert expected_value == reality_value, f"实际数据不等于预期为 {expected_value} 的数据,实际值为:{reality_value}"
         else:
-            assert False, f"数据类型匹配,reality_value:{type(reality_value)},expected_value:{type(expected_value)}"
+            assert False, f"数据类型不匹配,reality_value类型为:{type(reality_value)},expected_value类型为:{type(expected_value)}"
 
     @classmethod
     @allure.step("断言字符串中包含指定字符串，预期值为:{2}")
@@ -336,6 +346,8 @@ if __name__ == "__main__":
     str0 = "彪哥的测试之路"
     str1 = "彪哥"
     str2 = "大佬"
+    data = ['WBS数据-质检','WEB质检-标段基本信息', 'w' ]
+    expected_value = ['WEB质检-标段基本信息', 'WBS数据-质检']
     # Assertions.assert_dictOrList_eq(dict1,dict2)
     # Assertions.assert_dictOrList_eq(list1,list2)
     # Assertions.assert_assign_attribute_value(dict3, "hu", ["adf",1111, "胡彪"])
@@ -347,13 +359,13 @@ if __name__ == "__main__":
     # Assertions.assert_assign_attribute_value(dict9, "hu", 50)
     # Assertions.assert_assign_attribute_value(dict10, "hu", 1.32)
     # Assertions.assert_assign_attribute_value(dict10, "hu", 1.32)
-    Assertions.assert_contains(str0,str1)
-    Assertions.assert_not_contains(str0,str2)
+    # Assertions.assert_contains(str0,str1)
+    # Assertions.assert_not_contains(str0,str2)
     # Assertions.assert_list_repetition(list3)
-    # Assertions.assert_in_value(dict1,"ppid")
+    # Assertions.assert_in_value(data,expected_value)
     # in_value 和 in_key 等要支持list和dict，现在只部分支持
     # Assertions.assert_in_key(list4, "hu")
     # Assertions.assert_not_in_key(list4, "hdu")
-    # Assertions.assert_not_in_value(dict4, "addf")
+    Assertions.assert_not_in_value(list1, list2)
 
 
