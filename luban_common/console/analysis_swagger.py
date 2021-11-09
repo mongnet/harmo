@@ -162,7 +162,7 @@ class AnalysisSwaggerJson():
         if not parameters:  # 确保参数字典存在
             parameters = {}
         # 调试用
-        # if name != "新增标段、单项、单位工程":
+        # if name != "获取工程列表":
         #     return
         # if name != "创建任务中检查信息 （iworksweb）":
         #     return
@@ -381,6 +381,9 @@ class AnalysisSwaggerJson():
                     continue
                 if isinstance(value, dict):
                     for k, v in value.items():
+                        if isinstance(v, list):
+                            self.recursion(v)
+                            continue
                         self.wash_body(k, value, self.args, self.kwargs)
                     continue
                 self.wash_body(key, data, self.args, self.kwargs)
@@ -395,8 +398,8 @@ class AnalysisSwaggerJson():
         :param parameters_form: 传参方式
         :return:
         """
-        # 无默认值的参数无需处理
-        if arg in list_args and arg in self.blacklist:
+        # 无默认值或在黑名单中的参数无需处理
+        if arg in list_args or arg in self.blacklist:
             return
         if arg in self.default_parame.keys():
             # 接口传参默认值处理
@@ -411,13 +414,12 @@ class AnalysisSwaggerJson():
                     # 如果是字符串常量必须要加引号
                     kwarg = f'"{self.default_parame[arg]}"'
             list_kwargs.append(arg + "=" + kwarg)
+        # 当类型为boolean时，默认设置为False
+        elif body[arg] == "boolean":
+            list_kwargs.append(arg + "=$False$")
         # 当parameters_form不是None或不是path参数时，参数默认值设置为None
         elif parameters_form is not None or parameters_form != "path":
             list_kwargs.append(arg + "=$None$")
-        elif body[arg] == "boolean":
-            list_kwargs.append(arg + "=$False$")
-        elif arg not in self.blacklist:
-            list_args.append(arg)
         # body 请求体参数化处理
         body[arg] = "$" + arg + "$"
 

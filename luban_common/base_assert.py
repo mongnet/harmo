@@ -338,7 +338,7 @@ if __name__ == "__main__":
     dict8 = {"hu":["胡彪"]}
     dict9 = {"hu":50}
     dict10 = {"hu":1.32}
-    list1 = [1111,"adfaf","胡彪"]
+    list1 = [1111,"adfaf","胡彪",False,None]
     list2 = [1111,"胡彪","adfaf"]
     list3 = ["89010001#89","89010001#89","89010001#89", "96003010#96"]
     list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}]
@@ -366,6 +366,6 @@ if __name__ == "__main__":
     # in_value 和 in_key 等要支持list和dict，现在只部分支持
     # Assertions.assert_in_key(list4, "hu")
     # Assertions.assert_not_in_key(list4, "hdu")
-    Assertions.assert_not_in_value(list1, list2)
+    Assertions.assert_not_in_value(list1, "null")
 
 

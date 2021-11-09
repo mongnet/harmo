@@ -18,7 +18,6 @@ defaultParame:
  size: 10 # 分页大小
  remarks: 自动化测试备注 # 备注
  direction: 0 # 排序方式 0 ASC  1 DESC
- dictOrder: False # 是否要按字典序排序
  status: 0 # 状态默认为0
  deptType: 0 # 项目类型(0 默认、1 高速公路、2 一级公路 3 二级公路 4 三级公路 5 四级公路 6 市政公路)
  nodeType: 1 # 1标段，2单项，3单位工程
