@@ -128,17 +128,18 @@ def toFileBase64(file):
         image = f.read()
     return str(base64.b64encode(image), encoding='utf-8')
 
-def getUnix(date=None):
+def getUnix(date=None,scope="s"):
     '''
     通过传入的时间获取时间戳，默认获取当前时间戳
-    :param date:传入的时间，格式为：'2017-05-09 18:31:22' 
+    :param date:传入的时间，格式为：'2017-05-09 18:31:22'
+    :param scope:时间戳范围，s(秒)，ms(毫秒)
     :return: 返回时间戳
     '''
     if date is None:
         ST = datetime.strptime(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())),"%Y-%m-%d %H:%M:%S")
     else:
         ST = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-    unixST = int(time.mktime(ST.timetuple())) * 1000
+    unixST = int(time.mktime(ST.timetuple())) * 1000 if scope=="s" else int(time.mktime(ST.timetuple()))
     return str(unixST)
 
 def UnixToTime(unix):
@@ -147,8 +148,11 @@ def UnixToTime(unix):
     :param unix: 时间戳
     :return: 返回时间
     '''
-    time_local = time.localtime(int(unix)/1000)
-    dt = time.strptime(time.strftime("%Y-%m-%d %H:%M:%S",time_local),"%Y-%m-%d %H:%M:%S")
+    if len(unix)==13:
+        time_local = time.localtime(int(unix)/1000)
+    elif len(unix)==10:
+        time_local = time.localtime(int(unix))
+    dt = time.strftime("%Y-%m-%d %H:%M:%S",time_local)
     return dt
 
 def getRecentMonthOfDay():
@@ -447,4 +451,8 @@ if __name__ == "__main__":
     print(toFileBase64("../data/20201222101200.png"))
     print(toFileBase64("../data/config.yaml"))
     print(getFileSize("../data/20201222101200.png"))
+    print(getUnix())
+    print(getUnix(scope="ms"))
+    print(UnixToTime(unix="1636942336000"))
+    print(UnixToTime(unix="1636942336"))
 

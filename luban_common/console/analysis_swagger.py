@@ -358,12 +358,16 @@ class AnalysisSwaggerJson():
                 body = "_".join(base_utils.get_all_value(schema))
                 http_interface.update({"body": f"${body}$"})
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
-                http_interface["body_params_args"].append(f"${body}$=$None$")
+                http_interface["body_params_kwargs"].append(f"${body}$=$None$")
+            # 处理body为字符串时的情况
             elif schema.get("type") == "string" and ephemeral_key is None:
                 body = "_".join(base_utils.get_all_value(schema))
-                http_interface.update({"body": f"${body}$"})
+                if "binary" in base_utils.get_all_value(schema):
+                    http_interface.update({"body_binary": f"${body}$"})
+                else:
+                    http_interface.update({"body": f"${body}$"})
+                http_interface["body_params_kwargs"].append(f"${body}$=$None$")
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
-                http_interface["body_params_args"].append(f"${body}$=$None$")
 
     def recursion(self,data):
         """
@@ -439,7 +443,7 @@ if __name__ == "__main__":
     url12 = "http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json"
     url13 = "http://192.168.3.195/gateway/process/v2/api-docs"
     url14 = "http://192.168.13.193:8182/gateway/luban-meter/v2/api-docs?group=V1.0.0"
-    url15 = "http://192.168.13.240:8182/gateway-240/luban-infrastructure-center/v2/api-docs?group=V1.0.0"
+    url15 = "http://192.168.13.246:8182/gateway/luban-infrastructure-center/v2/api-docs?group=V1.0.0"
     url16 = "http://192.168.13.246:8182/gateway/luban-misc/v2/api-docs?group=V1.0.0"
     url17 = "http://192.168.13.66:7790/things/v2/api-docs?group=%E4%B8%9A%E5%8A%A1%E6%8E%A5%E5%8F%A3"
 
@@ -458,7 +462,7 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url12).analysis_json_data())
     # print(AnalysisSwaggerJson(url13).analysis_json_data())
     # print(AnalysisSwaggerJson(url14).analysis_json_data())
-    # print(AnalysisSwaggerJson(url15).analysis_json_data())
+    print(AnalysisSwaggerJson(url15).analysis_json_data())
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
     # print(AnalysisSwaggerJson(url16).analysis_json_data())
 

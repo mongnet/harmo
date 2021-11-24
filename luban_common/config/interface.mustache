@@ -35,7 +35,7 @@ class {{class_name}}:
         {{# cookie_params}}
         cookies_kwargs = {{{cookie_params}}}
         {{/ cookie_params}}
-        response = item_fixture.request("{{method}}", resource{{# body}}, payload = payload{{/ body}}{{# query_params}}, params = query_params{{/ query_params}}{{# cookie_params}}, cookies_kwargs = cookies_kwargs{{/ cookie_params}})
+        response = item_fixture.request("{{method}}", resource{{# body}}, payload = payload{{/ body}}{{# body_binary}}, files = {'file':open(string_binary, 'rb')}{{/ body_binary}}{{# query_params}}, params = query_params{{/ query_params}}{{# cookie_params}}, cookies_kwargs = cookies_kwargs{{/ cookie_params}})
         return response
 
     {{/ interfaces}}

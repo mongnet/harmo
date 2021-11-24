@@ -7,6 +7,7 @@
 import pytest
 import allure
 from luban_common.base_assert import Assertions
+from utils import utils
 from swagger.{{project_directory}}.{{file_name}} import {{class_name}}
 
 @allure.feature("{{name}}")
@@ -25,10 +26,10 @@ class Test_{{class_name}}:
             {{# body}}
         body = {{{body_field_type}}}
             {{/ body}}
-        response = {{class_name}}().{{name_en}}({{token}}{{# params_args_nobody}}, {{{.}}}{{/ params_args_nobody}}{{# params_kwargs_nobody}}, {{{.}}}{{/ params_kwargs_nobody}}{{# isbody}}{{# body}}, bodyKwargs=body{{/ body}}{{/ isbody}})
+        response = {{class_name}}().{{name_en}}({{token}}{{# params_args_nobody}}, {{{.}}}{{/ params_args_nobody}}{{# params_kwargs_nobody}}, {{{.}}}{{/ params_kwargs_nobody}}{{# isbody}}{{# body}}, bodyKwargs=body{{/ body}}{{# body_binary}}, {{{.}}}{{/ body_binary}}{{/ isbody}})
         {{/ isbody}}
         {{^ isbody}}
-        response = {{class_name}}().{{name_en}}({{token}}{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}})
+        response = {{class_name}}().{{name_en}}({{token}}{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}}{{# body_binary}}, {{{.}}}{{/ body_binary}})
         {{/ isbody}}
         Assertions.assert_code(response,response.get("status_code"),200)
         {{# validate}}

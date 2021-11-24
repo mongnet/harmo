@@ -98,7 +98,7 @@ class Send:
                 # 获取请求和响应数据
                 logging.info("开始分割线start: ".center(60, "#"))
                 logging.info("请求方法: " + method)
-                logging.info(list(kwargs.keys())[0]+": "+kwargs[list(kwargs.keys())[0]]) if kwargs!={} else None
+                logging.info(list(kwargs.keys())[0]+": "+str(kwargs[list(kwargs.keys())[0]])) if kwargs!={} else None
                 logging.info("请求的Url: " + self.Url)
                 logging.info("持续时间: " + str(self.Response.elapsed.total_seconds()))
                 logging.info("请求头: " + str(self.Response.request.headers))
