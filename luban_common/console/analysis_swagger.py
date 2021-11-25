@@ -357,8 +357,8 @@ class AnalysisSwaggerJson():
                 del http_interface["body"]
                 body = "_".join(base_utils.get_all_value(schema))
                 http_interface.update({"body": f"${body}$"})
+                http_interface["body_params_args"].append(f"${body}$")
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
-                http_interface["body_params_kwargs"].append(f"${body}$=$None$")
             # 处理body为字符串时的情况
             elif schema.get("type") == "string" and ephemeral_key is None:
                 body = "_".join(base_utils.get_all_value(schema))
@@ -366,7 +366,7 @@ class AnalysisSwaggerJson():
                     http_interface.update({"body_binary": f"${body}$"})
                 else:
                     http_interface.update({"body": f"${body}$"})
-                http_interface["body_params_kwargs"].append(f"${body}$=$None$")
+                http_interface["body_params_args"].append(f"${body}$")
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
 
     def recursion(self,data):
