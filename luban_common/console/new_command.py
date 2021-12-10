@@ -772,11 +772,11 @@ class Iworks:
     '''
     iWorks CAS登录类
     '''
-    def __init__(self,username,password,envConf,global_cache):
+    def __init__(self,username,password,productId,envConf,global_cache):
         self.cache = global_cache
         # self.rf = ManageConfig().getConfig(self.section)
         # self.wf = ManageConfig()
-        self.productId = envConf.get('productId').get('iworks')
+        self.productId = productId
         self.username = username if isinstance(username,int) else quote(username)
         self.password = password
         self.header =envConf.get("headers").get("soap_header")
@@ -846,6 +846,7 @@ class Iworks:
         if len(enterpriseId) > 0:
             epids = eval(json.dumps(enterpriseId))[0]
             self.cache.set('epid', epids)
+            Global_Map().set("epid", epids)
             self.epid = epids
             return self.epid
 
@@ -888,9 +889,7 @@ class Iworks:
 '''
         response = self.casLogin.request('post',resource,body,self.header)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        convertedXml = xmltodict.parse(response.get('Response_text'))
-        Response_authCodes = base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:casLoginResponse_return_clientAuthGroupResultList_list']
-        print(Response_authCodes)
+        
     def login(self):
         '''
         登录BV CAS流程方法
