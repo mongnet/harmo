@@ -439,21 +439,28 @@ def occToken(env_conf):
     yield  resule.login()
     resule.logout()"""
 
-GLOBAL_CONFIG_DEFAULT = """productId:
-    iworks: 92
-    iworksApp: 94
-    occ: 96
-    center: 100
-    iworksWeb: 192
-    meter: 193
-    inspection: 195
-    archives: 196
-headers:
+GLOBAL_CONFIG_DEFAULT = """headers:
     multipart_header: '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
     json_header: '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
     urlencoded_header: '{"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/x-www-form-urlencoded","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"}'
     plain_header: '{"Accept": "text/plain","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/x-www-form-urlencoded;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"}'
-    soap_header: '{"Content-Type": "text/xml;charset=utf-8","Accept-Encoding": "gzip, deflate","SOAPAction": ""}'"""
+    soap_header: '{"Content-Type": "text/xml;charset=utf-8","Accept-Encoding": "gzip, deflate","SOAPAction": ""}'
+productId:
+    editor: 86
+    LubanGOProject: 87
+    iworksf: 92
+    iworksj: 93
+    iworksApp: 94
+    LubanGO: 96
+    LubanSummary: 97
+    center: 100
+    im: 140
+    LubanMaterials: 171
+    iworksWeb: 192
+    meter: 193
+    inspection: 195
+    archives: 196
+    meterHighway: 501"""
 
 CONFIG_DEFAULT = """pds : http://app.lbuilder.cn
 ac: http://ac.myluban.com
@@ -474,6 +481,16 @@ addopts =
     --html=reports/report.html --self-contained-html
     -p no:warnings
 ;    --cache-clear
+markers =
+    enterprise: enterprise deploy
+    cloud: cloud deploy
+    iworksApp: app
+    meter: meter
+    meterHighway: meterHighway
+    LubanGO: occweb
+    inspection: inspection
+    archives: archives
+    center: center
 globalConf = Config/globalConf.yaml
 minversion = 5.0
 testpaths = testcases testsuites

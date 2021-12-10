@@ -77,7 +77,7 @@ def getStrMD5(String):
     :return: MD5值
     '''
     if not isinstance(String,str):
-        raise TypeError("只支持字符串类型")
+        String = str(String)
     m = hashlib.md5()
     m.update(String.encode('utf-8'))
     return m.hexdigest()
@@ -89,7 +89,7 @@ def getStrSha1(String):
     :return: 加密后的字符
     """
     if not isinstance(String,str):
-        raise TypeError("只支持字符串类型")
+        String = str(String)
     sh = hashlib.sha1()
     sh.update(String.encode('utf-8'))
     return sh.hexdigest()
@@ -98,10 +98,10 @@ def ToBase64(String):
     '''
     传入一个字符串，返回字符串的Base64
     :param String: 字符串
-    :return: Base64
+    :return: 返回Base64编码
     '''
     if not isinstance(String,str):
-        raise TypeError("只支持字符串类型")
+        String = str(String)
     base64Str = base64.urlsafe_b64encode(String.encode("utf-8"))
     return str(base64Str,'utf-8')
 
@@ -112,7 +112,7 @@ def FromBase64(String):
     :return: 返回字符串
     '''
     if not isinstance(String,str):
-        raise TypeError("只支持字符串类型")
+        String = str(String)
     missing_padding = 4 - len(String) % 4
     if missing_padding:
         String += '=' * missing_padding
@@ -120,10 +120,11 @@ def FromBase64(String):
 
 def toFileBase64(file):
     '''
-    传入一个Base64，返回字符串
-    :param String: 字符串
-    :return: 返回字符串
+    传入一个文件，返回文件的Base64编码
+    :param file: 文件
+    :return: 返回Base64编码
     '''
+    file = file_is_exist(file)
     with open(file, 'rb') as f:
         image = f.read()
     return str(base64.b64encode(image), encoding='utf-8')
@@ -139,8 +140,8 @@ def getUnix(date=None,scope="s"):
         ST = datetime.strptime(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())),"%Y-%m-%d %H:%M:%S")
     else:
         ST = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-    unixST = int(time.mktime(ST.timetuple())) * 1000 if scope=="s" else int(time.mktime(ST.timetuple()))
-    return str(unixST)
+    unixST = int(time.mktime(ST.timetuple())) if scope == "s" else int(time.mktime(ST.timetuple())) * 1000
+    return unixST
 
 def UnixToTime(unix):
     '''
@@ -148,10 +149,14 @@ def UnixToTime(unix):
     :param unix: 时间戳
     :return: 返回时间
     '''
-    if len(unix)==13:
+    if not isinstance(unix,int):
+        raise TypeError("时间戳只能是整型")
+    if len(str(unix))==13:
         time_local = time.localtime(int(unix)/1000)
-    elif len(unix)==10:
+    elif len(str(unix))==10:
         time_local = time.localtime(int(unix))
+    else:
+        raise ValueError("传入参数错误，不是一个正确的时间戳，正确时间戳应该为10或13位")
     dt = time.strftime("%Y-%m-%d %H:%M:%S",time_local)
     return dt
 
@@ -206,7 +211,7 @@ def shell(cmd):
     '''
     CMD命令执行函数
     :param cmd: 执行的命令
-    :return: 返回执行结束
+    :return: 返回执行结果
     '''
     output, errors = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     o = output.decode("utf-8")
@@ -215,7 +220,7 @@ def shell(cmd):
 def generate_random_str(randomlength=8):
     '''
     生成随机字符串
-    :param randomlength: 默认8个字符
+    :param randomlength: 默认生成的字符串长度为8位
     :return: 返回随机字符串
     '''
     base_str = 'ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789'
@@ -453,6 +458,6 @@ if __name__ == "__main__":
     print(getFileSize("../data/20201222101200.png"))
     print(getUnix())
     print(getUnix(scope="ms"))
-    print(UnixToTime(unix="1636942336000"))
-    print(UnixToTime(unix="1636942336"))
+    print(UnixToTime(unix=1636942336000))
+    print(UnixToTime(unix=1636942336))
 
