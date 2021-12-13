@@ -162,7 +162,7 @@ class AnalysisSwaggerJson():
         if not parameters:  # 确保参数字典存在
             parameters = {}
         # 调试用
-        # if name != "获取工程列表":
+        # if name != "分类编辑接口":
         #     return
         # if name != "创建任务中检查信息 （iworksweb）":
         #     return
@@ -186,19 +186,19 @@ class AnalysisSwaggerJson():
                 name = each.get("name")
                 http_interface["query_params"].update({name: each.get("type")})
                 if "description" in each.keys():
-                    http_interface["params_description"].update({name: each["description"]})
+                    http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
 
             if each.get("in") == "path":
                 name = each.get("name")
                 http_interface["path_params"].update({name: each.get("type")})
                 if "description" in each.keys():
-                    http_interface["params_description"].update({name: each["description"]})
+                    http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
 
             if each.get("in") == "cookie":
                 name = each.get("name")
                 http_interface["cookie_params"].update({name: each.get("type")})
                 if "description" in each.keys():
-                    http_interface["params_description"].update({name: each["description"]})
+                    http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
 
         # 把 query_params 的 key 组装成新的 query_params_url ,生成用例时添加成测试方法的参数
         if "query_params" in http_interface.keys() and http_interface["query_params"]:
@@ -295,25 +295,27 @@ class AnalysisSwaggerJson():
                 # 拆分这个uri，根据实际情况来取第几个/反斜杠
                 param_key = ref.split("/", 2)[-1]
                 try:
-                    param = self.definitions[param_key]["properties"]
+                    param = self.definitions.get(param_key).get("properties")
+                    requireds = self.definitions.get(param_key).get("required")
                 except KeyError:
                     print(f"警告: {schema}没有properties节点信息，请确认程序生成的swagger信息是否正确")
                     return
                 ephemeral_data = {}
                 for key, value in param.items():
+                    required = True if isinstance(requireds,list) and key in requireds else False
                     if "type" in value.keys():
                         if ephemeral_key:
                             ephemeral_data.update({key: value["type"]})
                             if "description" in value.keys():
-                                http_interface["params_description"].update({key: value["description"] + ",可用值:" + ",".join(value["enum"]) if "enum" in value.keys() else value["description"]})
+                                http_interface["params_description"].update({key: value.get("description") + ",可用值:" + (",".join(value.get("enum")) if "enum" in value.keys() else value.get("description")) + (",必填" if required else ",非必填")})
                             if "items" in value.keys() and "$ref" in value.get("items"):
                                 pass
                         else:
                             if "description" in value.keys():
-                                http_interface["params_description"].update({key: value["description"] + ",可用值:" + ",".join(value["enum"]) if "enum" in value.keys() else value["description"]})
+                                http_interface["params_description"].update({key: value.get("description") + ",可用值:" + (",".join(value.get("enum")) if "enum" in value.keys() else value.get("description")) + (",必填" if required else ",非必填")})
                             else:
-                                http_interface["params_description"].update({key: value["type"]})
-                            http_interface["body"].update({key: value["type"]})
+                                http_interface["params_description"].update({key: value.get("type") + (",必填" if value.get("required") else ",非必填")})
+                            http_interface["body"].update({key: value.get("type")})
                         if "items" in value.keys() and "$ref" in value.get("items"):
                             if value.get("items").get("$ref") == ref:
                                 # 跳出递归死循环
@@ -438,18 +440,19 @@ if __name__ == "__main__":
     url6 = "http://192.168.13.233:8080/auth-server/v2/api-docs"
     url7 = "http://192.168.3.195/openapi/rs/swagger/swagger.json"
     # url9 = "http://192.168.3.236:8083/monitor/v2/api-docs?group=center"
-    # url10 = "http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(center端)"
-    # url11 = "http://192.168.3.199:9083/misc/v2/api-docs?group=信息深度(客户端)"
+    url10 = "http://192.168.13.246:8182/misc/v2/api-docs?group=信息深度(center端)"
+    url11 = "http://192.168.13.246:8182/misc/v2/api-docs?group=信息深度(客户端)"
     url12 = "http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json"
     url13 = "http://192.168.3.195/gateway/process/v2/api-docs"
-    url14 = "http://192.168.13.193:8182/gateway/luban-meter/v2/api-docs?group=V1.0.0"
+    url14 = "http://192.168.13.246:8182/gateway/luban-meter/v2/api-docs?group=V1.0.0"
     url15 = "http://192.168.13.246:8182/gateway/luban-infrastructure-center/v2/api-docs?group=V1.0.0"
     url16 = "http://192.168.13.246:8182/gateway/luban-misc/v2/api-docs?group=V1.0.0"
-    url17 = "http://192.168.13.66:7790/things/v2/api-docs?group=%E4%B8%9A%E5%8A%A1%E6%8E%A5%E5%8F%A3"
+    url17 = "http://192.168.13.66:7790/things/v2/api-docs?group=业务接口"
+    url18 = "http://192.168.13.246:8502/luban-archives/v2/api-docs?group=V1.0.0"
 
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
-    print(AnalysisSwaggerJson(url1).analysis_json_data())
+    # print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
     # print(AnalysisSwaggerJson(url3).analysis_json_data())
     # print(AnalysisSwaggerJson(url4).analysis_json_data())
@@ -462,7 +465,8 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url12).analysis_json_data())
     # print(AnalysisSwaggerJson(url13).analysis_json_data())
     # print(AnalysisSwaggerJson(url14).analysis_json_data())
-    print(AnalysisSwaggerJson(url15).analysis_json_data())
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
     # print(AnalysisSwaggerJson(url16).analysis_json_data())
+    # print(AnalysisSwaggerJson(url17).analysis_json_data())
+    print(AnalysisSwaggerJson(url18).analysis_json_data())
 
