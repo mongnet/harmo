@@ -317,7 +317,7 @@ def ResponseData(indict):
     except BaseException as e:
         print(str(e))
 
-def Search_tag_text(url,tag,text):
+def Search_tag_text(url,label,text):
     '''
     请求网页并搜索指定的html标签内是否有指定文本
     :param url: 指定要检查的连接地址
@@ -331,13 +331,36 @@ def Search_tag_text(url,tag,text):
     except requests.exceptions.RequestException as e:
         assert False,f'请求连接地址出错，错误信息为:{e}'
     # 查询指定标签
-    obj = re.search(f'<{tag}>(.*)</{tag}>',resp.text)
+    obj = re.search(f'<{label}>(.*)</{label}>',resp.text)
     # 判断是否找到指定标签
     if not obj:
-        assert False,f'not found {tag}'
+        assert False,f'not found {label}'
     # 判断标签中的值是否为指定的文本
     if not obj.group(1)==text:
         assert False,f'not found {text}'
+
+def TextLineContains(url, textKey, textValue):
+    '''
+    文本行是否包含指定文本
+    :param url: 指定要检查文件连接地址
+    :param textKey: 检查文本key
+    :param textValue: 检查文本Value
+    :return: None:不包含textKey,1:不包含textValue,2:包含textKey和textValue
+    '''
+    try:
+        # 请求服务器
+        resp = requests.get(url)
+    except requests.exceptions.RequestException as e:
+        assert False, f'请求连接地址出错，错误信息为:{e}'
+    for line in resp.text.splitlines():
+        text = line.strip()
+        if not text.startswith("/"):
+            if len(text):
+                if text.__contains__(textKey):
+                    if text.__contains__(textValue):
+                        return 2
+                    else:
+                        return 1
 
 def time_difference(start_time,end_time):
     '''

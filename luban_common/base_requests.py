@@ -108,8 +108,8 @@ class Send:
                 logging.info("结束分割线end: ".center(60, "#"))
                 res["status_code"] = self.Response.status_code
                 res["response_time"] = self.Response.elapsed.microseconds/1000
-                res["response_header"] = self.Response.headers
-                res["request_header"] = self.Response.request.headers
+                res["response_header"] = json.loads(json.dumps(dict(self.Response.headers)))
+                res["request_header"] = json.loads(json.dumps(dict(self.Response.request.headers)))
                 res["request_url"] = self.Url
                 res["request_method"] = method
                 res["request_params"] = params
