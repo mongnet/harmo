@@ -14,9 +14,12 @@ class Global_Map:
 
     @classmethod
     def set(self, key, value):
-        if(isinstance(value,dict)):
-            value = json.dumps(value)
-        self.map[key] = value
+        try:
+            if(isinstance(value,dict)):
+                value = json.dumps(value)
+            self.map[key] = value
+        except BaseException as msg:
+            raise msg
 
     @classmethod
     def sets(self, **keys):
@@ -32,7 +35,7 @@ class Global_Map:
             del self.map[key]
             return self.map
         except KeyError:
-            print()
+            raise KeyError
 
     @classmethod
     def get(self,*args):

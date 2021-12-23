@@ -162,9 +162,9 @@ class AnalysisSwaggerJson():
         if not parameters:  # 确保参数字典存在
             parameters = {}
         # 调试用
-        # if name != "分类编辑接口":
+        # if name != "获取某企业下的所有专业类型列表":
         #     return
-        # if name != "创建任务中检查信息 （iworksweb）":
+        # if name != "批量标记删除工程":
         #     return
         for each in parameters:
             if each.get("in") == "body":
@@ -172,7 +172,7 @@ class AnalysisSwaggerJson():
                 #     raise SyntaxError("语法错误: GET方法不应该有请求体,接口名为："+api)
                 schema = each.get("schema")
                 if schema:
-                    self.jiexi(schema, http_interface)
+                    self.jiexi(schema, http_interface, each=each)
                     # schema type为array时，已把变量命名成 array_string，后续直接传数组即可
                     if schema.get("type") == "array":
                         if isinstance(http_interface["body"],str) and http_interface["body"].startswith("$array_"):
@@ -262,7 +262,7 @@ class AnalysisSwaggerJson():
                 ref = schema.get("$ref")
                 if ref:
                     param_key = ref.split("/")[-1]
-                    res = self.definitions[param_key]["properties"]
+                    res = self.definitions.get(param_key).get("properties")
                     i = 0
                     for k, v in res.items():
                         if "example" in v.keys():
@@ -288,17 +288,24 @@ class AnalysisSwaggerJson():
         # 定义接口测试用例
         return http_interface
 
-    def jiexi(self,schema,http_interface,ephemeral_key=None,key_type=None,body=None):
+    def jiexi(self,schema,http_interface,ephemeral_key=None,key_type=None,body=None,each=None):
         if "$ref" in schema.keys():
             ref = schema.get("$ref")
             if ref:
-                # 拆分这个uri，根据实际情况来取第几个/反斜杠
+                # 拆分这个ref，根据实际情况来取第几个/反斜杠
                 param_key = ref.split("/", 2)[-1]
                 try:
                     param = self.definitions.get(param_key).get("properties")
                     requireds = self.definitions.get(param_key).get("required")
-                except KeyError:
-                    print(f"警告: {schema}没有properties节点信息，请确认程序生成的swagger信息是否正确")
+                except:
+                    if len(http_interface["body"]) == 0:
+                        del http_interface["body"]
+                        body = each.get("name")
+                        body_description = each.get("description") if each.get("description") else body
+                        http_interface.update({"body": f"${body}$"})
+                        http_interface["body_params_args"].append(f"${body}$")
+                        http_interface["params_description"].update({f"${body}$": f"{body_description}"})
+                    print(f"警告: 接口 {http_interface.get('name_cn')} 的 {ref} 定义，没有properties节点信息，请确认程序生成的swagger信息是否正确")
                     return
                 ephemeral_data = {}
                 for key, value in param.items():
@@ -447,7 +454,7 @@ if __name__ == "__main__":
     url14 = "http://192.168.13.246:8182/gateway/luban-meter/v2/api-docs?group=V1.0.0"
     url15 = "http://192.168.13.246:8182/gateway/luban-infrastructure-center/v2/api-docs?group=V1.0.0"
     url16 = "http://192.168.13.246:8182/gateway/luban-misc/v2/api-docs?group=V1.0.0"
-    url17 = "http://192.168.13.66:7790/things/v2/api-docs?group=业务接口"
+    url17 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=安全模块-检查"
     url18 = "http://192.168.13.246:8502/luban-archives/v2/api-docs?group=V1.0.0"
 
 
@@ -468,5 +475,5 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url15).analysis_json_data())
     # print(AnalysisSwaggerJson(url16).analysis_json_data())
     # print(AnalysisSwaggerJson(url17).analysis_json_data())
-    print(AnalysisSwaggerJson(url18).analysis_json_data())
+    # print(AnalysisSwaggerJson(url18).analysis_json_data())
 
