@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "luban_common"
-version = "1.0.76"
+version = "1.0.77"
 description = "鲁班API基础库"
-authors = ["hubiao <250021520@qq.com>"]
+authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/mongnet/luban_common"
@@ -11,7 +11,7 @@ keywords = ["HTTP", "api", "test", "requests", "pytest"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
-pytest = "^5.4.0"
+pytest = "^6.2.5"
 requests = "^2.24.0"
 pyyaml = "^5.3.1"
 xlrd = "^1.2.0"
@@ -26,9 +26,10 @@ pytest-logging = "^2015.11.4"
 xmltodict = "^0.12.0"
 suds-py3 = "^1.4.1"
 faker = "^8.10.0"
+pytest-rerunfailures = "^10.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.4"
+pytest = "^6.2"
 
 [tool.poetry.scripts]
 luban = "luban_common.console:main"
