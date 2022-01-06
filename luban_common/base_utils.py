@@ -358,9 +358,10 @@ def TextLineContains(url, textKey, textValue):
             if len(text):
                 if text.__contains__(textKey):
                     if text.__contains__(textValue):
-                        return 2
+                        return 2,text
                     else:
-                        return 1
+                        return 1,text
+    return None,None
 
 def time_difference(start_time,end_time):
     '''
