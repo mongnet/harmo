@@ -43,7 +43,7 @@ class AnalysisSwaggerJson():
         # swagger接口文档地址
         try:
             response = requests.get(self.url)
-            assert response.status_code == 200,f"swagger地址无法访问，响应状态码为{response.status_code}"
+            assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
             res = response.json()
         except Exception as e:
             raise e
@@ -164,7 +164,7 @@ class AnalysisSwaggerJson():
         # 调试用
         # if name != "获取某企业下的所有专业类型列表":
         #     return
-        # if name != "批量标记删除工程":
+        # if name != "批量删除有效数据":
         #     return
         for each in parameters:
             if each.get("in") == "body":
@@ -303,9 +303,9 @@ class AnalysisSwaggerJson():
                         body = each.get("name")
                         body_description = each.get("description") if each.get("description") else body
                         http_interface.update({"body": f"${body}$"})
-                        http_interface["body_params_args"].append(f"${body}$")
+                        http_interface["body_params_kwargs"].append(f"${body}=None$")
                         http_interface["params_description"].update({f"${body}$": f"{body_description}"})
-                    print(f"警告: 接口 {http_interface.get('name_cn')} 的 {ref} 定义，没有properties节点信息，请确认程序生成的swagger信息是否正确")
+                    print(f"警告: {http_interface.get('name_cn')} 接口的 {ref} 定义，没有properties节点信息，请确认程序生成的swagger信息是否正确")
                     return
                 ephemeral_data = {}
                 for key, value in param.items():
@@ -366,7 +366,7 @@ class AnalysisSwaggerJson():
                 del http_interface["body"]
                 body = "_".join(base_utils.get_all_value(schema))
                 http_interface.update({"body": f"${body}$"})
-                http_interface["body_params_args"].append(f"${body}$")
+                http_interface["body_params_kwargs"].append(f"${body}=None$")
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
             # 处理body为字符串时的情况
             elif schema.get("type") == "string" and ephemeral_key is None:
@@ -375,7 +375,7 @@ class AnalysisSwaggerJson():
                     http_interface.update({"body_binary": f"${body}$"})
                 else:
                     http_interface.update({"body": f"${body}$"})
-                http_interface["body_params_args"].append(f"${body}$")
+                http_interface["body_params_kwargs"].append(f"${body}=None$")
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
 
     def recursion(self,data):
@@ -456,10 +456,11 @@ if __name__ == "__main__":
     url16 = "http://192.168.13.246:8182/gateway/luban-misc/v2/api-docs?group=V1.0.0"
     url17 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=安全模块-检查"
     url18 = "http://192.168.13.246:8502/luban-archives/v2/api-docs?group=V1.0.0"
+    url19 = "http://192.168.13.242:9510/iworks/v2/api-docs?group=%E7%9F%A5%E8%AF%86%E5%BA%93"
 
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
-    # print(AnalysisSwaggerJson(url1).analysis_json_data())
+    print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
     # print(AnalysisSwaggerJson(url3).analysis_json_data())
     # print(AnalysisSwaggerJson(url4).analysis_json_data())
@@ -476,4 +477,5 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url16).analysis_json_data())
     # print(AnalysisSwaggerJson(url17).analysis_json_data())
     # print(AnalysisSwaggerJson(url18).analysis_json_data())
+    print(AnalysisSwaggerJson(url19).analysis_json_data())
 

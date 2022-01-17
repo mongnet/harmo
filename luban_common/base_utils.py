@@ -13,7 +13,6 @@ import re
 import requests
 import subprocess
 import time
-import yaml
 from datetime import datetime,timedelta
 
 
