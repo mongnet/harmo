@@ -7,9 +7,12 @@ import ast
 import base64
 import calendar
 import hashlib
+import hmac
 import os
 import random
 import re
+import uuid
+
 import requests
 import subprocess
 import time
@@ -446,6 +449,30 @@ def strListToList(string):
     '''
     return ast.literal_eval(string)
 
+def gen_uuid(filter=False):
+    '''
+    生成uuid
+    :param filter: 是否过滤'-'，默认不过滤
+    :return:
+    '''
+    if filter:
+        uid = ''.join(str(uuid.uuid4()).split('-'))
+    else:
+        uid = uuid.uuid4()
+    return uid
+
+def gen_sign(timestamp,secret):
+    '''
+    根据时间戳和秘钥生成签名
+    :param timestamp: 时间戳
+    :param secret: 秘钥
+    :return: 签名
+    '''
+    string_to_sign = f"{timestamp}\n{secret}"
+    hmac_code = hmac.new(string_to_sign.encode("utf-8"),digestmod=hashlib.sha256).digest()
+    sign = base64.b64encode(hmac_code).decode("utf-8")
+    return sign
+
 if __name__ == "__main__":
     dict1 = {"projId":113692,"ppid":130817,"projName":"BW接口用工程-勿删160711"}
     dict2 = {"projId":113692,"projName":"BW接口用工程-勿删160711","ppid":130817}
@@ -483,4 +510,7 @@ if __name__ == "__main__":
     print(getUnix(scope="ms"))
     print(UnixToTime(unix=1636942336000))
     print(UnixToTime(unix=1636942336))
+    print(gen_uuid())
+    print(gen_uuid(True))
+    print(gen_sign(getUnix(),"123456"))
 
