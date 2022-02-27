@@ -194,7 +194,7 @@ class Assertions:
         :return:
         """
         if isinstance(reality_value,type(expected_value)):
-            assert expected_value == reality_value, f"实际数据不等于预期为 {expected_value} 的数据,实际值为:{reality_value}"
+            assert expected_value == reality_value, f"断言失败，预期值为：{expected_value} ,实际值为:{reality_value}"
         else:
             assert False, f"数据类型不匹配,reality_value类型为:{type(reality_value)},expected_value类型为:{type(expected_value)}"
 

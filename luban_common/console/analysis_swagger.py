@@ -27,9 +27,6 @@ class AnalysisSwaggerJson():
         如："http://192.168.13.202:8081/Plan/rs/swagger/swagger.json"
         """
         self.url = url
-        self.tags_list = []  # 接口分组标签
-        # 定义接口分组格式
-        self.http_interface_group = {"config": {"name": "","name_en": "","host": "", "base_url": ""},"groups": []}
         yamlDate = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
         self.default_parame = yamlDate.get("defaultParame")
         self.blacklist = yamlDate.get("blacklist")
@@ -42,46 +39,67 @@ class AnalysisSwaggerJson():
         """
         # swagger接口文档地址
         try:
+            http_interface_groups =[]
             response = requests.get(self.url)
             assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
             res = response.json()
+            if isinstance(res,dict):
+                http_interface_groups.append(self.analysis(res))
+            else:
+                if isinstance(res,list) and "swagger-resources" in self.url:
+                    print(f"这是一个 swagger-resources, 共有 {len(res)} 个group")
+                    for i in res:
+                        print(f"开始处理 {i.get('name')}")
+                        if isinstance(i,dict) and i.get("url"):
+                            response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"))
+                            assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
+                            res = response.json()
+                            http_interface_groups.append(self.analysis(res))
+                        else:
+                            raise ValueError(u"不是一个有效的swagger地址")
+                else:
+                    raise ValueError(u"不是一个有效的swagger地址")
+            return http_interface_groups
         except Exception as e:
             raise e
 
-        self.data = res.get("paths")  # 取接口地址返回的path数据,包括了请求的路径
+    def analysis(self,res):
+        # 定义接口分组格式
+        http_interface_group = {"config": {"name": "","name_en": "","host": "", "base_url": ""},"groups": []}
+        pathsData = res.get("paths")  # 取接口地址返回的path数据,包括了请求的路径
         self.basePath = res.get("basePath") if res.get("basePath") else ""  # 获取接口的根路径
         # 第一错，swagger文档是ip地址，使用https协议会错误,注意接口地址的请求协议
-        self.host = "http://" + res.get("host") if res.get("host") else ""
-        self.title = res["info"]["title"]  # 获取接口的标题
-        self.http_interface_group["config"]["name"] = self.title  # 在初始化用例集字典更新值
-        self.http_interface_group["config"]["name_en"] = self.url.split("/")[3].lower().replace("-", "_") if self.url.startswith("http") else self.url.split("/")[1].lower().replace("-", "_")
-        self.http_interface_group["config"]["host"] = self.host
-        self.http_interface_group["config"]["base_url"] = self.basePath
+        host = "http://" + res.get("host") if res.get("host") else ""
+        title = res.get("info").get("title")  # 获取接口的标题
+        http_interface_group["config"]["name"] = title  # 在初始化用例集字典更新值
+        http_interface_group["config"]["name_en"] = self.url.split("/")[3].lower().replace("-", "_") if self.url.startswith("http") else self.url.split("/")[1].lower().replace("-", "_")
+        http_interface_group["config"]["host"] = host
+        http_interface_group["config"]["base_url"] = self.basePath
         self.definitions = res.get("definitions")  # body参数
-
+        tags_list = []  # 接口分组标签
         for tag_dict in res.get("tags"):
-            self.tags_list.append(tag_dict)
-        if isinstance(self.data, dict):  # 判断接口返回的paths数据类型是否dict类型
+            tags_list.append(tag_dict)
+        if isinstance(pathsData, dict):  # 判断接口返回的paths数据类型是否dict类型
             # 前面已经把接口返回的结果tags分别写入了tags_list空列表,再从json对应的tag往里面插入数据
-            for tag in self.tags_list:
-                self.group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
+            for tag in tags_list:
+                group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
                 self.repetition_operationId = []
-                for uri, value in list(self.data.items()):
+                for uri, value in list(pathsData.items()):
                     for method in list(value.keys()):
                         params = value[method]
                         # deprecated字段标识：接口是否被弃用，暂时无法判断
                         if not "deprecated" in value.keys():
                             if params.get("tags")[0] == tag.get("name"):
-                                self.group["name"] = tag.get("name")
-                                interface = self.wash_params(params, uri, method)
-                                self.group["interfaces"].append(interface)
+                                group["name"] = tag.get("name")
+                                interface = self.wash_params(params, uri, method, group)
+                                group["interfaces"].append(interface)
                         else:
                             print(f'interface path: {uri}, if name: {params["operationId"]}, is deprecated.')
                             break
                     # 优化循环性能，已经处理过的数据删除掉，避免重复循环
-                    # del self.data[f"{uri}"]
+                    # del pathsData[f"{uri}"]
                 # 生成 class_name 和 file_name
-                uri_list = base_utils.jpath(self.group, check_key="uri", sub_key="uri")
+                uri_list = base_utils.jpath(group, check_key="uri", sub_key="uri")
                 if isinstance(uri_list,list):
                     file_name = ""
                     for uri in uri_list:
@@ -91,22 +109,22 @@ class AnalysisSwaggerJson():
                             k1 = k1 if not list(sorted(set(k1).intersection(set(k2)), key=k1.index)) else list(sorted(set(k1).intersection(set(k2)), key=k1.index))
                         file_name = "_".join(k1).replace("-", "_").title().replace("_", "")
                         break
-                    self.group["class_name"] = file_name
-                    self.group["file_name"] = file_name[0].lower()+file_name[1:]
+                    group["class_name"] = file_name
+                    group["file_name"] = file_name[0].lower()+file_name[1:]
                 # 合并相同file_name
-                groups = base_utils.jpath(self.http_interface_group.get("groups"), check_key="file_name", sub_key="file_name")
+                groups = base_utils.jpath(http_interface_group.get("groups"), check_key="file_name", sub_key="file_name")
                 if groups:
-                    if self.group.get("file_name") in groups:
-                        interface_group = self.http_interface_group.get("groups")[groups.index(self.group.get("file_name"))]
-                        interface_group["name"] = "_".join([interface_group.get("name"),self.group.get("name")])
-                        interface_group["interfaces"].extend(self.group.get("interfaces"))
+                    if group.get("file_name") in groups:
+                        interface_group = http_interface_group.get("groups")[groups.index(group.get("file_name"))]
+                        interface_group["name"] = "_".join([interface_group.get("name"),group.get("name")])
+                        interface_group["interfaces"].extend(group.get("interfaces"))
                         continue
-                self.http_interface_group["groups"].append(self.group)
+                http_interface_group["groups"].append(group)
         else:
             return "error"
-        return  self.http_interface_group
+        return http_interface_group
 
-    def wash_params(self, params, api, method):
+    def wash_params(self, params, api, method, group):
         """
         清洗数据json，把每个接口数据都加入到一个字典中
         :param params: swagger中的接口参数信息
@@ -145,7 +163,7 @@ class AnalysisSwaggerJson():
         name = params.get("summary").replace("/", "_") if params.get("summary") else params.get("operationId")
         http_interface["name_cn"] = name
         # 处理 operationId 会相同的问题
-        name_en_list = base_utils.jpath(self.group["interfaces"], check_key="name_en", sub_key="name_en")
+        name_en_list = base_utils.jpath(group["interfaces"], check_key="name_en", sub_key="name_en")
         if name_en_list and params.get("operationId") in name_en_list:
             self.repetition_operationId.append(params.get("operationId"))
             name_en = params.get("operationId") + "_" + str(self.repetition_operationId.count(params.get("operationId")))
@@ -378,7 +396,7 @@ class AnalysisSwaggerJson():
                 http_interface["body_params_kwargs"].append(f"${body}=None$")
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
 
-    def recursion(self,data):
+    def recursion(self, data):
         """
         递归解析数据f
         :param data:
@@ -438,7 +456,8 @@ class AnalysisSwaggerJson():
 
 
 if __name__ == "__main__":
-    url = "http://192.168.13.246:8182/Plan/rs/swagger/swagger.json"
+    url = "http://192.168.13.242:8864/sphere/swagger-resources"
+    url0 = "http://192.168.13.246:8182/Plan/rs/swagger/swagger.json"
     url1 = "http://192.168.13.246:8182/gateway/builder/v2/api-docs"
     url2 = "http://192.168.3.195:8989/LBprocess/v2/api-docs"
     url3 = "http://192.168.3.195/pdscommon/rs/swagger/swagger.json"
@@ -456,11 +475,13 @@ if __name__ == "__main__":
     url16 = "http://192.168.13.246:8182/gateway/luban-misc/v2/api-docs?group=V1.0.0"
     url17 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=安全模块-检查"
     url18 = "http://192.168.13.246:8502/luban-archives/v2/api-docs?group=V1.0.0"
-    url19 = "http://192.168.13.242:9510/iworks/v2/api-docs?group=%E7%9F%A5%E8%AF%86%E5%BA%93"
+    url19 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E7%94%9F%E4%BA%A7%E6%A8%A1%E5%9D%97"
+    url30 = "http://192.168.13.242:8864/sphere/swagger-resources"
 
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
-    print(AnalysisSwaggerJson(url1).analysis_json_data())
+    # print(AnalysisSwaggerJson(url0).analysis_json_data())
+    # print(AnalysisSwaggerJson(url1).analysis_json_data())
     # print(AnalysisSwaggerJson(url2).analysis_json_data())
     # print(AnalysisSwaggerJson(url3).analysis_json_data())
     # print(AnalysisSwaggerJson(url4).analysis_json_data())
@@ -477,5 +498,6 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url16).analysis_json_data())
     # print(AnalysisSwaggerJson(url17).analysis_json_data())
     # print(AnalysisSwaggerJson(url18).analysis_json_data())
-    print(AnalysisSwaggerJson(url19).analysis_json_data())
+    # print(AnalysisSwaggerJson(url19).analysis_json_data())
+    print(AnalysisSwaggerJson(url30).analysis_json_data())
 

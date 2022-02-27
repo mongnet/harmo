@@ -154,7 +154,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
             send.send_message_markdown(hookkey=weixin_robot,content=markdown_content)
             if html_report:
                 send.send_file(hookkey=weixin_robot, file=html_report)
-        elif success_message and weixin_robot:
+        elif success_message:
             markdown_content = f'''
                                 # 恭喜 <font color=\'info\'>{JOB_NAME}</font> 巡检通过，请放心
                                 >通知范围：@全部成员
@@ -175,6 +175,24 @@ def bimadmin_login(env_conf, global_cache):
     yield BimAdminLogin
 
 @pytest.fixture(scope='session')
+def iworks_cas(env_conf, global_cache):
+    '''
+    获取PDS登录凭证
+    :return:
+    '''
+    public_login.Iworks(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'), env_conf, global_cache).login()
+    yield
+
+@pytest.fixture(scope='session')
+def iworks_pds_common(iworks_cas, env_conf, global_cache):
+    '''
+    获取PDSCommon登录凭证
+    :return:
+    '''
+    PDSCommon = base_requests.Send(global_cache.get('pdscommon', False), env_conf, global_cache)
+    yield PDSCommon
+
+@pytest.fixture(scope='session')
 def iworks_app_cas(env_conf, global_cache):
     '''
     获取PDS登录凭证
@@ -182,7 +200,6 @@ def iworks_app_cas(env_conf, global_cache):
     '''
     public_login.IworksApp(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'), env_conf, global_cache).login()
     yield
-
 
 @pytest.fixture(scope='session')
 def lbbv(iworks_app_cas, env_conf, global_cache):
@@ -193,7 +210,6 @@ def lbbv(iworks_app_cas, env_conf, global_cache):
     LBBV = base_requests.Send(global_cache.get('lbbv', False), env_conf, global_cache)
     yield LBBV
 
-
 @pytest.fixture(scope='session')
 def bimco(iworks_app_cas, env_conf, global_cache):
     '''
@@ -203,7 +219,6 @@ def bimco(iworks_app_cas, env_conf, global_cache):
     BimCO = base_requests.Send(global_cache.get('bimco', False), env_conf, global_cache)
     yield BimCO
 
-
 @pytest.fixture(scope='session')
 def process(iworks_app_cas, env_conf, global_cache):
     '''
@@ -212,7 +227,6 @@ def process(iworks_app_cas, env_conf, global_cache):
     '''
     Process = base_requests.Send(global_cache.get('lbprocess', False), env_conf, global_cache)
     yield Process
-
 
 @pytest.fixture(scope='session')
 def pds_common(iworks_app_cas, env_conf, global_cache):
@@ -386,7 +400,7 @@ def appToken(env_conf):
     appToken获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksApp'), env_conf,env_conf['productId']['iworksApp'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksApp'), env_conf,env_conf.get('productId')('iworksApp'))
     yield  resule.login()
     resule.logout()
 
@@ -889,7 +903,7 @@ class Iworks:
 '''
         response = self.casLogin.request('post',resource,body,self.header)
         Assertions().assert_code(response,response.get("status_code"), 200)
-        
+
     def login(self):
         '''
         登录BV CAS流程方法
@@ -1102,6 +1116,21 @@ class Token:
         self.epid = ''
         self.token = ""
         self.loginType = "CENTER_WEB" if loginType is None else loginType
+        self.envConf = envConf
+
+    def getServerUrl(self):
+        '''
+        获取服务器地址信息
+        '''
+        if not self.envConf.get("pds"):
+            assert False,"pds地址未配置"
+        resource = f'{self.envConf.get("pds")}/rs/casLogin/serverUrl'
+        response = self.Login.request('get', resource)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        assert len(response.get("serverURL")) != 0
+        for server in response.get("serverURL"):
+            number = response.get("serverURL").index(server)
+            Global_Map.set(response.get("serverName")[number],response.get("serverURL")[number])
 
     def getToken(self):
         '''
@@ -1119,11 +1148,24 @@ class Token:
         userinfo = json.loads(base_utils.FromBase64(self.token.split(".")[1]))
         Assertions().assert_in_value(userinfo,str(self.username))
 
+    def getAuthEnterprises(self):
+        '''
+        获取有对应客户端权限的企业列表
+        '''
+        resource = f"/auth-server/auth/enterprises/productId/{self.productId}"
+        response = self.Login.request('get', resource,header={"access-token":self.token},flush_header=True)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
+        if len(response.get("data_epid")) > 0:
+            self.epid = response.get("data_epid")[0]
+            Global_Map().set("epid", response.get("data_epid")[0])
+            Global_Map().set("enterpriseName", response.get("data_enterpriseName")[0])
+
     def getEnterprises(self):
         '''
         获取企业列表
         '''
-        resource = f"/auth-server/auth/enterprises/productId/{self.productId}"
+        resource = f"/auth-server/auth/enterprises"
         response = self.Login.request('get', resource,header={"access-token":self.token},flush_header=True)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
@@ -1151,6 +1193,26 @@ class Token:
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
 
+    def client(self):
+        '''
+        获取产品权限
+        '''
+        resource = f"/auth-server/auth/client"
+        response = self.Login.request('get', resource)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
+        Assertions().assert_in_value(response.get("data_productId"),192)
+
+    def clientModule(self):
+        '''
+        获取模块权限
+        '''
+        resource = f"/auth-server/auth/clientModule"
+        response = self.Login.request('get', resource)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
+        Assertions().assert_in_key(response.get("source_response"), "productId")
+
     def logout(self):
         '''
         退出登录接口
@@ -1161,12 +1223,23 @@ class Token:
         Assertions().assert_code(response,response.get("code")[0], 200)
 
     def login(self):
+        # 老客户端，使用soap的接口登录，需要调用
+        if self.productId in [33,45,86,92,93]:
+            self.getServerUrl()
         self.getToken()
-        self.getEnterprises()
+        # 数字平台获取企业列表不用判断是否有客户端权限
+        if self.productId in [192]:
+            self.getEnterprises()
+        else:
+            self.getAuthEnterprises()
         self.enterprise()
         # center登录不能调用这个接口，不然会提示没有授权
         if self.productId != 100:
             self.authgroup()
+        # 数字平台获取权限
+        if self.productId in [192]:
+            self.client()
+            self.clientModule()
         return self.Login
 
 class OpenAPI:

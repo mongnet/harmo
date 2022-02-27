@@ -452,7 +452,7 @@ def strListToList(string):
 def gen_uuid(filter=False):
     '''
     生成uuid
-    :param filter: 是否过滤'-'，默认不过滤
+    :param filter: 生成的uuid默认会带有'-'，当filter为False时不过滤'-'，默认为False
     :return:
     '''
     if filter:
@@ -463,11 +463,13 @@ def gen_uuid(filter=False):
 
 def gen_sign(timestamp,secret):
     '''
-    根据时间戳和秘钥生成签名
+    根据时间戳和秘钥生成签名，使用场景：请求数据时发送当前时间戳和生成的签名，接受方根据约定的秘钥以相同方式获取签名，如生成的签名一致，表示签名有效
     :param timestamp: 时间戳
     :param secret: 秘钥
     :return: 签名
     '''
+    if not timestamp or not secret:
+        raise ValueError("timestamp 或 secret 不是一个有效的参数")
     string_to_sign = f"{timestamp}\n{secret}"
     hmac_code = hmac.new(string_to_sign.encode("utf-8"),digestmod=hashlib.sha256).digest()
     sign = base64.b64encode(hmac_code).decode("utf-8")
@@ -508,9 +510,11 @@ if __name__ == "__main__":
     print(getFileSize("../data/20201222101200.png"))
     print(getUnix())
     print(getUnix(scope="ms"))
-    print(UnixToTime(unix=1636942336000))
+    print(type(getUnix(scope="ms")))
+    print(UnixToTime(unix=1644844153000))
     print(UnixToTime(unix=1636942336))
     print(gen_uuid())
     print(gen_uuid(True))
     print(gen_sign(getUnix(),"123456"))
+    print(gen_sign(getUnix(),True))
 
