@@ -49,7 +49,6 @@ class AnalysisSwaggerJson():
                 if isinstance(res,list) and "swagger-resources" in self.url:
                     print(f"这是一个 swagger-resources, 共有 {len(res)} 个group")
                     for i in res:
-                        print(f"开始处理 {i.get('name')}")
                         if isinstance(i,dict) and i.get("url"):
                             response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"))
                             assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"

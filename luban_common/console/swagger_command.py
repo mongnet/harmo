@@ -42,6 +42,7 @@ class SwaggerCommand(BaseCommand):
                     "The swagger directory can only contain letters"
                 )
         replace_text = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
+        swaggerIsEmpty = True
         js = AnalysisSwaggerJson(self.argument("swagger-url-json"))
         dataList = js.analysis_json_data()
         for data in dataList:
@@ -57,17 +58,20 @@ class SwaggerCommand(BaseCommand):
                 if "groups" in key:
                     path = Path.cwd() / f'swagger/{"/".join(swagger_directory)}'
                     if path.exists():
-                        if list(path.glob("*")):
+                        if list(path.glob("*")) and swaggerIsEmpty:
                             self.line("")
                             question = (f"{path} is not empty, continue to generate?")
                             # Folder or file already exists, do you want to replace it?
                             if self.confirm(question, True):
                                 self.line("<fg=green>Generate</>")
+                                swaggerIsEmpty = False
                             else:
                                 # Directory already exists. Aborting.
                                 self.line("")
                                 self.line(f"Destination <fg=yellow>{path}</> is not empty")
                                 break
+                    else:
+                        swaggerIsEmpty = False
                     path.mkdir(mode=0o777, parents=True, exist_ok=True)
                     package_init = path / "__init__.py"
                     package_init.touch(exist_ok=True)
