@@ -80,11 +80,11 @@ class Assertions:
         """
         if isinstance(data[key], list) and isinstance(expected_value,list):
             if data[key] != expected_value:
-                assert False, f"预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}"
+                assert False, f"预期值不等于实际值,实际值为:{data[key]}, 预期值为:{expected_value}"
         elif isinstance(data[key], (str,int,float)):
-            assert data[key] == expected_value, f"预期值不等于实际值,实际值为:{data[key]},预期值为:{expected_value}"
+            assert data[key] == expected_value, f"预期值不等于实际值,实际值为:{data[key]}, 预期值为:{expected_value}"
         else:
-            assert False, f"当前传入的实际值类型为{type(data[key])},预期值类型为{type(expected_value)},现只支持list,str,int,float的校验,其余暂不支持"
+            assert False, f"当前传入的实际值类型为{type(data[key])},预期值类型为{type(expected_value)}, 现只支持list,str,int,float的校验, 其余暂不支持"
 
     @classmethod
     @allure.step("校验数据集中存在预期值，预期值为:{2}")
@@ -138,7 +138,7 @@ class Assertions:
         :return:
         """
         if isinstance(data,str):
-            assert data.startswith(expected_value),f"实际数据没有以预期值：{expected_value} 开头,实际数据为：{data}"
+            assert data.startswith(expected_value),f"实际数据没有以：{expected_value} 开头, 实际数据为：{data}"
         else:
             assert False, "只支持 str 的校验，其余暂不支持"
 
@@ -152,7 +152,7 @@ class Assertions:
         :return:
         """
         if isinstance(data,str):
-            assert data.endswith(expected_value),f"实际数据没有以预期值：{expected_value} 结尾,实际数据为：{data}"
+            assert data.endswith(expected_value),f"实际数据没有以：{expected_value} 结尾, 实际数据为：{data}"
         else:
             assert False, "只支持 str 的校验，其余暂不支持"
 
@@ -166,7 +166,7 @@ class Assertions:
         :return:
         """
         if isinstance(data,(list,dict)):
-            assert key in base_utils.get_all_key(data),f"实际数据中不存在预期为:{key} 的数据,实际数据为：{data}"
+            assert key in base_utils.get_all_key(data),f"实际数据中未包含:{key}, 实际数据为：{data}"
         else:
             assert False,f"{type(data)}数据类型不支持,现只支持list,dict"
 
@@ -180,26 +180,27 @@ class Assertions:
         :return:
         """
         if isinstance(data,(list,dict)):
-            assert expected_key not in base_utils.get_all_key(data),f"实际数据中存在预期key为：{expected_key} 的数据,实际数据为：{data}"
+            assert expected_key not in base_utils.get_all_key(data),f"实际数据中存在预期key为：{expected_key} 的数据, 实际数据为：{data}"
         else:
             assert False,f"{type(data)}数据类型不支持,现只支持list,dict"
 
     @classmethod
-    @allure.step("校验等于预期值，预期值为:{2}")
-    def assert_equal_value(self, reality_value, expected_value):
+    @allure.step("校验实际值:{1} 等于预期值:{2}")
+    def assert_equal_value(self, reality_value, expected_value, msg=None):
         """
         校验等于预期值
         :param reality_value: 实际值
         :param expected_value: 预期值
+        :param msg: 预制消息
         :return:
         """
         if isinstance(reality_value,type(expected_value)):
-            assert expected_value == reality_value, f"断言失败，预期值为：{expected_value} ,实际值为:{reality_value}"
+            assert expected_value == reality_value, f"断言失败, 实际值为:{reality_value}, 预期值为：{expected_value}" if not msg else f"断言失败:{msg}, 实际值为:{reality_value}, 预期值为：{expected_value}"
         else:
             assert False, f"数据类型不匹配,reality_value类型为:{type(reality_value)},expected_value类型为:{type(expected_value)}"
 
     @classmethod
-    @allure.step("断言字符串中包含指定字符串，预期值为:{2}")
+    @allure.step("校验字符串中包含指定字符串，预期值为:{2}")
     def assert_contains(self, original_value, contains_value):
         """
         断言字符串中包含指定字符串
@@ -208,7 +209,7 @@ class Assertions:
         :return:
         """
         if isinstance(original_value, str) and isinstance(contains_value, str):
-            assert contains_value in original_value, f"实际数据不包含预期为 {contains_value} 的数据,实际值为:{original_value}"
+            assert contains_value in original_value, f"实际数据中未包含 {contains_value} ,实际值为:{original_value}"
         else:
             assert False, "只支持str类型"
 
@@ -222,7 +223,7 @@ class Assertions:
         :return:
         """
         if isinstance(original_value, str) and isinstance(contains_value, str):
-            assert contains_value not in original_value, f"实际值包含预期为 {contains_value} 的数据,实际值为:{original_value}"
+            assert contains_value not in original_value, f"实际数据包含了 {contains_value}, 实际值为:{original_value}"
         else:
             assert False, "只支持str类型"
 
@@ -235,7 +236,7 @@ class Assertions:
         :param expected_value: 预期值
         :return:
         """
-        assert expected_value != reality_value, f"实际值等于预期值,实际值为:{reality_value},预期值为:{expected_value}"
+        assert expected_value != reality_value, f"实际值等于预期值,实际值为:{reality_value}, 预期值为:{expected_value}"
 
     @classmethod
     @allure.step("校验是否等于None")
@@ -288,7 +289,7 @@ class Assertions:
         if reality_time <= expected_time:
             assert True
         else:
-            assert False, f"实际时间大于预期时间,实际值为:{reality_time},预期值为:{expected_time}"
+            assert False, f"实际时间大于预期时间,实际值为:{reality_time}, 预期值为:{expected_time}"
 
     @classmethod
     @allure.step("校验字典或列表是否相等，实际值为:{1}，预期值为:{2}")

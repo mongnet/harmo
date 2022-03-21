@@ -40,7 +40,8 @@ class AnalysisSwaggerJson():
         # swagger接口文档地址
         try:
             http_interface_groups =[]
-            response = requests.get(self.url)
+            header ={"Accept": "application/json,text/plain","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}
+            response = requests.get(self.url, headers=header)
             assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
             res = response.json()
             if isinstance(res,dict):
@@ -50,7 +51,7 @@ class AnalysisSwaggerJson():
                     print(f"这是一个 swagger-resources, 共有 {len(res)} 个group")
                     for i in res:
                         if isinstance(i,dict) and i.get("url"):
-                            response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"))
+                            response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"), headers=header)
                             assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
                             res = response.json()
                             http_interface_groups.append(self.analysis(res))
@@ -475,6 +476,7 @@ if __name__ == "__main__":
     url17 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=安全模块-检查"
     url18 = "http://192.168.13.246:8502/luban-archives/v2/api-docs?group=V1.0.0"
     url19 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E7%94%9F%E4%BA%A7%E6%A8%A1%E5%9D%97"
+    url20 = "http://192.168.13.246:8182/gateway/process-inspection/v2/api-docs?group=Center"
     url30 = "http://192.168.13.242:8864/sphere/swagger-resources"
 
 
@@ -498,5 +500,6 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url17).analysis_json_data())
     # print(AnalysisSwaggerJson(url18).analysis_json_data())
     # print(AnalysisSwaggerJson(url19).analysis_json_data())
-    print(AnalysisSwaggerJson(url30).analysis_json_data())
+    print(AnalysisSwaggerJson(url20).analysis_json_data())
+    # print(AnalysisSwaggerJson(url30).analysis_json_data())
 

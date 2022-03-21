@@ -60,7 +60,7 @@ class Global_Map:
         '''
         获取指定变量
         :param args: 需要获取的变量名
-        :return: 当只有一个变量且名称为’all’时，返回全部变量; 变量不存在时，返回'Null_'; 当获取多个变量时，过滤不存在的变量
+        :return: 当只有一个变量且名称为’all’时，返回全部变量; 当获取多个变量时，只返回存在的变量
         '''
         try:
             dic = {}
@@ -76,7 +76,11 @@ class Global_Map:
                         pass
             return dic
         except KeyError:
-            return 'Null_'
+            raise KeyError(f"未找到变量：{args}")
 
 if __name__ == '__main__':
     gl = Global_Map()
+    gl.set("name","hubiao")
+    gl.set("age","25")
+    print(gl.get("all"))
+    print(gl.get("name","ada"))

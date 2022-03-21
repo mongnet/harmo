@@ -15,7 +15,7 @@ def get_yaml_data(file_path):
     :return:
     '''
     file = file_is_exist(file_path)
-    if Path(file).suffix == ".yaml":
+    if Path(file).suffix in (".yaml",".yml"):
         with open(file,'r',encoding='utf-8-sig') as f:
             file_data = f.read()
         return yaml.safe_load(file_data)
