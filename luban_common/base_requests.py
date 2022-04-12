@@ -76,13 +76,12 @@ class Send:
             if isinstance(files,dict) and "file" in files.keys():
                 pass
             else:
-                base_utils.file_is_exist(files)
                 filename = base_utils.getFileName(files)
                 fileType = MimeTypes().guess_type(files)[0]
                 if fileType is None:
                     files = {"file": (filename,open(files, "rb"))}
                 else:
-                    files = {"file": (filename, open(files, "rb"),fileType)}
+                    files = {"file": (filename, open(files, "rb"), fileType)}
         # 判断payload不为str时，dumps成str类型
         if isinstance(payload,list) or (not isinstance(payload,str) and payload):
             payload = json.dumps(payload)
@@ -99,7 +98,7 @@ class Send:
                 logging.info("开始分割线start: ".center(60, "#"))
                 logging.info("请求方法: " + method)
                 logging.info(list(kwargs.keys())[0]+": "+str(kwargs[list(kwargs.keys())[0]])) if kwargs!={} else None
-                logging.info("请求的Url: " + self.Url)
+                logging.info("请求的Url: " + self.Response.url)
                 logging.info("持续时间: " + str(self.Response.elapsed.total_seconds()))
                 logging.info("请求头: " + str(self.Response.request.headers))
                 logging.info("请求数据: " + str(payload).encode("utf-8").decode("unicode_escape"))
@@ -110,7 +109,7 @@ class Send:
                 res["response_time"] = self.Response.elapsed.microseconds/1000
                 res["response_header"] = json.loads(json.dumps(dict(self.Response.headers)))
                 res["request_header"] = json.loads(json.dumps(dict(self.Response.request.headers)))
-                res["request_url"] = self.Url
+                res["request_url"] = self.Response.url
                 res["request_method"] = method
                 res["request_params"] = params
                 res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")
@@ -136,13 +135,13 @@ class Send:
                 res["Response_content"] = self.Response.content
         except requests.exceptions.RequestException as e:
             logging.error("RequestException异常开始分割线start: ".center(60, "#"))
-            logging.error("请求的Url: " + self.Url)
+            logging.error("请求的Url: " + self.Response.url)
             logging.error("请求数据: " + str(payload).encode("utf-8").decode("unicode_escape"))
             logging.error("发送请求出现异常: " + str(e))
             logging.error("RequestException异常结束分割线end: ".center(60, "#"))
             res["status_code"] = 10060
             res["request_header"] = request_header
-            res["request_url"] = self.Url
+            res["request_url"] = self.Response.url
             res["request_method"] = method
             res["request_params"] = params
             res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")

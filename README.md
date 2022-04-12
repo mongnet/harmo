@@ -2,7 +2,7 @@
 
 ## 一、介绍
 
-luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架。他的设计理念是把所有接口看成一个个的模块，像搭积木一样，把相关接口组装起来，行成场景测试用例；说到场景用例那肯定有单接口测试，单接口测试会直接通过框架来生成，无需人工参与或少量参与即可完成，我们的目标是把可标准化、重复性的工作让机器来完成，让测试人员更多的关注场景和其它异常类测试。
+luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架。他的设计理念是把所有接口看成一个个的模块，像搭积木一样，把相关接口进行组装，行成场景测试用例；说到场景用例那肯定有单接口测试，单接口测试会直接通过框架来生成，无需人工参与或少量参与即可完成，我们的目标是把可标准化、重复性的工作让机器来完成，让测试人员更多的关注场景和其它异常类测试。
 
 ### 1.1 为什么创建这套框架
 
@@ -34,6 +34,8 @@ luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架�
 
 - 通过 `luban swagger` 生成 `swagger` 接口命令，可快速生成接口方法
 
+- 通过 `luban swaggerCase` 生成测试用例命令，可快速生成简单的测试用例
+
   
 
 ## 二、安装
@@ -42,19 +44,19 @@ luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架�
 
 PyPI安装(版本稳定后会托管到PyPI上)
 
-```
+```python
 pip install luban-common
 ```
 
 本地安装
 
-```
+```python
 pip install luban_common-0.5.27-py3-none-any.whl
 ```
 
 从git安装
 
-```
+```python
 pip install git+https://github.com/mongnet/luban_common@master
 ```
 
@@ -62,9 +64,11 @@ pip install git+https://github.com/mongnet/luban_common@master
 
 假如你之前已经安装过了 luban-common，现在需要升级到最新版本，那么你可以使用 `-U` 参数。
 
-```
+```python
 pip install -U luban-common
 pip install -U git+https://github.com/mongnet/luban_common@master
+或
+pip install -U luban_common-0.5.27-py3-none-any.whl
 ```
 
 ### 2.3 安装验证
@@ -82,7 +86,7 @@ Luban version 0.4.0
 
 luban-common 框架项目结构如下：
 
-```
+```python
 ├─config
 │   ├─blacklist.yaml
 │   ├─default_parame.yaml
@@ -106,37 +110,51 @@ luban-common 框架项目结构如下：
 └─base_utils.py
 ```
 
-[^config]: 中放的是一些配置文件
-[^blacklist.yaml]: 白名单列表，在生成swagger接口时，会过滤这些字段（不把这些参数加放到方法上）
-[^default_parame.yaml]: 默认参数，在生成swagger接口时，会把匹配到的参数设置上默认值
-[^global_default.yaml]: 其它默认配置项
-[^interface.mustache]: 模生成swagger接口时的板文件，一般不需要动
-[^console]: 命令行工具的一些实现方法，现实现了新建项目、生成swagger方法二个功能，这块可以不用了解
-[^msg]: 消息模块
-[^weixin.py]: 企业微信消息模块
-[^youdu.py]: 有度消息模块
-[^operation]: 封装了四种文通用件的操作方法
-[^excel_file.py]: excel 文件的操作方法
-[^ini_file.py]: ini 文件的操作方法
-[^xml_file.py]: xml 文件的操作方法
-[^yaml_file.py]: yaml 文件的操作方法
-[^base_assert.py]: 封装了一些通用断言，方便后续调整
-[^base_requests.py]: 封装了requests库
-[^base_utils.py]: 封装了一些工具方法，比如：获取文件名、MD5、生成手机号、生成邮箱等
+> **config**：中放的是一些配置文件
+
+> **blacklist.yaml**：白名单列表，在生成swagger接口时，会过滤这些字段（不把这些参数加放到方法上）
+
+> **default_parame.yaml**：默认参数，在生成swagger接口时，会把匹配到的参数设置上默认值
+
+> **global_default.yaml**：其它默认配置项
+
+> **interface.mustache**：模生成swagger接口时的板文件，一般不需要动
+
+> **console**：命令行工具的一些实现方法，现实现了新建项目、生成swagger方法二个功能，这块可以不用了解
+
+> **msg**：消息模块
+
+> **weixin.py**：企业微信消息模块
+
+> **youdu.py**：有度消息模块
+
+> **operation**：封装了四种文通用件的操作方法
+
+> **excel_file.py**：excel 文件的操作方法
+
+> **ini_file.py**：ini 文件的操作方法
+
+> **xml_file.py**：xml 文件的操作方法
+
+> **yaml_file.py**：yaml 文件的操作方法
+
+> **base_assert.py**：封装了一些通用断言，方便后续调整
+
+> **base_requests.py**：封装了requests库
+
+> **base_utils.py**：封装了一些工具方法，比如：获取文件名、MD5、生成手机号、生成邮箱等
 
 
 
 ### 3.1 msg 模块 
 
-消息模块，封装了 `企业微信`、`有度` 消息推送功能
+消息模块，封装了 `企业微信机器人`消息推送功能
 
 #### 3.1.1 企业微信消息
 
-当前微信消息使用的是我个人注册的企业微信，如果想收到消息，需要加入我的企业微信
+当前微信机器人消息封装了5种消息格式，分别为 `文本`、`卡片`、`markdown`  、`发送图片`  、`发送文件`  消息，可针对不同场景使用对应消息，消息样式如下
 
-现封装了三种消息格式，分别为 `文本`、`卡片`、`markdown`  消息，可针对不同场景使用对应消息，消息样式如下
-
-![image-20200826212734899](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200826212734899.png)
+![image-20210724192416549](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210724192416549.png)
 
 
 
@@ -145,20 +163,22 @@ luban-common 框架项目结构如下：
 send_message_text() 函数可发送文本消息，需要传三个参数，调用方式如下：
 
 ```python
-send.send_message_text(title,content,toparty)
+send.send_message_text(hookkey,content,mentioned_mobile_list)
 ```
 
-[^title]: 消息标题
-[^content]: 消息内容
-[^toparty]: 部门id，部门id是企业微信获取来的，当前我未提供这样的接口，可人为查看后指定
+> **hookkey**：webhook的key
+
+> **content**：消息内容
+
+> **mentioned_mobile_list**：手机号列表，提醒手机号对应的群成员(@某个成员)，例如：["13800001111"]
 
 例：
 
 ```python
-from luban_common.msg.weixin import WeiXinMessage
+from luban_common.msg.robot import WeiXin
 
-send = WeiXinMessage()
-send.send_message_text(title='这是文本消息',content='这里是消息内容，\n还可以有<a href=\"http://work.weixin.qq.com\">连接</a>，使用很方便。',toparty=3)
+send = WeiXin()
+send.send_message_text(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content="发现一个公众号：彪哥的测试之路，很不错。",mentioned_mobile_list=["13916829124"] )
 ```
 
 
@@ -168,20 +188,30 @@ send.send_message_text(title='这是文本消息',content='这里是消息内容
 send_message_textcard() 函数可发送卡片消息，传三个参数，调用方式如下：
 
 ```python
-send.send_message_textcard(title,content,toparty)
+send.send_message_textcard(,hookkey,title,url,content,picurl)
 ```
 
-[^title]: 消息标题
-[^content]: 消息内容
-[^toparty]: 部门id，部门id是企业微信获取来的，当前我未提供这样的接口，可人为查看后指定
+> **title**：消息标题
+
+> **content**：消息内容
+
+> **hookkey**：webhook的key
+
+> **title**：消息标题
+
+> **url**：点击后跳转的链接
+
+> **picurl**：图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图 1068*455，小图150*150。
+
+
 
 例：
 
 ```python
-from luban_common.msg.weixin import WeiXinMessage
+from luban_common.msg.robot import WeiXin
 
-send = WeiXinMessage()
-send.send_message_textcard(title='这是卡片消息',content='这里是消息内容，可以点击查看更多跳转到网页',toparty='3')
+send = WeiXin()
+send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="测试开发",content="发现一个公众号：彪哥的测试之路，很不错，可以点击查看更多跳转到网页",url="http://")
 ```
 
 
@@ -191,62 +221,81 @@ send.send_message_textcard(title='这是卡片消息',content='这里是消息�
 send_message_markdown() 函数可发送 markdown 消息，需要传二个参数，调用方式如下：
 
 ```python
-send.send_message_markdown(content,toparty)
+send.send_message_markdown(hookkey,content)
 ```
 
-[^content]: 消息内容
-[^toparty]: 部门id，部门id是企业微信获取来的，当前我未提供这样的接口，可人为查看后指定
+> **content**：消息内容
+
+> **hookkey**：webhook的key
 
 例：
 
 ```python
-from luban_common.msg.weixin import WeiXinMessage
+from luban_common.msg.robot import WeiXin
 
-send = WeiXinMessage()
-markdown_content = """这是`markdown`消息
-                    >**可以加粗**
-                    >事　项：<font color=\"info\">开会</font>
-                    >组织者：@miglioguan
-                    >
-                    >会议室：<font color=\"info\">上海研发部</font>
-                    >日　期：<font color=\"warning\">2020年8月18日</font>
-                    >时　间：<font color=\"comment\">上午9:00-11:00</font>
-                    > 
-                    >请准时参加会议。
-                    >
-                    >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
-send.send_message_markdown(content=markdown_content,toparty=3)
+send = WeiXin()
+markdown_content = """
+                        ># 这是`markdown`消息
+                        >事　项：<font color=\"info\">公众号</font>
+                        >组织者：@彪哥的测试之路
+                        >
+                        >会议室：<font color=\"info\">上海</font>
+                        >日　期：<font color=\"warning\">2020年8月18日</font>
+                        >时　间：<font color=\"comment\">上午9:00-11:00</font>
+                        >
+                        >请**准时**参加会议。
+                        >
+                        >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
+send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=markdown_content)
 ```
 
 
 
-#### 3.1.2 有度消息
+##### 3.1.1.4 发送图片
 
-有度消息支持文本和图文消息
-
-##### 3.1.2.1 图文消息
-
-send_youdu() 函数可发送图文消息，需要传五个参数，调用方式如下：
+send_image() 发送图片，最大不能超过2M，支持JPG,PNG格式，调用方式如下：
 
 ```python
-send_youdu(title,content,sendTo,file=None,session=0)
+send.send_image(hookkey,file)
 ```
 
-[^title]: 消息窗口标题
-[^content]: 消息内容
-[^sendTo]: 发送给谁，有个用户之间用下划线分隔，如“胡彪_教授”
-[^file]: 要发送文件的路径，当不需要传文件时，file参数传None，默认为None
-[^session]: 当session=0时，会新建一个session消息窗口，默认为None
-[^return]: 返回当前会话的session,当session为0时，会返回一个新的session，不为0时返回当前session
+> **imgBase64**：图片（base64编码）最大不能超过2M，支持JPG,PNG格式
+
+> **hookkey**：webhook的key
 
 例：
 
 ```python
-from luban_common.msg.youdu import send_youdu
+from luban_common.msg.robot import WeiXin
 
-file_path="../../data/Quality_check_lib.xls"
-send_youdu(title="测试消息标题", content="测试消息内容\n换行", sendTo="胡彪_教授", files=file_path, session="{F635290E-8685-414E-9FAF-2FA4FEEBB4E8}")
+send = WeiXin()
+send.send_image(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="../../data/20201222101200.png")
 ```
+
+
+
+##### 3.1.1.5 发送文件
+
+send_file() 发送其它文件，调用方式如下：
+
+```python
+send.send_file(hookkey,file)
+```
+
+> **file**：文件相对路径
+
+> **hookkey**：webhook的key
+
+例：
+
+```python
+from luban_common.msg.robot import WeiXin
+
+send = WeiXin()
+send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
+```
+
+
 
 
 
@@ -271,14 +320,11 @@ oper = OperationExcel(file_path="../../data/Quality_check_lib.xls",sheetID=0)
 oper.get_lines()
 ```
 
-[^file_path]: excel文件路径
-[^sheetID]: excel中第几个表格，从0开始，默认为0
-
 
 
 ##### 3.2.1.2 获取总列数
 
-get_lines() 可获取excel表的的总行数，调用格式如下：
+get_cells() 可获取excel表的的总列数，调用格式如下：
 
 ```python
 from luban_common.operation.excel_file import OperationExcel
@@ -287,14 +333,11 @@ oper = OperationExcel(file_path="../../data/Quality_check_lib.xls",sheetID=0)
 oper.get_cells()
 ```
 
-[^file_path]: excel文件路径
-[^sheetID]: excel中第几个表格，从0开始，默认为0
-
 
 
 ##### 3.2.1.3 获取指定行
 
-get_lines() 可获取excel表的的总行数，需要传一个参数，表示要取第几行的数据，调用格式如下：
+get_line(number) 可获取excel表的指定行，需要传一个参数，表示要取第几行的数据，调用格式如下：
 
 ```python
 from luban_common.operation.excel_file import OperationExcel
@@ -303,14 +346,13 @@ oper = OperationExcel(file_path="../../data/Quality_check_lib.xls",sheetID=0)
 oper.get_line(0)
 ```
 
-[^file_path]: excel文件路径
-[^sheetID]: excel中第几个表格，从0开始，默认为0
+> **number**：指定行数，从0开始
 
 
 
-##### 3.2.1.4 获取指定单位格
+##### 3.2.1.4 获取指定单元格
 
-get_lines() 可获取excel表的的总行数，需要传二个参数，单元格的x和y轴坐标，调用格式如下：
+get_cell(number1,number2) 可获取指定单元格数据，需要传二个参数，单元格的x和y轴坐标，调用格式如下：
 
 ```python
 from luban_common.operation.excel_file import OperationExcel
@@ -319,8 +361,9 @@ oper = OperationExcel(file_path="../../data/Quality_check_lib.xls",sheetID=0)
 oper.get_cell(0,0)
 ```
 
-[^file_path]: excel文件路径
-[^sheetID]: excel中第几个表格，从0开始，默认为0
+> **number1**：指定行数，从0开始
+
+> **number2**：指定行数，从0开始
 
 
 
@@ -346,8 +389,9 @@ rf = cf.getConfig(section='openapi')
 rf["openapiurl"]
 ```
 
-[^file_path]: 文件路径
-[^section]: 节点名
+> **file_path**：文件路径
+
+> **section**：节点名
 
 
 
@@ -363,7 +407,7 @@ allconf = cf.getAllConfig()
 allconf['openapi']["openapiurl"]
 ```
 
-[^file_path]: 文件路径
+> **file_path**：文件路径
 
 
 
@@ -379,10 +423,13 @@ cf = ManageConfig(file_path='../../data/intranet.ini')
 cf.writeConfig(section='pds',key='cas',value='http://cas.com')
 ```
 
-[^file_path]: 文件路径
-[^section]: 节点名
-[^key]: 配置的key信息
-[^value]: 配置的value信息
+> **file_path**：文件路径
+
+> **section**：节点名
+
+> **key**：配置的key信息
+
+> **value**：配置的value信息
 
 
 
@@ -400,7 +447,7 @@ from luban_common.operation.yaml_file import get_yaml_data
 get_yaml_data(file_path='../../data/config.yaml')
 ```
 
-[^file_path]: 文件路径
+> **file_path**：文件路径
 
 
 
@@ -408,7 +455,7 @@ get_yaml_data(file_path='../../data/config.yaml')
 
 ### 3.3 base_requests.py
 
-封装了 requests 库，处理了302跳转问题
+封装了 requests 库，处理了单点登录时302跳转问题
 
 
 
@@ -426,9 +473,11 @@ assert_all_code()函数可校验接口的http响应值和接口code值，调用�
 Assertions.assert_all_code(response, expected_http_code, expected_code)
 ```
 
-[^response]: 响应数据
-[^expected_http_code]: 预期的http状态码
-[^expected_code]: 预期code状态码
+> **response**：响应数据
+
+> **expected_http_code**：预期的http状态码
+
+> **expected_code**：预期code状态码
 
 例：
 
@@ -437,6 +486,8 @@ from luban_common.base_assert import Assertions
 
 Assertions.assert_all_code(response,200,200)
 ```
+
+注：推荐使用 assert_code()
 
 
 
@@ -448,8 +499,9 @@ assert_equal_value()函数可校实际值是否等于验预期值，调用格式
 Assertions.assert_equal_value(reality_value, expected_value)
 ```
 
-[^reality_value]: 实际值
-[^expected_value]: 预期值
+> **reality_value**：实际值
+
+> **expected_value**：预期值
 
 例：
 
@@ -469,9 +521,11 @@ assert_assign_attribute_value()函数可校验接口的http响应值和接口cod
 Assertions.assert_assign_attribute_value(data, key, expected_value)
 ```
 
-[^data]: 校验的data
-[^key]: 预期key
-[^expected_value]: 预期值
+> **data**：校验的data
+
+> **key**：预期key
+
+> **expected_value**：预期值
 
 例：
 
@@ -491,8 +545,9 @@ assert_in_value()函数可校验一组数据中是否存在指定的值，只支
 Assertions.assert_in_value(data, expected_value)
 ```
 
-[^data]: 校验的data
-[^expected_value]: 预期值
+> **data**：校验的data
+
+> **expected_value**：预期值
 
 例：
 
@@ -512,8 +567,9 @@ assert_in_key()函数可校验字典中存在指定的key，只支持 dict，调
 Assertions.assert_in_key(data, key)
 ```
 
-[^data]: 校验的data
-[^key]: 预期的key
+> **data**：校验的data
+
+> **key**：预期key
 
 例：
 
@@ -533,8 +589,9 @@ assert_not_in_value()函数可校验一组数据中是否不存在指定的值�
 Assertions.assert_not_in_value(data, expected_value)
 ```
 
-[^data]: 校验的data
-[^expected_value]: 预期值
+> **data**：校验的data
+
+> **expected_value**：预期值
 
 例：
 
@@ -554,8 +611,9 @@ assert_not_in_key()函数可校验字典中不存在指定的key，只支持 dic
 Assertions.assert_not_in_key(data, expected_key)
 ```
 
-[^data]: 校验的data
-[^expected_key]: 预期key
+> **data**：校验的data
+
+> **expected_key**：预期key
 
 例：
 
@@ -575,8 +633,9 @@ assert_startswith()函数可校验以预期值开头，只支持字符串，调�
 Assertions.assert_startswith(response, expected_value)
 ```
 
-[^data]: 校验的data
-[^expected_value]: 预期值
+> **data**：校验的data
+
+> **expected_value**：预期值
 
 例：
 
@@ -596,8 +655,9 @@ assert_endswith()函数可校验以预期值结尾，只支持字符串，调用
 Assertions.assert_endswith(response, expected_value)
 ```
 
-[^data]: 校验的data
-[^expected_value]: 预期值
+> **data**：校验的data
+
+> **expected_value**：预期值
 
 例：
 
@@ -617,7 +677,7 @@ assert_isNone()函数可校验指定的值是否为None，调用格式如下：
 Assertions.assert_isNone(reality_value)
 ```
 
-[^reality_value]: 实际值
+> **reality_value**：实际值
 
 例：
 
@@ -637,8 +697,9 @@ assert_time()函数可校验实际时间小于预期时间，调用格式如下�
 Assertions.assert_time(reality_time, expected_time)
 ```
 
-[^reality_time]: 预期的http状态码
-[^expected_time]: 预期code状态码
+> **reality_time**：预期的http状态码
+
+> **expected_time**：预期code状态码
 
 例：
 
@@ -658,8 +719,9 @@ assert_dictOrList_eq()函数可校验字典和列表是否相等，调用格式�
 Assertions.assert_dictOrList_eq(reality, expected)
 ```
 
-[^reality]: 实际值
-[^expected]: 预期值
+> **reality**：实际值
+
+> **expected**：预期值
 
 例：
 
@@ -667,6 +729,90 @@ Assertions.assert_dictOrList_eq(reality, expected)
 from luban_common.base_assert import Assertions
 
 Assertions.assert_dictOrList_eq(dict1,dict2)
+```
+
+
+
+#### 3.4.13 校验列表中是否有重复项
+
+assert_list_repetition()函数可校验列表中是否有重复项，调用格式如下：
+
+```python
+Assertions.assert_list_repetition(list)
+```
+
+> **list**：实际值
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+Assertions.assert_list_repetition(list)
+```
+
+
+
+#### 3.4.14 校验code或status_code
+
+assert_code()函数可校验response响应体中的code或status_code状态码，调用格式如下：
+
+```python
+Assertions.assert_code(response, reality_code, expected_code)
+```
+
+> **response**：响应数据
+
+> **reality_code**：预期的code状态码
+
+> **expected_code**：实际code状态码
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+Assertions.assert_code(response, 200, 200)
+```
+
+
+
+#### 3.4.15 校验为空
+
+assert_isEmpty()函数可校验传传入的数据是为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空，调用格式如下：
+
+```python
+Assertions.assert_isEmpty(reality_value)
+```
+
+> **reality_value**：实际值
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+Assertions.assert_isEmpty(reality_value)
+```
+
+
+
+#### 3.4.16 校验不为空
+
+assert_isNotEmpty()函数可校验传传入的数据是不为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空，调用格式如下：
+
+```python
+Assertions.assert_isEmpty(reality_value)
+```
+
+> **reality_value**：实际值
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+Assertions.assert_isNotEmpty(reality_value)
 ```
 
 
@@ -685,7 +831,7 @@ Assertions.assert_dictOrList_eq(dict1,dict2)
 getFileMD5(file_Path)
 ```
 
-[^file_Path]: 文件路径可以是相对路径，也可以是相对路径
+> **file_Path**：文件路径可以是相对路径，也可以是相对路径
 
 例：
 
@@ -705,7 +851,7 @@ base_utils.getFileMD5("data/image/178k.png")
 getFileSize(file_Path)
 ```
 
-[^file_Path]: 文件路径可以是相对路径，也可以是相对路径
+> **file_Path**：文件路径可以是相对路径，也可以是相对路径
 
 例：
 
@@ -725,7 +871,7 @@ base_utils.getFileSize("data/image/178k.png")
 getFileName(file_Path)
 ```
 
-[^file_Path]: 文件路径可以是相对路径，也可以是相对路径
+> **file_Path**：文件路径可以是相对路径，也可以是相对路径
 
 例：
 
@@ -745,7 +891,7 @@ base_utils.getFileName("data/image/178k.png")
 file_is_exist(file_Path)
 ```
 
-[^file_Path]: 文件路径可以是相对路径，也可以是相对路径
+> **file_Path**：文件路径可以是相对路径，也可以是相对路径
 
 例：
 
@@ -765,7 +911,7 @@ base_utils.file_is_exist("data/image/178k.png")
 getStrMD5(String)
 ```
 
-[^String]: 一个字符串
+> **String**：字符串
 
 例：
 
@@ -785,7 +931,7 @@ base_utils.getStrMD5("公众号：彪哥的测试之路")
 getStrSha1(String)
 ```
 
-[^String ]: 一个字符串
+> **String**：字符串
 
 例：
 
@@ -805,7 +951,7 @@ base_utils.getStrSha1("公众号：彪哥的测试之路")
 ToBase64(String)
 ```
 
-[^String]: 字符串
+> **String**：字符串
 
 例：
 
@@ -825,7 +971,7 @@ base_utils.ToBase64("公众号：彪哥的测试之路")
 FromBase64(String)
 ```
 
-[^String]: Base64编码的字符串
+> **String**：Base64编码的字符串
 
 例：
 
@@ -845,7 +991,7 @@ base_utils.FromBase64("公众号：彪哥的测试之路")
 getUnix(date=None)
 ```
 
-[^date]: 传入的时间，格式为：'2017-05-09 18:31:22'，不传表单获取当前时间
+> **date**：传入的时间，格式为：'2017-05-09 18:31:22'，不传表单获取当前时间
 
 例：
 
@@ -865,7 +1011,7 @@ base_utils.getUnix()
 UnixToTime(unix)
 ```
 
-[^unix]: unix 时间戳
+> **unix**：unix 时间戳
 
 例：
 
@@ -903,8 +1049,9 @@ base_utils.getRecentMonthOfDay()
 calday(month, year)
 ```
 
-[^month]: 月份
-[^year]:  年份
+> **month**：月份
+
+> **year**：年份
 
 例：
 
@@ -924,7 +1071,7 @@ base_utils.calday(8,2015)
 shell(cmd)
 ```
 
-[^cmd]: cmd命令
+> **cmd：cmd**命令
 
 例：
 
@@ -944,7 +1091,7 @@ base_utils.shell("dir")
 generate_random_str(randomlength=8)
 ```
 
-[^randomlength]: 随机字符串的长度，默认8位
+> **randomlength**：随机字符串的长度，默认8位
 
 例：
 
@@ -982,7 +1129,7 @@ base_utils.generate_random_mail()
 generate_random_mobile()
 ```
 
-[^file_Path]: 文件路径可以是相对路径，也可以是
+> **file_Path**：文件路径可以是相对路径，也可以是
 
 例：
 
@@ -1002,8 +1149,9 @@ base_utils.generate_random_mobile()
 ResponseData(indict)
 ```
 
-[^indict]: 接口响应的数据
-[^return]: 重新组装dict，之前嵌套的dict 会组装成”dict_dict“的形式
+> **indict**：接口响应的数据
+
+> **return**：重新组装dict，之前嵌套的dict 会组装成”dict_dict“的形式
 
 例：
 
@@ -1023,9 +1171,11 @@ base_utils.ResponseData(Response)
 Search_tag_text(url,tag,text)
 ```
 
-[^url]: 指定要检查的连接地址
-[^tag]: 指定要检查的html或xml标签，不要尖括号，如:h2
-[^text]: 指定要检查是否存在的文本
+> **url**：指定要检查的连接地址
+
+> **tag**：指定要检查的html或xml标签，不要尖括号，如:h2
+
+> **text**：指定要检查是否存在的文本
 
 例：
 
@@ -1045,8 +1195,9 @@ base_utils.Search_tag_text(url="http://www.lubansoft.com",tag="h1",text="鲁班�
 time_difference(start_time,end_time)
 ```
 
-[^start_time]: 开始时间
-[^end_time]: 结束时间
+> **start_time**：开始时间
+
+> **end_time**：结束时间
 
 例：
 
@@ -1066,11 +1217,15 @@ base_utils.time_difference(start_time="2020-08-28 12:16:26.132615",end_time="202
 jpath(data,check_key,check_value=None,sub_key=None)
 ```
 
-[^data]: 需要获取的数据,类型必须是dict,否侧返回False
-[^check_key]: 检查key,例子中的functionKey
-[^check_value]: 检查value,辅助定位,例子中的'D-2'
-[^sub_key]: 检查子key,辅助定位,例子中的openStatus,当指定sub_key时,只返回sub_key对应的values,其它数据不返回
-[^return]: 返回一个list,当匹配不到数据时,返回False
+> **data**：需要获取的数据,类型必须是dict,否侧返回False
+
+> **check_key**：检查key,例子中的functionKey
+
+> **check_value**：检查value,辅助定位,例子中的'D-2'
+
+> **sub_key**：检查子key,辅助定位,例子中的openStatus,当指定sub_key时,只返回sub_key对应的values,其它数据不返回
+
+> **return**：返回一个list,当匹配不到数据时,返回False
 
 例：
 
@@ -1084,66 +1239,67 @@ base_utils.jpath(data,check_key="functionKey",check_value="D-2",sub_key="openSta
 
 
 
-### 3.6 global_map.py
+### 3.6 Global_Map.py
 
-全局变量函数，效果同 `global_cache` ，为什么有了 `global_cache` 还要再搞一个 global_map 了，因为 `global_cache` 是一个 fixture 函数，调用会有局限性，它只能在 fixture 函数或测试方法下调用，但实际场景有时候需要在其它函数中获取全局变量
+全局变量函数，效果同 `global_cache` ，为什么有了 `global_cache` 还要再搞一个 Global_Map 了，因为 `global_cache` 是一个 fixture 函数，调用会有局限性，它只能在 fixture 函数或测试方法下调用，但实际场景有时候需要在其它函数中获取全局变量
 
-#### 3.6.1 set_map 设置变量
+#### 3.6.1 set 设置变量
 
 设置变量到全局
 
 调用格式如下：
 
 ```python
-Global_Map.set_map(key, value)
+Global_Map.set(key, value)
 ```
 
-[^key]: 变量名称
-[^value]: 变量值
+> **key**：变量名称
+
+> **value**：变量值
 
 ```python
 from luban_common.global_map import Global_Map
-Global_Map.set_map("username","hubiao")
+Global_Map.set("username","hubiao")
 ```
 
 
 
-#### 3.6.2 set 设置多变量
+#### 3.6.2 sets 设置多变量
 
 
 
 调用格式如下：
 
 ```python
-Global_Map.set(**keys)
+Global_Map.sets(**keys)
 ```
 
-[^keys]: 设置参数变量，支持
+> **keys**：设置参数变量，支持
 
 ```python
 from luban_common.global_map import Global_Map
-Global_Map().set(age=20,shcool="luban")
+Global_Map().sets(age=20,shcool="luban")
 ```
 
 
 
-#### 3.6.3 del_map 删除指定变量
+#### 3.6.3 del_key 删除指定变量
 
 从全局变量中删除指定的变量
 
 调用格式如下：
 
 ```python
-Global_Map.del_map(key)
+Global_Map.del_key(key)
 ```
 
-[^del_map]: 需要删除的变量名
+> **del_map**：需要删除的变量名
 
 例：
 
 ```python
 from luban_common.global_map import Global_Map
-Global_Map.del_map("username")
+Global_Map.del_key("username")
 ```
 
 
@@ -1158,7 +1314,7 @@ Global_Map.del_map("username")
 Global_Map.get(*args)
 ```
 
-[^args]: 需要获取的变量名，支持传元组
+> **args**：需要获取的变量名，支持传元组
 
 ```python
 from luban_common.global_map import Global_Map
@@ -1175,86 +1331,132 @@ Global_Map().get('username','age')
 
 在 luban-common 安装成功后，系统中会新增如下命令：
 
-- `luban` ：核心命令，不可单独执行，必须携带参数
+`luban` ：核心命令，不可单独执行，必须携带参数
 
-  
+#### 4.1.1 新建项目
 
-- `luban new`：可通过 `new` 快速构建一个完整的项目目录结构，格式如下：
+`luban new`：可通过 `new` 快速构建一个完整的项目目录结构，格式如下：
 
-  ```python
-  luban new <name>
-  ```
+```python
+luban new <name>
+```
 
-  [^name]: 项目名称
+> **name**：项目名称
 
-  例：
+例：
 
-  ```python
-  luban new centerApi
-  ```
+```python
+luban new centerApi
+```
 
-  
 
-- `luban swagger`：生成 `swagger` 接口命令，可快速生成接口方法，格式如下：
 
-  ```python
-  luban swagger [-d [<...>]] <swagger-url-json>
-  ```
+#### 4.1.2 通过Swagger生成接口文件
 
-  [^-d]: 生成到指定的目录，可选参数，不指定时生成到当前目录
-  [^swaggger-url-json]: swagger url 地址（必须要是json地址）
-  
-  例：生成到当前目录
-  
-  ```python
-  luban swagger http://192.168.13.197:8989/builder/v2/api-docs
-  ```
-  
-  例：生成到 `builder` 目录
-  
-  ```python
-  luban swagger http://192.168.13.197:8989/builder/v2/api-docs -d builder
-  ```
-  
-  
-  
-- `luban weixin`：发送 `企业微信` 消息命令，格式如下：
+`luban swagger`：生成 `swagger` 接口命令，可快速生成接口方法，格式如下：
 
-  ```python
-  luban weixin [-t <...>] [-c <...>] [-d <...>] [-o <...>]
-  ```
+```python
+luban swagger [-p [<...>]] <swagger-url-json> <project-directory>
+```
 
-  [^-t]: 消息标题
-  [^-c]: 消息内容
-  [^-d]: 发送部门ID，这个ID需要到企业微信中查看
-  [^-o]: 消息类型，三种消息类型`text`、`card`、`markdown`
+> **swaggger-url-json**：swagger url 地址（必须要是json地址），必填参数
 
-  例：发送一个文本消息
+> **project-directory**：生成到指定的目录，必填参数
 
-  ```
-  luban weixin -t 标题 -c 内容 -d 3 -o text
-  ```
+> **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
-  
+例：生成接口文件到 `builder` 目录
 
-- `luban youdu`：发送 `有度` 消息命令，格式如下：
+```python
+luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder
+```
 
-  ```python
-  luban youdu [-t <...>] [-c <...>] [-s <...>] [-e <...>]
-  ```
+例：生成接口文件到 `builder` 目录，且指定项目名为 `builder` 
 
-  [^-t]: 消息标题
-  [^-c]: 消息内容
-  [^-s]: 发送给谁，多个用户之间用下划线分隔，如“胡彪_邵君兰”
-  [^-e]: 会话session，当session=0时，会新建一个新的会话窗口，默认为新建会话窗口
+```python
+luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
+```
 
-  例：给指定的 session 发一条消息
 
-  ```
-  luban youdu -t 标题 -c 内容 -s 胡彪 -e {BEF08267-B1C2-4C5F-A284-075F0774729C}
-  ```
 
-  
+#### 4.1.3 通过Swagger生成Case（推荐）
+
+`luban swaggerCase`：生成测试用例命令，可快速生成简单测试用例，格式如下：
+注：必须要在项目根目录下执行，会在对应的 `swagger` 和 `testcases` 目录下同时生成swagger接口方法和对应测试用例，如果指定了 `-p` 参数时会在 `testcases` 目录下生成对应的项目目录，并把测试用例放在里面
+
+```python
+luban swaggerCase [-p [<...>]] <swagger-url-json> <project-directory> <case-directory>
+```
+
+> **swaggger-url-json**：swagger url 地址（必须要是json地址），必填参数
+
+> **project-directory**：接口文件生成到的目录，一般为接口所属项目名称，会在 swagger 目录下生成指定的目录，也会做为 case 脚本中的引用文件路径，必填参数
+
+> **case-directory**：用例生成到的目录，一般为用例分类，会在 testcases 目录下生成指定的目录，必填参数
+
+> **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
+
+> **-b**：是否生成请求体，当接口有请求体时，默认生成请求体，可选项
+
+> **-t**：生成的默认 token fixture 名称，默认为 `token`，可选参数
+
+> **-s**：是否生成 swagger 脚本，默认生成 swagger 脚本，可选项
+
+例：生成接口文件到 `builder` 目录，生成测试用例到 `center` 目录
+
+```python
+luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center
+```
+
+例：生成接口文件到 `builder` 目录，生成测试用例到 `center` 目录，且指定项目名为 `builder` 
+
+```python
+luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center -p builder
+```
+
+
+
+#### 4.1.4 发送微信消息
+
+`luban weixin`：发送 `企业微信机器人` 消息命令，格式如下：
+
+```python
+luban weixin [-o <...>] <title> <content> <department>
+```
+
+> **hookkey**：webhook连接中的key，必填参数
+
+> **content**：消息内容，必填参数
+
+> **-m**：手机号字符串，多个手机号用|隔开，如："13800138000|13700137000"，`text` 消息时有效，可选参数
+
+> **-t**：消息标题，`card` 消息时有效，可选参数
+
+> **-u**：点击后跳转的链接，`card` 消息时有效，可选参数
+
+> **-o**：消息类型，三种消息类型`text`、`card`、`markdown`，可选参数，类型为 `markdown` 时，content 支持微信机器人官方支持的 `markdown` 语法
+
+
+
+例：发送 `text` 消息
+
+```python
+luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -m "13916829124"
+```
+
+例：发送 `card` 消息
+
+```python
+luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "card" -t "测试开发" -u "http://demo.com"
+```
+
+例：发送 `markdown` 消息
+
+```python
+luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "markdown"
+```
+
+
 
 ### 4.2 pytest.ini 配置
 
@@ -1262,19 +1464,27 @@ Global_Map().get('username','age')
 
 - `--lb-env`：环境配置文件，如 `dev`、`enterprise`、`preRelease`、`release`
 
-  通过如下方式指定需要测试的环境
+  通过如下方式可在命令行中指定需要测试的环境配置
 
   ```python
   pytest --lb-env config/dev/config.yaml
   ```
 
-- `--lb-driver`： UI自动化时使用的 driver 类型
+- `--lb-driver`： UI自动化时使用的 driver 类型可从命令行或配置文件浏览器
 
-- `--lb-base-url`： UI自动化时可独立指定url地址
+  ```
+  pytest --lb-driver firefox
+  ```
+
+- `--lb-base-url`： UI自动化或接口自动化时可从命令行或配置文件指定url地址
+
+  ```
+  pytest --lb-base-url http://www.lbuilder.cn
+  ```
 
 - `globalConf` ：通用配置文件，把固定不变的内容配置到这里
 
-- `message_switch` ：有度消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为True
+- `message_switch` ：有度消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为Flase
 
 - `success_message` ： 成功时是否发送消息通知，默认为False
 
@@ -1288,7 +1498,7 @@ Global_Map().get('username','age')
 
 在根目录的 `conftest.py` 中自定义了部分通用 `fixture` ，`fixture` 使用非常简单，只要把你想使用的 `fixture` 当参数传入对应的函数即可，`fixture`  可以当参数传入任意 `fixture`  或 测试方法中。
 
-[^限制]: fixture 只能应用到 fixture 函数和测试用例上，其它函数不支持，但可以通过 fixture 函数传到其它函数实现数据共享
+> **限制**：fixture 只能应用到 fixture 函数和测试用例上，其它函数不支持，但可以通过 fixture 函数传到其它函数实现数据共享
 
 如下 `Send` 不是一个 `fixture` 函数，但他通过 `lbbv` 这个 `fixture` 实现了数据共享
 
@@ -1305,7 +1515,7 @@ def lbbv(iworks_app_cas, env_conf, global_cache):
 
 
 
-####  4.3.1 global_cache
+####  4.3.1 global_cache（推荐使用Global_Map）
 
 全局缓存生命周期内产生的数据，主要用来解决数据依赖问题，比如 serverUrl 返回的项目地址、企业ID、项目部ID等通用数据
 
@@ -1322,7 +1532,7 @@ global_cache.set("rootid",rootid)
 例：设置部署类型
 
 ```python
-def getDeployType(self):
+def getDeployType(self,global_cache):
     '''
     获取部署类型
     :return:
@@ -1331,7 +1541,7 @@ def getDeployType(self):
     response = self.CenterLogin.request('get', resource)
     Assertions().assert_code(response, response["status_code"], 200)
     deployType = response["Response_body"]
-    self.cache.set('deployType', deployType)
+    global_cache.set('deployType', deployType)
 ```
 
 当设置的变量名称已存在时，会进行覆盖操作。
@@ -1349,15 +1559,15 @@ global_cache.get("builder", False)
 例：获取企业id
 
 ```python
-def switchCompany(self):
+def switchCompany(self,global_cache):
     '''
     切换到指定企业
     :return:
     '''
     resource = f"/rs/casLogin/casLogin"
-    body = {"epid": self.cache.set("epid", False)}
+    body = {"epid": global_cache.get("epid", False)}
     response = self.casLogin.request('post', resource,body)
-    Assertions().assert_code(response, response["status_code"], 200)
+    Assertions.assert_code(response, response.get("status_code"), 200)
 ```
 
 
@@ -1366,8 +1576,8 @@ def switchCompany(self):
 
 环境配置，合并了 `pytest.ini` 配置中 `--lb-env` 和 `globalConf` 文件中的 yaml 数据，使用字典的方式取值，使用方法为：
 
-```
-env_conf["center"]["username"]
+```python
+env_conf.get("center").get("username")
 ```
 
 例：获取产品id、header信息等
@@ -1390,7 +1600,7 @@ def __init__(self,username,password,envConf,global_cache):
 基础URL，当参数传入对应的函数即可，使用方法为：
 
 ```
-暂未实现
+web框架时使用，暂未
 ```
 
 
@@ -1399,15 +1609,17 @@ def __init__(self,username,password,envConf,global_cache):
 
 ### 5.1 创建项目
 
-我们定位到需要创建项目的目录，如：`E:\Automation` ，然后在命令行中输入如下命令并回车
+定位到需要创建项目的目录，如：`E:\Automation` ，然后在命令行中输入如下命令并回车
 
 ```python
 luban new CenterAutomation
 ```
 
-[^luban]: 框架提供的命令入口
-[^new]: 创建项目命令
-[^CenterAutomation]: 项目名称，可修改为自己想要的名称
+> **luban**：框架提供的命令入口
+
+> **new**：创建项目命令
+
+> **CenterAutomation**：项目名称，可修改为自己想要的名称
 
 看到 `Successfully Created CenterAutomation` 表示项目创建成功，生成的项目结构如下
 
@@ -1444,19 +1656,31 @@ luban new CenterAutomation
 └─pytest.ini
 ```
 
-[^business]: 存放和当前业务相关代码的包
-[^config]: 配置文件夹
-[^config.yaml]: 默认生成4个环境的配置文件，对应 “开发”、“企业部署”、“预发布”、“正式”环境，可自己修改
-[^globalConf.yaml]: 全局配置文件，把不会随环境变化或固定的配置放这里，比如产品ID、请求头等
-[^data]: 存放测试数据的文件夹
-[^reports]: 默认测试报告存放文件夹
-[^swagger]: 通过 swagger 生成的接口方法存放在这里，每个项目一个子文件夹，`builder` 是一个演示项目，里面放的是相关接口
-[^testcases]: 测试用例文件夹，后面单接口用例都放这里面
-[^testsuites]: 测试集文件夹，test_center_demo.py 是一个测试的demo
-[^utils]: 工具类，用来存放自定义方法
-[^.gitignore]: 默认的git配置
-[^conftest.py]: 定义了大部分通用 `fixture`
-[^pytest.ini]: pytest 配置文件，有些默认配置
+> **business**：存放和当前业务相关代码的包
+
+> **config**：配置文件夹
+
+> **config.yaml**：默认生成4个环境的配置文件，对应 “开发”、“企业部署”、“预发布”、“正式”环境，可自己修改
+
+> **globalConf.yaml**：全局配置文件，把不会随环境变化或固定的配置放这里，比如产品ID、请求头等
+
+> **data**：存放测试数据的文件夹
+
+> **reports**：默认测试报告存放文件夹
+
+> **swagger**：通过 swagger 生成的接口方法存放在这里，每个项目一个子文件夹，`builder` 是一个演示项目，里面放的是相关接口
+
+> **testcases**：测试用例文件夹，后面单接口用例都放这里面
+
+> **testsuites**：测试集文件夹，test_center_demo.py 是一个测试的demo
+
+> **utils**：工具类，用来存放自定义方法
+
+> **.gitignore**：默认的git配置
+
+> **conftest.py**：定义了大部分通用 `fixture`
+
+> **pytest.ini**：pytest 配置文件，有些默认配置
 
 
 
@@ -1464,15 +1688,15 @@ luban new CenterAutomation
 
 生成项目时默认会生成一份演示数据，进入 `CenterAutomation`  目录，执行测试有二种方式
 
-**直接执行**：在命令行中输入如下命令，表示使用 `pytest.ini` 中的默认配置执行
+**使用默认配置执行**：在命令行中输入如下命令，表示使用 `pytest.ini` 中的默认配置执行测试
 
-```
+```python
 pytest
 ```
 
-**指定环境执行**：在命令行中输入如下命令，表示使用 `dev` 环境配置执行
+**指定环境执行**：在命令行中输入如下命令，表示使用 `dev` 环境配置执行测试
 
-```
+```python
 pytest --lb-env config/dev/config.yaml
 ```
 
@@ -1496,48 +1720,59 @@ luban new iworksweb
 
 看到 `Successfully Created iworksweb` 表示项目创建成功，生成的项目信息可参考“如何开始”，命令问题可查看“命令行工具”中命令的具体介绍
 
-#### 6.1.2 生成swagger接口方法
+#### 6.1.2 通过swagger生成Case和接口方法
 
-在 CMD 中进入 `iworksweb` 项目的 `swagger` 目录，找到 swagger 接口地址，如下图
+在 CMD 中进入 `iworksweb` 目录，然后找到要生成case的 swagger 接口地址，如下图
 
 ![image-20200901200704750](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901200704750.png)
 
-[^1]: 第1个是swagger地址
-[^2]: 第2个是swagger对应的json地址，这个地址就是我们需要的地址
+> 第1个是swagger地址
 
-在命令行中输入如下命令生成 swagger 接口方法
+> 第2个是swagger对应的json地址，这个地址就是我们需要的地址
 
+在命令行中输入如下命令生成用例和接口方法
+
+```python
+luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan plan
 ```
-luban swagger http://192.168.13.202:8081/Plan/rs/swagger/swagger.json
-```
 
-![image-20200903183221966](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200903183221966.png)
+![image-20210918145537477](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918145537477.png)
 
 看到 `Successfully generate` 表示接口生成成功，我们用 pycharm 打开 `iworksweb` 项目，生成后的样子如下
 
-![image-20200903183433540](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200903183433540.png)
+![image-20210918153406255](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153406255.png)
 
-[^plan]: 这是plan项目的名称是从swagger的url地址中获取，一般一个产品会调用多个swagger项目，所以正常情况下swagger目录下会有多个项目目录
+打开 `webPlanCalendar.py` 接口文件，看看生成的接口方法是什么样子，查看到 `setPlanCalenDar` 方法如下
 
-打开一个文件，看看生成的方法是什么样子，打开 `web_plan_scheduledPlanService.py` 文件，查看到 `addPlan` 方法如下
+![image-20210918153115409](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153115409.png)
 
-![image-20200901202429349](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901202429349.png)
+生成好的接口文件就可以直接在用例中调用了，调用方式和程序的类和方法调用方式一样，没有区别.
 
-生成好的接口文件就可以直接在 case 中调用了，调用方式和程序的类和方法调用方式一样，没有区别.
+打开 `test_webPlanCalendar.py` 文件，看看生成的测试用例是什么样子，查看到 `test_setPlanCalenDar` 测试用例如下
+
+![image-20210918153630759](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153630759.png)
+
+生成的测试用例中，默认会带有请求体（如果有），也可以不生成，只要在生成用例时添加-b 参数即可，可根据自己的实际情况确定是否生成
 
 
 
-#### 6.1.3 调整账号配置文件
+#### 6.1.3 修改测试用例文件
+
+
+
+
+
+#### 6.1.4 修改账号配置文件
 
 进入 config 目录，由于现在演示的这个项目是企业部署项目，所以我们进入了 enterprise 目录，我复制了一个 yaml 配置文件，命名为 202_config.yaml ，修改后的配置内容如下
 
 ![image-20200901210924480](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901210924480.png)
 
-[^注意]: 账号和地址信息必须要按默认文件的方式，建议大家在不了解运行机制时，只修改登录地址、用户名、密码，不要调整格式，如果要信息，按已有样式添加即可
+> **注意**：账号和地址信息必须要按默认文件的方式，建议大家在不了解运行机制时，只修改登录地址、用户名、密码，不要调整格式，如果需要添加信息，按已有样式添加即可
 
 
 
-#### 6.1.4 调整pytest.ini配置文件
+#### 6.1.5 修改pytest.ini配置文件
 
 在 `iworksweb` 根目录找到 `pytest.ini` 文件，定位到 `--lb-env` 配置，把 `--lb-env` 配置修改为我们刚新建的 `Config/enterprise/202_config.yaml` 调整后的样子如下图
 
@@ -1545,7 +1780,7 @@ luban swagger http://192.168.13.202:8081/Plan/rs/swagger/swagger.json
 
 
 
-#### 6.1.5 新建用例
+#### 6.1.6 运行测试
 
 进入 `testsuites` 目录，新建一个 `test_plan_add.py` 文件
 
@@ -1561,4 +1796,4 @@ luban swagger http://192.168.13.202:8081/Plan/rs/swagger/swagger.json
 
 ![image-20200901212519261](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901212519261.png)
 
-[^注意]: 建议大家在不了解运行机制时，不要调整格式，如果要添加产品ID，按已有样式添加即可
+> **注意**：建议大家在不了解运行机制时，不要调整格式，如果要添加产品ID，按已有样式添加即可

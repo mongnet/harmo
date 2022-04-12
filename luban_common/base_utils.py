@@ -329,7 +329,7 @@ def Search_tag_text(url,label,text):
     '''
     try:
         # 请求服务器
-        resp = requests.get(url)
+        resp = requests.get(url, verify=False)
     except requests.exceptions.RequestException as e:
         assert False,f'请求连接地址出错，错误信息为:{e}'
     # 查询指定标签
@@ -351,18 +351,18 @@ def TextLineContains(url, textKey, textValue):
     '''
     try:
         # 请求服务器
-        resp = requests.get(url)
+        resp = requests.get(url, verify=False)
     except requests.exceptions.RequestException as e:
         assert False, f'请求连接地址出错，错误信息为:{e}'
     for line in resp.text.splitlines():
-        text = line.strip()
-        if not text.startswith("/"):
-            if len(text):
-                if text.__contains__(textKey):
-                    if text.__contains__(textValue):
-                        return 2,text
+        textLine = line.strip()
+        if not textLine.startswith("/") and textLine.isprintable():
+            if len(textLine):
+                if textLine.__contains__(textKey):
+                    if textLine.__contains__(textValue):
+                        return 2,textLine
                     else:
-                        return 1,text
+                        return 1,textLine
     return None,None
 
 def time_difference(start_time,end_time):
