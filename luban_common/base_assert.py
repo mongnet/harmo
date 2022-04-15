@@ -195,9 +195,9 @@ class Assertions:
         :return:
         """
         if isinstance(reality_value,type(expected_value)):
-            assert expected_value == reality_value, f"断言失败, 实际值为:{reality_value}, 预期值为：{expected_value}" if not msg else f"断言失败:{msg}, 实际值为:{reality_value}, 预期值为：{expected_value}"
+            assert expected_value == reality_value, f"断言失败, 实际值为:{reality_value}, 预期值为:{expected_value}" if not msg else f"断言失败:{msg}, 实际值为:{reality_value}, 预期值为：{expected_value}"
         else:
-            assert False, f"数据类型不匹配,reality_value类型为:{type(reality_value)},expected_value类型为:{type(expected_value)}"
+            assert False, f"数据类型不匹配,实际值:{reality_value} 类型为:{type(reality_value)},预期值:{expected_value} 类型为:{type(expected_value)}"
 
     @classmethod
     @allure.step("校验字符串中包含指定字符串，预期值为:{2}")
