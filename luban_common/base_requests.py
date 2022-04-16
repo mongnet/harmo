@@ -135,13 +135,13 @@ class Send:
                 res["Response_content"] = self.Response.content
         except requests.exceptions.RequestException as e:
             logging.error("RequestException异常开始分割线start: ".center(60, "#"))
-            logging.error("请求的Url: " + self.Response.url)
+            logging.error("请求的Url: " + self.Url)
             logging.error("请求数据: " + str(payload).encode("utf-8").decode("unicode_escape"))
             logging.error("发送请求出现异常: " + str(e))
             logging.error("RequestException异常结束分割线end: ".center(60, "#"))
             res["status_code"] = 10060
             res["request_header"] = request_header
-            res["request_url"] = self.Response.url
+            res["request_url"] = self.Url
             res["request_method"] = method
             res["request_params"] = params
             res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")
