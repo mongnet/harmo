@@ -477,7 +477,7 @@ if __name__ == "__main__":
     url4 = "http://192.168.3.195/pdsdoc/rs/swagger/swagger.json"
     url5 = "http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json"
     url6 = "http://192.168.13.233:8080/auth-server/v2/api-docs"
-    url7 = "http://192.168.3.195/openapi/rs/swagger/swagger.json"
+    url7 = "http://192.168.13.246:8182/openapi/rs/swagger/swagger.json"
     # url9 = "http://192.168.3.236:8083/monitor/v2/api-docs?group=center"
     url10 = "http://192.168.13.246:8182/misc/v2/api-docs?group=信息深度(center端)"
     url11 = "http://192.168.13.246:8182/misc/v2/api-docs?group=信息深度(客户端)"
@@ -490,7 +490,7 @@ if __name__ == "__main__":
     url18 = "http://192.168.13.246:8502/luban-archives/v2/api-docs?group=V1.0.0"
     url19 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E7%94%9F%E4%BA%A7%E6%A8%A1%E5%9D%97"
     url20 = "http://192.168.13.246:8182/gateway/process-inspection/v2/api-docs?group=Center"
-    url21 = "http://192.168.2.110:8182/pdscommon/rs/swagger/swagger.json"
+    url21 = "http://192.168.13.246:8182/pdscommon/rs/swagger/swagger.json"
     url30 = "http://192.168.13.242:8864/sphere/swagger-resources"
 
 

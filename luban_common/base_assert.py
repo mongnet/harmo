@@ -27,7 +27,7 @@ class Assertions:
         :param expected_code: 预期code状态码
         :return:
         """
-        assert response.get("status_code") == expected_http_code,f'''校验失败,实际http_code为:{response.get("status_code")},预期http_code为:{response.get("status_code")}
+        assert response.get("status_code") == expected_http_code,f'''校验失败,实际http_code为:{response.get("status_code")},预期http_code为:{expected_http_code}
                
         请求URL:{response.get("request_url")}
         请求Method:{response.get("request_method")}
@@ -37,7 +37,7 @@ class Assertions:
         响应status_code:{response.get("status_code")}
         响应信息:{response.get("Response_text") if response.get("source_response") is None else response.get("source_response")}'''
 
-        assert response.get("code")[0] == expected_code,f'''校验失败,实际code为:{response.get("code")[0]},预期code为:{response.get("code")[0]}
+        assert response.get("code")[0] == expected_code,f'''校验失败,实际code为:{response.get("code")[0]},预期code为:{expected_code}
                
         请求URL:{response.get("request_url")}
         请求Method:{response.get("request_method")}
@@ -209,7 +209,7 @@ class Assertions:
         :return:
         """
         if isinstance(original_value, str) and isinstance(contains_value, str):
-            assert contains_value in original_value, f"实际数据中未包含 {contains_value} ,实际值为:{original_value}"
+            assert contains_value in original_value, f"断言失败，实际数据中未包含 {contains_value} ,实际值为:{original_value}"
         else:
             assert False, "只支持str类型"
 
@@ -223,7 +223,7 @@ class Assertions:
         :return:
         """
         if isinstance(original_value, str) and isinstance(contains_value, str):
-            assert contains_value not in original_value, f"实际数据包含了 {contains_value}, 实际值为:{original_value}"
+            assert contains_value not in original_value, f"断言失败，实际数据包含了 {contains_value}, 实际值为:{original_value}"
         else:
             assert False, "只支持str类型"
 
@@ -236,7 +236,7 @@ class Assertions:
         :param expected_value: 预期值
         :return:
         """
-        assert expected_value != reality_value, f"实际值等于预期值,实际值为:{reality_value}, 预期值为:{expected_value}"
+        assert expected_value != reality_value, f"断言失败，实际值等于预期值,实际值为:{reality_value}, 预期值为:{expected_value}"
 
     @classmethod
     @allure.step("校验是否等于None")
@@ -249,7 +249,7 @@ class Assertions:
         if reality_value is None:
             assert True
         else:
-            assert False, f"校验值不等于None,值为:{reality_value}"
+            assert False, f"断言失败，{reality_value} 不等于None"
 
     @classmethod
     @allure.step("校验为空")
@@ -367,6 +367,7 @@ if __name__ == "__main__":
     # in_value 和 in_key 等要支持list和dict，现在只部分支持
     # Assertions.assert_in_key(list4, "hu")
     # Assertions.assert_not_in_key(list4, "hdu")
-    Assertions.assert_not_in_value(list1, "null")
+    # Assertions.assert_not_in_value(list1, "null")
+    # None、False、空字符串""、0、空列表[]、空字典{}、空元组()
 
 

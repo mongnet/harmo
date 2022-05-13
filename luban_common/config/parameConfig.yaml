@@ -24,6 +24,8 @@ defaultParame:
  classification: 0 # 类别 0 施工 1监理 2 检测
  isAll: True # 是否全部授权
  approvalType: 0 # 审批类型: 0-我的待办, 1-我的待发, 2-我的已办
+ parentNodeId: "" # 父节点，如果父节点为项目部传空字符串
+ prevNodeId: -1 # 排序时的上一个节点id, 没有则传-1
 
 #微信配置
 weixin :

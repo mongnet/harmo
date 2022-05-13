@@ -463,7 +463,8 @@ def gen_uuid(filter=False):
 
 def gen_sign(timestamp,secret):
     '''
-    根据时间戳和秘钥生成签名，使用场景：请求数据时发送当前时间戳和生成的签名，接受方根据约定的秘钥以相同方式获取签名，如生成的签名一致，表示签名有效
+    根据时间戳和secret生成签名
+    使用场景：请求数据时发送当前时间戳和生成的签名，接受方根据约定的secret和发送过来的时间戳，以相同方式获取签名，如生成的签名一致，表示签名有效
     :param timestamp: 时间戳
     :param secret: 秘钥
     :return: 签名
