@@ -479,7 +479,7 @@ productId:
 CONFIG_DEFAULT = """pds : http://app.lbuilder.cn
 ac: http://ac.myluban.com
 base_url: http://service.lbuilder.cn
-weixin_robot: "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
+weixin_robot: ""
 center:
   username: lb91247
   password: 264f0c676e143da03019f1698304c468
@@ -508,7 +508,7 @@ markers =
 globalConf = Config/globalConf.yaml
 minversion = 5.0
 testpaths = testcases testsuites
-message_switch = False
+message_switch = True
 success_message = False
 log_cli = True
 log_cli_level = ERROR

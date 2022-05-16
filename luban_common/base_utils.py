@@ -131,18 +131,29 @@ def toFileBase64(file):
         image = f.read()
     return str(base64.b64encode(image), encoding='utf-8')
 
-def getUnix(date=None,scope="s"):
+def getUnix(date=None,day=0,current=True,scope="s"):
     '''
     通过传入的时间获取时间戳，默认获取当前时间戳
-    :param date:传入的时间，格式为：'2017-05-09 18:31:22'
-    :param scope:时间戳范围，s(秒)，ms(毫秒)
+    :param date:传入的时间，格式为：'2017-05-09 18:31:22'，当传的格式为'2017-05-09'时会自动转换成'2017-05-09 23:59:59'
+    :param day:时间差，只能为正负整数，比如要向后推2天时，day可传2
+    :param current: 是否当前时间，True:当时时间，False:当天23:59:59
+    :param scope:时间戳范围，s(秒)，其它情况为(毫秒)
     :return: 返回时间戳
     '''
+    if not isinstance(day,int):
+        raise ValueError("day参数只能为整数")
     if date is None:
-        ST = datetime.strptime(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())),"%Y-%m-%d %H:%M:%S")
+        ST = time.strptime(str(datetime.now() + timedelta(days=day))[:19],"%Y-%m-%d %H:%M:%S") if current else time.strptime(str(datetime.now() + timedelta(days=day))[:10] + " 23:59:59","%Y-%m-%d %H:%M:%S")
     else:
-        ST = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
-    unixST = int(time.mktime(ST.timetuple())) if scope == "s" else int(time.mktime(ST.timetuple())) * 1000
+        if not isinstance(date, str):
+            raise ValueError("date参数只能为字符串")
+        if len(date) == 19:
+            ST = time.strptime(str(datetime.strptime(date,"%Y-%m-%d %H:%M:%S") + timedelta(days=day)), "%Y-%m-%d %H:%M:%S")
+        elif  len(date) == 10:
+            ST = time.strptime(str(datetime.strptime(date + " 23:59:59","%Y-%m-%d %H:%M:%S") + timedelta(days=day)), "%Y-%m-%d %H:%M:%S")
+        else:
+            raise ValueError("date 只能为10位('2017-05-09')或19位('2017-05-09 23:59:59')的字符串")
+    unixST = int(time.mktime(ST)) if scope == "s" else int(time.mktime(ST)) * 1000
     return unixST
 
 def UnixToTime(unix):
@@ -509,13 +520,19 @@ if __name__ == "__main__":
     print(toFileBase64("../data/20201222101200.png"))
     print(toFileBase64("../data/config.yaml"))
     print(getFileSize("../data/20201222101200.png"))
-    print(getUnix())
-    print(getUnix(scope="ms"))
-    print(type(getUnix(scope="ms")))
     print(UnixToTime(unix=1644844153000))
     print(UnixToTime(unix=1636942336))
     print(gen_uuid())
     print(gen_uuid(True))
     print(gen_sign(getUnix(),"123456"))
     print(gen_sign(getUnix(),True))
+    print(getUnix(current=False))
+    print(getUnix())
+    print(getUnix(day=2, scope="ams"))
+    print(getUnix(date='2017-05-09 18:31:22'))
+    print(getUnix(date='2017-05-09'))
+    print(getUnix(date='2017-05-09 18:31:22', scope="ams"))
+    print(getUnix(date='2017-05-09', scope="ams"))
+    print(getUnix(date='2017-05-09 18:31:22', day=2))
+    print(getUnix(date='2017-05-09', day=2))
 
