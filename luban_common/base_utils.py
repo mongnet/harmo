@@ -131,12 +131,12 @@ def toFileBase64(file):
         image = f.read()
     return str(base64.b64encode(image), encoding='utf-8')
 
-def getUnix(date=None,day=0,current=True,scope="s"):
+def getUnix(date:str=None,day:int=0,current:bool=True,scope:str="s")->int:
     '''
     通过传入的时间获取时间戳，默认获取当前时间戳
     :param date:传入的时间，格式为：'2017-05-09 18:31:22'，当传的格式为'2017-05-09'时会自动转换成'2017-05-09 23:59:59'
     :param day:时间差，只能为正负整数，比如要向后推2天时，day可传2
-    :param current: 是否当前时间，True:当时时间，False:当天23:59:59
+    :param current: 是否当前时间，True:当前时间，False:当天23:59:59
     :param scope:时间戳范围，s(秒)，其它情况为(毫秒)
     :return: 返回时间戳
     '''
@@ -535,4 +535,6 @@ if __name__ == "__main__":
     print(getUnix(date='2017-05-09', scope="ams"))
     print(getUnix(date='2017-05-09 18:31:22', day=2))
     print(getUnix(date='2017-05-09', day=2))
+    print(getUnix(date='2017-05-09', day=2))
+
 
