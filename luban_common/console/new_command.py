@@ -1268,7 +1268,7 @@ class OpenAPI:
 
 class OpenApiMotorToken:
     '''
-    开放平台motor token获取
+    开放平台motor token获取 motor 1.0
     '''
     def __init__(self,token):
         self.token = token
@@ -1281,6 +1281,7 @@ class OpenApiMotorToken:
         resource = f'/auth-server/auth/motor/client_token'
         response = token.request('GET', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
         return response
 
     def validateToken(self, item_fixture,WebToken):
@@ -1290,6 +1291,44 @@ class OpenApiMotorToken:
         '''
         header = {"access_token": WebToken}
         resource = f'/openapi/motor/v1.0/service/uc/auth/validateToken'
+        response = item_fixture.request('GET', resource,header=header,flush_header=True)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
+        return response
+
+    def login(self):
+        '''
+        登录获取token
+        '''
+        GetToken = self.getMotorClientTokenUsingGET(self.token).get("data")[0]
+        self.validateToken(self.token,WebToken=GetToken)
+        return self.token
+
+class OpenApiMotorToken_V2:
+    '''
+    开放平台motor token获取 motor 2.0
+    '''
+    def __init__(self,token):
+        self.token = token
+
+    def getMotorClientTokenUsingGET(self, token):
+        '''
+        获取访问motor模型的token
+        :param item_fixture: item fixture,
+        '''
+        resource = f'/auth-server/auth/motor/client_token'
+        response = token.request('GET', resource)
+        Assertions().assert_code(response,response.get("status_code"), 200)
+        Assertions().assert_code(response,response.get("code")[0], 200)
+        return response
+
+    def validateToken(self, item_fixture,WebToken):
+        '''
+        验证token是否有效
+        :param item_fixture: item fixture
+        '''
+        header = {"access_token": WebToken}
+        resource = f'/openapi/rs/motor/v2/service/uc/auth/validateToken'
         response = item_fixture.request('GET', resource,header=header,flush_header=True)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)

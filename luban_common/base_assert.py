@@ -130,57 +130,61 @@ class Assertions:
 
     @classmethod
     @allure.step("校验以预期值开头，预期值为:{2}")
-    def assert_startswith(self, data,expected_value):
+    def assert_startswith(self, data,expected_value, msg=None):
         """
         校验以预期值开头
         :param data: 校验的data
         :param expected_value: 预期值
+        :param msg: 预制消息
         :return:
         """
         if isinstance(data,str):
-            assert data.startswith(expected_value),f"实际数据没有以：{expected_value} 开头, 实际数据为：{data}"
+            assert data.startswith(expected_value),f"实际数据没有以：{expected_value} 开头, 实际数据为：{data}" if not msg else f"{msg},实际数据没有以：{expected_value} 开头, 实际数据为：{data}"
         else:
             assert False, "只支持 str 的校验，其余暂不支持"
 
     @classmethod
     @allure.step("校验以预期值结尾，预期值为:{2}")
-    def assert_endswith(self, data,expected_value):
+    def assert_endswith(self, data,expected_value, msg=None):
         """
         校验以预期值结尾
         :param data: 校验的data
         :param expected_value: 预期值
+        :param msg: 预制消息
         :return:
         """
         if isinstance(data,str):
-            assert data.endswith(expected_value),f"实际数据没有以：{expected_value} 结尾, 实际数据为：{data}"
+            assert data.endswith(expected_value),f"实际数据没有以：{expected_value} 结尾, 实际数据为：{data}" if not msg else f"{msg},实际数据没有以：{expected_value} 结尾, 实际数据为：{data}"
         else:
             assert False, "只支持 str 的校验，其余暂不支持"
 
     @classmethod
     @allure.step("校验字典中存在预期key，预期值为:{2}")
-    def assert_in_key(self, data,key):
+    def assert_in_key(self, data,key, msg=None):
         """
         校验字典中存在预期key
         :param data: 响应数据
         :param key: 预期key值
+        :param msg: 预制消息
         :return:
         """
         if isinstance(data,(list,dict)):
-            assert key in base_utils.get_all_key(data),f"实际数据中未包含:{key}, 实际数据为：{data}"
+            assert key in base_utils.get_all_key(data), f"实际数据中未包含:{key}, 实际数据为：{data}" if not msg else f"{msg},实际数据中未包含:{key}, 实际数据为：{data}"
         else:
             assert False,f"{type(data)}数据类型不支持,现只支持list,dict"
 
     @classmethod
     @allure.step("校验字典中不存在预期key，预期值为:{2}")
-    def assert_not_in_key(self, data,expected_key):
+    def assert_not_in_key(self, data,expected_key, msg=None):
         """
         验证check_value中不存在预期key
         :param data: 响应数据
         :param expected_key: 预期key
+        :param msg: 预制消息
         :return:
         """
         if isinstance(data,(list,dict)):
-            assert expected_key not in base_utils.get_all_key(data),f"实际数据中存在预期key为：{expected_key} 的数据, 实际数据为：{data}"
+            assert expected_key not in base_utils.get_all_key(data), f"实际数据中存在预期key为：{expected_key} 的数据, 实际数据为：{data}" if not msg else f"{msg}, 实际数据中存在预期key为：{expected_key} 的数据, 实际数据为：{data}"
         else:
             assert False,f"{type(data)}数据类型不支持,现只支持list,dict"
 
@@ -195,87 +199,93 @@ class Assertions:
         :return:
         """
         if isinstance(reality_value,type(expected_value)):
-            assert expected_value == reality_value, f"断言失败, 实际值为:{reality_value}, 预期值为:{expected_value}" if not msg else f"断言失败:{msg}, 实际值为:{reality_value}, 预期值为：{expected_value}"
+            assert expected_value == reality_value, f"断言失败, 实际值为:{reality_value}, 预期值为:{expected_value}" if not msg else f"{msg}, 实际值为:{reality_value}, 预期值为：{expected_value}"
         else:
             assert False, f"数据类型不匹配,实际值:{reality_value} 类型为:{type(reality_value)},预期值:{expected_value} 类型为:{type(expected_value)}"
 
     @classmethod
     @allure.step("校验字符串中包含指定字符串，预期值为:{2}")
-    def assert_contains(self, original_value, contains_value):
+    def assert_contains(self, original_value, contains_value, msg=None):
         """
         断言字符串中包含指定字符串
         :param original_value: 实际字符串
         :param contains_value: 预期字符串
+        :param msg: 预制消息
         :return:
         """
         if isinstance(original_value, str) and isinstance(contains_value, str):
-            assert contains_value in original_value, f"断言失败，实际数据中未包含 {contains_value} ,实际值为:{original_value}"
+            assert contains_value in original_value, f"断言失败，实际数据中未包含 {contains_value} ,实际值为:{original_value}" if not msg else f"{msg}，实际数据中未包含 {contains_value} ,实际值为:{original_value}"
         else:
             assert False, "只支持str类型"
 
     @classmethod
     @allure.step("断言字符串中不包含指定字符串，预期值为:{2}")
-    def assert_not_contains(self, original_value, contains_value):
+    def assert_not_contains(self, original_value, contains_value, msg=None):
         """
         断言字符串中不包含指定字符串
         :param original_value: 实际字符串
         :param contains_value: 预期字符串
+        :param msg: 预制消息
         :return:
         """
         if isinstance(original_value, str) and isinstance(contains_value, str):
-            assert contains_value not in original_value, f"断言失败，实际数据包含了 {contains_value}, 实际值为:{original_value}"
+            assert contains_value not in original_value, f"断言失败，实际数据包含了 {contains_value}, 实际值为:{original_value}" if not msg else f"{msg}，实际数据中未包含 {contains_value} ,实际值为:{original_value}"
         else:
             assert False, "只支持str类型"
 
     @classmethod
     @allure.step("校验等于预期值，预期值为:{2}")
-    def assert_not_equal_value(self, reality_value, expected_value):
+    def assert_not_equal_value(self, reality_value, expected_value, msg=None):
         """
         校验不等于预期值
         :param reality_value: 实际值
         :param expected_value: 预期值
+        :param msg: 预制消息
         :return:
         """
-        assert expected_value != reality_value, f"断言失败，实际值等于预期值,实际值为:{reality_value}, 预期值为:{expected_value}"
+        assert expected_value != reality_value, f"断言失败，实际值等于预期值,实际值为:{reality_value}, 预期值为:{expected_value}" if not msg else f"{msg}，实际值等于预期值,实际值为:{reality_value}, 预期值为:{expected_value}"
 
     @classmethod
     @allure.step("校验是否等于None")
-    def assert_isNone(self, reality_value):
+    def assert_isNone(self, reality_value, msg=None):
         """
         校验是否等于None
         :param reality_value: 实际值
+        :param msg: 预制消息
         :return:
         """
         if reality_value is None:
             assert True
         else:
-            assert False, f"断言失败，{reality_value} 不等于None"
+            assert False, f"断言失败，{reality_value} 不等于None" if not msg else f"{msg}，{reality_value} 不等于None"
 
     @classmethod
     @allure.step("校验为空")
-    def assert_isEmpty(self, reality_value):
+    def assert_isEmpty(self, reality_value, msg=None):
         """
         校验值为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空
         :param reality_value: 实际值
+        :param msg: 预制消息
         :return:
         """
         if not reality_value:
             assert True
         else:
-            assert False, f"校验值不为空,值为:{reality_value}"
+            assert False, f"校验值不为空,值为:{reality_value}" if not msg else f"{msg}，校验值不为空,值为:{reality_value}"
 
     @classmethod
     @allure.step("校验不为空")
-    def assert_isNotEmpty(self, reality_value):
+    def assert_isNotEmpty(self, reality_value, msg=None):
         """
         校验值不为空，当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空
         :param reality_value: 实际值
+        :param msg: 预制消息
         :return:
         """
         if reality_value:
             assert True
         else:
-            assert False, f"校验值为空,值为:{reality_value}"
+            assert False, f"校验值为空,值为:{reality_value}" if not msg else f"{msg}，校验值为空,值为:{reality_value}"
 
     @classmethod
     @allure.step("校验时间小于预期，实际值为:{2}，预期值为:{3}")
