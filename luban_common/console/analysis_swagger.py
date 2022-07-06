@@ -4,12 +4,8 @@
 # @Author  : hubiao
 # @File    : analysis_swagger.py
 import os
-
-import chevron
 import requests
 import copy
-from datetime import datetime
-from pathlib2 import Path
 
 from luban_common import base_utils
 from luban_common.operation import yaml_file

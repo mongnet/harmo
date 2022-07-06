@@ -152,7 +152,7 @@ def getUnix(date:str=None,day:int=0,current:bool=True,scope:str="s")->int:
         elif  len(date) == 10:
             ST = time.strptime(str(datetime.strptime(date + " 23:59:59","%Y-%m-%d %H:%M:%S") + timedelta(days=day)), "%Y-%m-%d %H:%M:%S")
         else:
-            raise ValueError("date 只能为10位('2017-05-09')或19位('2017-05-09 23:59:59')的字符串")
+            raise ValueError("date 只能为10位'2017-05-09'或19位'2017-05-09 23:59:59'的字符串")
     unixST = int(time.mktime(ST)) if scope == "s" else int(time.mktime(ST)) * 1000
     return unixST
 
@@ -536,5 +536,9 @@ if __name__ == "__main__":
     print(getUnix(date='2017-05-09 18:31:22', day=2))
     print(getUnix(date='2017-05-09', day=2))
     print(getUnix(date='2017-05-09', day=2))
+    print(getUnix(date='2019-12-31'))
+    print(getUnix(date='2019-12-31 18:31:22', day=2))
+    print(UnixToTime(unix=1577807999))
+    print(UnixToTime(unix=getUnix(date='2019-12-31 18:31:22', day=2)))
 
 

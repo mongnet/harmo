@@ -1224,7 +1224,7 @@ class Token:
 
     def login(self):
         # 老客户端，使用soap的接口登录，需要调用
-        if self.productId in [33,45,86,92,93]:
+        if self.productId in [33,45,86,92,93,192]:
             self.getServerUrl()
         self.getToken()
         # 数字平台获取企业列表不用判断是否有客户端权限
@@ -1320,6 +1320,9 @@ class OpenApiMotorToken_V2:
         response = token.request('GET', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
+        # 验证token中是否包含epid
+        PAYLOAD = json.loads(base_utils.FromBase64(response.get("data")[0].split(".")[1]))
+        Assertions().assert_in_key(PAYLOAD,str("epId"))
         return response
 
     def validateToken(self, item_fixture,WebToken):
