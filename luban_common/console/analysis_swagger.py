@@ -152,6 +152,9 @@ class AnalysisSwaggerJson():
             "cookie_params": {},
             "cookie_params_args": [],
             "cookie_params_kwargs": [],
+            "formData_params": {},
+            "formData_params_args": [],
+            "formData_params_kwargs": [],
             "validate": [],
             "output": []
         }
@@ -178,7 +181,7 @@ class AnalysisSwaggerJson():
         # 调试用
         # if name != "获取某企业下的所有专业类型列表":
         #     return
-        # if name != "查询标段、单项、单位工程列表":
+        # if name != "批量上传表单模板接口":
         #     return
         for each in parameters:
             if each.get("in") == "body":
@@ -195,25 +198,37 @@ class AnalysisSwaggerJson():
                             bady = http_interface["body"]
                             del http_interface["body"]
                             http_interface.update({"body": [bady]})
-
-            if each.get("in") == "query":
+            elif each.get("in") == "query":
                 name = each.get("name")
                 http_interface["query_params"].update({name: each.get("type")})
                 if "description" in each.keys():
                     http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
-
-            if each.get("in") == "path":
+            elif each.get("in") == "path":
                 name = each.get("name")
                 http_interface["path_params"].update({name: each.get("type")})
                 if "description" in each.keys():
                     http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
-
-            if each.get("in") == "cookie":
+            elif each.get("in") == "cookie":
                 name = each.get("name")
                 http_interface["cookie_params"].update({name: each.get("type")})
                 if "description" in each.keys():
                     http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
-
+            elif each.get("in") == "formData":
+                name = each.get("name")
+                http_interface["formData_params"].update({name: each.get("type")})
+                http_interface.update({"body_binary": f"${each.get('name')}$"})
+                if "description" in each.keys():
+                    http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
+            else:
+                print("出现未处理的请求类型，请联系作者处理")
+        # 把 formData_params 的 key 组装成新的 query_params_url ,生成用例时添加成测试方法的参数
+        if "formData_params" in http_interface.keys() and http_interface["formData_params"]:
+            args = []
+            kwargs = []
+            for key, value in http_interface["formData_params"].items():
+                self.wash_body(key, http_interface["formData_params"], args, kwargs, parameters_form="formData")
+            http_interface["formData_params_args"] = list(set(args))
+            http_interface["formData_params_kwargs"] = list(set(kwargs))
         # 把 query_params 的 key 组装成新的 query_params_url ,生成用例时添加成测试方法的参数
         if "query_params" in http_interface.keys() and http_interface["query_params"]:
             args = []
@@ -247,10 +262,10 @@ class AnalysisSwaggerJson():
             http_interface["body_params_args"] = (list(set(self.args)) if http_interface["body_params_args"]==[] else http_interface["body_params_args"])
             http_interface["body_params_kwargs"] = (list(set(self.kwargs)) if http_interface["body_params_kwargs"]==[] else http_interface["body_params_kwargs"])
         # 把 args、kwargs 组装在一起，方便后续调用
-        http_interface["params_args"] = list(set(http_interface["path_params_args"] + http_interface["cookie_params_args"] + http_interface["query_params_args"] + http_interface["body_params_args"]))
-        http_interface["params_kwargs"] = list(set(http_interface["path_params_kwargs"]+http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"] + http_interface["body_params_kwargs"]))
-        http_interface["params_args_nobody"] = list(set(http_interface["path_params_args"] + http_interface["cookie_params_args"] + http_interface["query_params_args"]))
-        http_interface["params_kwargs_nobody"] = list(set(http_interface["path_params_kwargs"]+http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"]))
+        http_interface["params_args"] = list(set(http_interface["path_params_args"] + http_interface["cookie_params_args"] + http_interface["query_params_args"] + http_interface["formData_params_args"] + http_interface["body_params_args"]))
+        http_interface["params_kwargs"] = list(set(http_interface["path_params_kwargs"]+http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"]+ http_interface["formData_params_kwargs"] + http_interface["body_params_kwargs"]))
+        http_interface["params_args_nobody"] = list(set(http_interface["path_params_args"] + http_interface["cookie_params_args"] + http_interface["query_params_args"]  + http_interface["formData_params_args"]))
+        http_interface["params_kwargs_nobody"] = list(set(http_interface["path_params_kwargs"]+http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"] + http_interface["formData_params_kwargs"]))
         # 把 params_description 组装成 params_description_list 生成用例时,生成字段备注使用
         if "params_description" in http_interface.keys():
             params_description = []
@@ -488,6 +503,7 @@ if __name__ == "__main__":
     url20 = "http://192.168.13.246:8182/gateway/process-inspection/v2/api-docs?group=Center"
     url21 = "http://192.168.13.246:8182/pdscommon/rs/swagger/swagger.json"
     url30 = "http://192.168.13.242:8864/sphere/swagger-resources"
+    url31 = "http://192.168.13.246:8182/gateway/process-inspection/v2/api-docs?group=工序报检"
 
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
@@ -511,6 +527,7 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url18).analysis_json_data())
     # print(AnalysisSwaggerJson(url19).analysis_json_data())
     # print(AnalysisSwaggerJson(url20).analysis_json_data())
-    print(AnalysisSwaggerJson(url21).analysis_json_data())
+    # print(AnalysisSwaggerJson(url21).analysis_json_data())
     # print(AnalysisSwaggerJson(url30).analysis_json_data())
+    print(AnalysisSwaggerJson(url31).analysis_json_data())
 

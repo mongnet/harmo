@@ -205,7 +205,7 @@ class Assertions:
 
     @classmethod
     @allure.step("校验字符串中包含指定字符串,预期值为:{2}")
-    def assert_contains(self, original_value, contains_value, msg=None):
+    def assert_contains(self, original_value:str, contains_value:str, msg=None):
         """
         断言字符串中包含指定字符串
         :param original_value: 实际字符串
@@ -354,8 +354,8 @@ if __name__ == "__main__":
     list3 = ["89010001#89","89010001#89","89010001#89", "96003010#96"]
     list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}]
     list5 = [["89010001#89","89010001#89","89010001#89", "96003010#96"],{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}]
-    str0 = "彪哥的测试之路"
-    str1 = "彪哥"
+    str0 = "http://lkjt.lubansoft.net:8086/main/schedule/list"
+    str1 = "http://lkjt.lubansoft.net:8086"
     str2 = "大佬"
     data = ['WBS数据-质检','WEB质检-标段基本信息', 'w' ]
     expected_value = ['WEB质检-标段基本信息', 'WBS数据-质检']
@@ -370,7 +370,7 @@ if __name__ == "__main__":
     # Assertions.assert_assign_attribute_value(dict9, "hu", 50)
     # Assertions.assert_assign_attribute_value(dict10, "hu", 1.32)
     # Assertions.assert_assign_attribute_value(dict10, "hu", 1.32)
-    # Assertions.assert_contains(str0,str1)
+    Assertions.assert_contains("http://lkjt.lubansoft.net:8086/main/schedule/list","http://lkjt.lubansoft.net:8086")
     # Assertions.assert_not_contains(str0,str2)
     # Assertions.assert_list_repetition(list3)
     # Assertions.assert_in_value(data,expected_value)

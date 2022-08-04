@@ -39,8 +39,8 @@ weixin :
 matchs:
  -
   name: "排序"
-  match: "'direction': direction, 'property': property}]"
-  replace: "'direction': direction, 'property': property}] if property is not None else []"
+  match: "'property': property}]"
+  replace: "'property': property}] if property is not None else []"
  -
   name: "文件列表"
   match: "'fileMd5': fileMd5, 'fileSize': fileSize}]"

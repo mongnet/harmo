@@ -1385,7 +1385,7 @@ luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
 注：必须要在项目根目录下执行，会在对应的 `swagger` 和 `testcases` 目录下同时生成swagger接口方法和对应测试用例，如果指定了 `-p` 参数时会在 `testcases` 目录下生成对应的项目目录，并把测试用例放在里面
 
 ```python
-luban swaggerCase [-p [<...>]] <swagger-url-json> <project-directory> <case-directory>
+luban swaggerCase [-p [<...>]] [-b] [-t <...>] [-s] <swagger-url-json> <project-directory> <case-directory>
 ```
 
 > **swaggger-url-json**：swagger url 地址（必须要是json地址），必填参数
@@ -1421,7 +1421,7 @@ luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center 
 `luban weixin`：发送 `企业微信机器人` 消息命令，格式如下：
 
 ```python
-luban weixin [-o <...>] <title> <content> <department>
+luban weixin [-m <...>] [-t <...>] [-u <...>] [-o <...>] <hookkey> <content>
 ```
 
 > **hookkey**：webhook连接中的key，必填参数
@@ -1453,7 +1453,7 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "ca
 例：发送 `markdown` 消息
 
 ```python
-luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "markdown"
+luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之路` " -o "markdown"
 ```
 
 
