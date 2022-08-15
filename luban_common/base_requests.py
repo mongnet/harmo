@@ -44,7 +44,7 @@ class Send:
         :param address：请求的地址
         :param payload：请求的body数据，可以不传，默认为空
         :param header：header信息
-        :param flush_header: 刷新header，比如token就要通过flush_header
+        :param flush_header: 刷新header，默认临时刷新，只对当前请求有效，当传True时会刷新整个session，后续请求都会用新header
         :param files：上传文件时的文件信息
         :param params: URL传参，接收一个字典数据
         :param cookies_kwargs: cookie参数，接收一个字典数据
