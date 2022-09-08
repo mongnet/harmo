@@ -156,7 +156,7 @@ def getUnix(date:str=None,day:int=0,current:bool=True,scope:str="s")->int:
     unixST = int(time.mktime(ST)) if scope == "s" else int(time.mktime(ST)) * 1000
     return unixST
 
-def UnixToTime(unix):
+def UnixToTime(unix:int):
     '''
     把时间戳转换成时间
     :param unix: 时间戳
@@ -193,7 +193,7 @@ def getRecentMonthOfDay():
     unixtime = int(time.mktime(day.timetuple()))*1000
     return unixtime,day
 
-def calday(month, year):
+def calday(month:int, year:int):
     '''
     根据指定的年月，返回当月天数
     :param month: 月份
@@ -230,7 +230,7 @@ def shell(cmd):
     o = output.decode("utf-8")
     return o
 
-def generate_random_str(randomlength=8):
+def generate_random_str(randomlength:int=8):
     '''
     生成随机字符串
     :param randomlength: 默认生成的字符串长度为8位
@@ -538,7 +538,8 @@ if __name__ == "__main__":
     print(getUnix(date='2017-05-09', day=2))
     print(getUnix(date='2019-12-31'))
     print(getUnix(date='2019-12-31 18:31:22', day=2))
-    print(UnixToTime(unix=1577807999))
+    print(UnixToTime(unix=1662432740))
+    print(UnixToTime(unix=1494325882000))
     print(UnixToTime(unix=getUnix(date='2019-12-31 18:31:22', day=2)))
 
 
