@@ -65,3 +65,7 @@ matchs:
   name: "指定用户列表"
   match: "[{'approvalNodeId': approvalNodeId, 'approvalUsers': approvalUsers}]"
   replace: "[{'approvalNodeId': approvalNodeId, 'approvalUsers': approvalUsers}] if approvalUsers is not None else []"
+ -
+  name: "质检表单"
+  match: "[{'inspectionCode': inspectionCode, 'inspectionId': inspectionId, 'inspectionName': inspectionName}]"
+  replace: "[{'inspectionCode': inspectionCode, 'inspectionId': inspectionId, 'inspectionName': inspectionName}] if inspectionId is not None else []"

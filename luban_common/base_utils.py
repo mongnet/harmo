@@ -22,6 +22,8 @@ from datetime import datetime,timedelta
 import jsonpath
 from pathlib2 import Path
 
+from luban_common.base_assert import Assertions
+
 
 def getFileMD5(file_Path):
     '''
@@ -363,6 +365,7 @@ def TextLineContains(url, textKey, textValue):
     try:
         # 请求服务器
         resp = requests.get(url, verify=False)
+        assert resp.status_code==200,f'请求出错，响应接状态不等于200，现返回的状态码为：{resp.status_code}'
     except requests.exceptions.RequestException as e:
         assert False, f'请求连接地址出错，错误信息为:{e}'
     for line in resp.text.splitlines():
