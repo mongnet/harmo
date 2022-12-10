@@ -359,7 +359,7 @@ if __name__ == "__main__":
     str2 = "大佬"
     data = ['WBS数据-质检','WEB质检-标段基本信息', 'w' ]
     expected_value = ['WEB质检-标段基本信息', 'WBS数据-质检']
-    # Assertions.assert_dictOrList_eq(dict1,dict2)
+    Assertions.assert_dictOrList_eq(dict1,dict2)
     # Assertions.assert_dictOrList_eq(list1,list2)
     # Assertions.assert_assign_attribute_value(dict3, "hu", ["adf",1111, "胡彪"])
     # Assertions.assert_assign_attribute_value(dict5, "hu", ["adf",1111, "胡彪"])
@@ -370,7 +370,7 @@ if __name__ == "__main__":
     # Assertions.assert_assign_attribute_value(dict9, "hu", 50)
     # Assertions.assert_assign_attribute_value(dict10, "hu", 1.32)
     # Assertions.assert_assign_attribute_value(dict10, "hu", 1.32)
-    Assertions.assert_contains("http://lkjt.lubansoft.net:8086/main/schedule/list","http://lkjt.lubansoft.net:8086")
+    # Assertions.assert_contains("http://lkjt.lubansoft.net:8086/main/schedule/list","http://lkjt.lubansoft.net:8086")
     # Assertions.assert_not_contains(str0,str2)
     # Assertions.assert_list_repetition(list3)
     # Assertions.assert_in_value(data,expected_value)
