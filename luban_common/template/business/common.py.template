@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @TIME    : 2022/11/12 17:44
+# @Author  : hubiao
+# @File    : common.py
+
+from luban_common import base_utils
+from luban_common.base_assert import Assertions
+from swagger.pdscommon.fileaddressV2 import FileaddressV2
+from utils import utils
+
+
+class Common:
+    '''
+    通用业务封装
+    '''
+
+    @classmethod
+    def applyUploadUrlEx(self,token,fileRelativePath,isCheckFastUpload=True):
+        '''
+        获取文件上传地址上传文件，并返回文件UUID
+        :param token: token
+        :param fileRelativePath: 文件相对路径(相对于项目目录)，比如 data/autotest.dwg
+        :param isCheckFastUpload: 是否快速上传，默认快速上传
+        :return: 返回文件UUID
+        '''
+        filepath = utils.file_absolute_path(fileRelativePath)
+        fileName = base_utils.getFileName(filepath)
+        fileMd5 = base_utils.getFileMD5(filepath)
+        fileSize = base_utils.getFileSize(filepath)
+        body = [
+            {
+                "fileMd5": f"{fileMd5}",
+                "fileName": f"{fileName}",
+                "fileSize": f"{fileSize}",
+                "isBPUpload": True,
+                "isCheckFastUpload": isCheckFastUpload,
+                "suportModes": [0]
+            }
+        ]
+        # 获取上传地址
+        response = FileaddressV2().applyUploadUrlEx(token, bodyKwargs=body)
+        Assertions.assert_code(response, response.get("status_code"), 200)
+        # UUID为空时，调用上传地址对文件进行上传
+        if response.get('data_fileUUID')[0] is None:
+            uploadUrl = response.get('data_uploadUrls')[0]
+            response = token.request("POST", uploadUrl, files={'file': open(filepath, 'rb')})
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            fileUUID = response.get('uuid')[0]
+        else:
+            fileUUID = response.get('data_fileUUID')[0]
+        return fileUUID
+
+if __name__ == "__main__":
+    pass

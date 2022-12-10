@@ -1,0 +1,12 @@
+*.pyc
+__pycache__
+.DS_Store
+.vscode
+.idea
+.pypirc
+*/tmp/*
+dist/*
+*.egg-info
+*/logs/*
+*/reports/*
+.venv
