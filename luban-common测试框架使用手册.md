@@ -1515,7 +1515,7 @@ def lbbv(iworks_app_cas, env_conf, global_cache):
 
 
 
-####  4.3.1 global_cache（推荐使用Global_Map）
+####  4.3.1 global_cache（弃用，推荐使用Global_Map）
 
 全局缓存生命周期内产生的数据，主要用来解决数据依赖问题，比如 serverUrl 返回的项目地址、企业ID、项目部ID等通用数据
 
@@ -1730,7 +1730,7 @@ luban new iworksweb
 
 > 第2个是swagger对应的json地址，这个地址就是我们需要的地址
 
-在命令行中输入如下命令生成用例和接口方法
+在命令行中输入如下命令生成用例和接口方法，如果不知道 luban swaggerCase 怎么使用，可看前面的说明
 
 ```python
 luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan plan
@@ -1746,7 +1746,7 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 ![image-20210918153115409](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153115409.png)
 
-生成好的接口文件就可以直接在用例中调用了，调用方式和程序的类和方法调用方式一样，没有区别.
+生成好的接口文件就可以直接在用例中调用了，调用方式和程序的类和方法调用方式一样没有区别.
 
 打开 `test_webPlanCalendar.py` 文件，看看生成的测试用例是什么样子，查看到 `test_setPlanCalenDar` 测试用例如下
 
@@ -1758,7 +1758,7 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 #### 6.1.3 修改测试用例文件
 
-
+根据情况修改和完善自动生成的用例，比如参数、参数上下文引用、断言添加等，默认会添加http状态断言
 
 
 
@@ -1782,7 +1782,7 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 #### 6.1.6 运行测试
 
-进入 `testsuites` 目录，新建一个 `test_plan_add.py` 文件
+进入 `testcase` 目录，执行 pytest 就可以运行case了
 
 
 

@@ -4,8 +4,6 @@
 # Author  : hubiao
 # File    : global_map.py
 
-import json
-
 class Global_Map:
     '''
     全局变量
@@ -13,7 +11,7 @@ class Global_Map:
     map = {}
 
     @classmethod
-    def set(self, key, value):
+    def set(self, key:str, value:[str,int,list,dict,bool]):
         '''
         添加指定变量到全局变量
         :param key: 变量名
@@ -21,29 +19,26 @@ class Global_Map:
         :return:
         '''
         try:
-            if isinstance(value,dict):
-                value = json.dumps(value)
             self.map[key] = value
         except BaseException as msg:
             raise msg
 
     @classmethod
-    def sets(self, **kwargs):
+    def sets(self, dict_kwargs: dict):
         '''
         添加多个指定变量到全局变量
         :param kwargs: 变量字典
         :return:
         '''
         try:
-            for key, value in kwargs.items():
-                if isinstance(value, dict):
-                    value = json.dumps(value)
-                self.map[key] = value
+            if isinstance(dict_kwargs, dict):
+                for key, value in dict_kwargs.items():
+                    self.map[key] = value
         except BaseException as msg:
             raise msg
 
     @classmethod
-    def del_key(self, key):
+    def del_key(self, key: str):
         '''
         删除指定的全局变量
         :param key:

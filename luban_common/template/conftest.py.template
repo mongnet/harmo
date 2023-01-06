@@ -3,17 +3,6 @@
 # TIME    : 2018/10/9 18:07
 # Author  : hubiao
 # File    : conftest.py
-import os
-import time
-
-import pytest
-from luban_common import base_requests
-from luban_common.msg.robot import WeiXin
-from luban_common.operation import yaml_file
-
-from business import public_login
-from swagger.jump import Jump
-from utils.utils import file_absolute_path
 
 from luban_common.plugin import all_plugins
 

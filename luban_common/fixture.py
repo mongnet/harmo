@@ -10,9 +10,13 @@ import os
 import time
 
 import pytest
+
+from luban_common.global_map import Global_Map
 from luban_common.msg.robot import WeiXin
 from luban_common.operation import yaml_file
 from luban_common.base_utils import file_absolute_path
+from luban_common.config import Config
+
 
 def pytest_addoption(parser):
     '''
@@ -25,6 +29,7 @@ def pytest_addoption(parser):
     parser.addini('globalConf', help='global configuration')
     parser.addini('message_switch', help='message_switch configuration')
     parser.addini('success_message', help='success_message configuration')
+    parser.addini('load_locally', help='load_locally configuration')
     # 注册命令行参数
     group = parser.getgroup('testing environment configuration')
     group.addoption('--lb-driver',
@@ -44,28 +49,31 @@ def pytest_configure(config):
     :param config:
     :return:
     '''
-    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption('--lb-env')
-    browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption('--lb-driver')
-    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption('--lb-base-url')
-    if hasattr(config, '_metadata'):
+    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
+    browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
+    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
+    _load_locally = config.getini("load_locally")
+    if hasattr(config, "_metadata"):
         if envConf is not None:
-            config._metadata['运行配置'] = envConf
+            config._metadata["运行配置"] = envConf
         if browser is not None:
-            config._metadata['浏览器'] = browser
+            config._metadata["浏览器"] = browser
         if baseUrl is not None:
-            config._metadata['基础URL'] = baseUrl
+            config._metadata["基础URL"] = baseUrl
+        if _load_locally is not None:
+            config._metadata["本地载入初始化"] = _load_locally
 
 def pytest_report_header(config):
     '''
     向terminal打印custom环境信息
-    :param config:
+    :param pytestconfig:
     :param startdir:
     :return:
     '''
-    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption('--lb-env')
-    browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption('--lb-driver')
-    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption('--lb-base-url')
-    if envConf:
+    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
+    browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
+    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
+    if envConf is not None:
         return f'lb_driver: {browser}, lb_base_url: {baseUrl}, lb_env: {envConf}'
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
@@ -121,19 +129,21 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 @pytest.fixture(scope='session')
 def env_conf(pytestconfig):
     '''
-    获取lb-env和globalConf环境配置文件
+    获取lb-env和global环境配置文件
     :return:
     '''
-    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else pytestconfig.getoption('--lb-env')
-    globalConf = pytestconfig.getini('globalConf')
-    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption('--lb-base-url')
-    if envConf:
-        envConfDate = yaml_file.get_yaml_data(file_absolute_path(envConf))
-        if baseUrl:
-            envConfDate["base_url"] = baseUrl
-        if globalConf:
-            return {**envConfDate, **yaml_file.get_yaml_data(file_absolute_path(globalConf))}
-        return envConfDate
+    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else pytestconfig.getoption('--lb-env')
+    _global_conf_date = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir,"config/global"))
+    _globalConf = pytestconfig.getini('globalConf')
+    _baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption('--lb-base-url')
+    if _env_config:
+        _global_conf_date = {**_global_conf_date,**yaml_file.get_yaml_data(file_absolute_path(_env_config))}
+        if _baseUrl:
+            _global_conf_date["base_url"] = _baseUrl
+        if _globalConf:
+            return {**_global_conf_date, **yaml_file.get_yaml_data(file_absolute_path(_globalConf))}
+        Global_Map.sets(_global_conf_date)
+        return _global_conf_date
     else:
         raise RuntimeError('Configuration --lb-env not found')
 
