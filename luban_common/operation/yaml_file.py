@@ -1,12 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # @TIME    : 2020/2/15 20:00
 # @Author  : hubiao
 import os
-
-import ruamel.yaml
-import yaml
-
+from ruamel import yaml
 from luban_common.base_utils import file_is_exist
 from pathlib2 import Path
 
@@ -48,7 +45,7 @@ def writer_yaml(file,data:dict):
     :return:
     '''
     with open(file,"w",encoding="utf-8") as f:
-        writer = ruamel.yaml.YAML()
+        writer = yaml.YAML()
         writer.indent(mapping=2, sequence=4, offset=2)
         writer.dump(data,f)
 

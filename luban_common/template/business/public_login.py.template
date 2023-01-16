@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # @TIME    : 2019/1/2 11:19
 # @Author  : hubiao
@@ -38,13 +38,12 @@ class Center:
     '''
     Center CAS登录类
     '''
-    def __init__(self,centerusername,centerpassword,envConf,global_cache):
-        self.cache = global_cache
+    def __init__(self,centerusername,centerpassword,envConf):
         self.productId = envConf.get('productId').get('center')
         self.username = centerusername if isinstance(centerusername,int) else quote(centerusername)
         self.password = centerpassword
         self.header = envConf.get("headers").get("plain_header")
-        self.CenterLogin = base_requests.Send(envConf.get('pds'), envConf, global_cache=self.cache)
+        self.CenterLogin = base_requests.Send(envConf.get('pds'), envConf)
 
     def getServerUrl(self):
         '''
@@ -56,7 +55,7 @@ class Center:
         assert len(response.get("serverURL")) != 0
         for server in response.get("serverURL"):
             number = response.get("serverURL").index(server)
-            self.cache.set(response.get("serverName")[number],response.get("serverURL")[number])
+            Global_Map.set(response.get("serverName")[number],response.get("serverURL")[number])
 
     def getDeployType(self):
         '''
@@ -67,7 +66,7 @@ class Center:
         response = self.CenterLogin.request('get', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         deployType = response.get("Response_text")
-        self.cache.set('deployType', deployType)
+        Global_Map.set('deployType', deployType)
 
     def getLT(self):
         '''
@@ -102,7 +101,7 @@ class Center:
         response = self.CenterLogin.request('post', resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
         if len(response.get("epid")) > 0:
-            self.cache.set('CenterEpid',response.get("epid")[0])
+            Global_Map.set('CenterEpid',response.get("epid")[0])
 
     def switchCompany(self):
         '''
@@ -110,7 +109,7 @@ class Center:
         :return:
         '''
         resource = "/rs/centerLogin/login"
-        body = {"epid":self.cache.get("CenterEpid",False),"password": self.password,"username": self.username}
+        body = {"epid":Global_Map.get("CenterEpid"),"password": self.password,"username": self.username}
         response = self.CenterLogin.request('post', resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
 
@@ -129,14 +128,13 @@ class IworksApp:
     '''
     BV CAS登录类
     '''
-    def __init__(self,username,password,envConf,global_cache):
-        self.cache = global_cache
+    def __init__(self,username,password,envConf):
         self.productId = envConf.get('productId').get('iworksApp')
         self.username = username if isinstance(username,int) else quote(username)
         self.password = password
         self.header = envConf.get("headers").get("plain_header")
         self.clientVersion = envConf.get("iworksApp").get("clientVersion")
-        self.casLogin = base_requests.Send(envConf.get('pds'), envConf, global_cache=self.cache)
+        self.casLogin = base_requests.Send(envConf.get('pds'), envConf)
         self.epid = ''
 
     def getServerUrl(self):
@@ -149,7 +147,7 @@ class IworksApp:
         assert len(response.get("serverURL")) != 0
         for server in response.get("serverURL"):
             number = response.get("serverURL").index(server)
-            self.cache.set(response.get("serverName")[number],response.get("serverURL")[number])
+            Global_Map.set(response.get("serverName")[number],response.get("serverURL")[number])
 
     def getLT(self):
         '''
@@ -187,7 +185,7 @@ class IworksApp:
         response = self.casLogin.request('post', resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
         if len(response.get("enterpriseId")) > 0:
-            self.cache.set('iworksAppEpid', response.get("enterpriseId")[0])
+            Global_Map.set('iworksAppEpid', response.get("enterpriseId")[0])
             self.epid = response.get("enterpriseId")[0]
             return self.epid
 
@@ -284,16 +282,13 @@ class Iworks:
     '''
     iWorks CAS登录类
     '''
-    def __init__(self,username,password,productId,envConf,global_cache):
-        self.cache = global_cache
-        # self.rf = ManageConfig().getConfig(self.section)
-        # self.wf = ManageConfig()
+    def __init__(self,username,password,productId,envConf):
         self.productId = productId
         self.username = username if isinstance(username,int) else quote(username)
         self.password = password
         self.header =envConf.get("headers").get("soap_header")
         self.header1 = envConf.get("headers").get("urlencoded_header")
-        self.casLogin = base_requests.Send(envConf.get('pds'), envConf, global_cache=self.cache)
+        self.casLogin = base_requests.Send(envConf.get('pds'), envConf)
         self.epid = ''
 
     def getServerUrl(self):
@@ -313,7 +308,7 @@ class Iworks:
         Response_serverURL= base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:getServUrlResponse_return_list'][0]
         assert len(Response_serverURL)!=0,"serverURL不能为空"
         for server in Response_serverURL:
-            self.cache.set(dict(server).get("serverName"),dict(server).get("serverURL"))
+            Global_Map.set(dict(server).get("serverName"),dict(server).get("serverURL"))
 
     def getLT(self):
         '''
@@ -357,8 +352,7 @@ class Iworks:
         enterpriseId = base_utils.ResponseData(convertedXml)['soap:Envelope_soap:Body_ns2:getCompanyListResponse_return_enterpriseId']
         if len(enterpriseId) > 0:
             epids = eval(json.dumps(enterpriseId))[0]
-            self.cache.set('epid', epids)
-            Global_Map().set("epid", epids)
+            Global_Map.set("epid", epids)
             self.epid = epids
             return self.epid
 
@@ -654,12 +648,11 @@ class OpenAPI:
     '''
     开放平台登录类
     '''
-    def __init__(self,apikey,apisecret,envConf,global_cache):
-        self.cache = global_cache
+    def __init__(self,apikey,apisecret,envConf):
         self.apikey = apikey
         self.apisecret = apisecret
         self.username = envConf.get("openapi").get('username')
-        self.OpenAPIToken = base_requests.Send(envConf.get("openapi").get('host'), envConf, global_cache=self.cache)
+        self.OpenAPIToken = base_requests.Send(envConf.get("openapi").get('host'), envConf)
 
     def login(self):
         '''
@@ -758,13 +751,12 @@ class Bimapp:
     '''
     Bimapp 登录类
     '''
-    def __init__(self,username,password,envConf,global_cache):
-        self.cache = global_cache
+    def __init__(self,username,password,envConf):
         self.username = base_utils.ToBase64(username)
         self.password = password
         self.token = ''
         self.AcAddress = ''
-        self.BimappLogin = base_requests.Send(envConf.get("bimapp").get('host'), envConf, global_cache=self.cache)
+        self.BimappLogin = base_requests.Send(envConf.get("bimapp").get('host'), envConf)
 
     def getCookie(self):
         '''
@@ -816,11 +808,10 @@ class Bussiness:
     '''
     Bussiness 登录类
     '''
-    def __init__(self,username,password,envConf,global_cache):
-        self.cache = global_cache
+    def __init__(self,username,password,envConf):
         self.username = username
         self.password = password
-        self.BussinessLogin = base_requests.Send(envConf.get("Bussiness").get('host'), envConf, global_cache = self.cache)
+        self.BussinessLogin = base_requests.Send(envConf.get("Bussiness").get('host'), envConf)
 
     def login(self):
         '''
@@ -839,8 +830,7 @@ class LubanSoft:
     '''
     lubansoft 登录类
     '''
-    def __init__(self,username,password,envConf,global_cache):
-        self.cache = global_cache
+    def __init__(self,username,password,envConf):
         self.username = username
         self.password = password
         self.header = envConf.get("headers").get("soap_header")

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # @TIME    : 2019/4/3 15:12
 # @Author  : hubiao

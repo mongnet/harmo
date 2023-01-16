@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # Created by hubiao on 2017/5/17
 from __future__ import  unicode_literals

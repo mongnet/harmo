@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # @TIME    : 2018/7/31 17:18
 # @Author  : hubiao
@@ -8,6 +8,8 @@ import json
 import logging
 import requests
 import urllib3
+
+from luban_common.global_map import Global_Map
 
 urllib3.disable_warnings()
 
@@ -19,7 +21,7 @@ class Send:
     """
     发送请求类
     """
-    def __init__(self,host,envConf,global_cache=None,header=None):
+    def __init__(self,host,envConf,header=None):
         """
         请求数据初始化
         :param host：请求的地址前缀
@@ -28,7 +30,6 @@ class Send:
         :param header：请求头信息
         """
         self.host = host
-        self.cache = global_cache
         self.session = requests.session()
         if "headers" in envConf:
             self.header = envConf["headers"]["json_header"] if header is None else header
@@ -159,11 +160,11 @@ class Send:
             # 保存cas和CASTGC Cookie，在cas地址进行302跳转时使用
             if r.status_code == 200 and "Cookie" in r.request.headers.keys() and "CASTGC"in r.request.headers.get("Cookie") and self.pdsUrl in r.request.url:
                 # 保存cas和CASTGC Cookie，在cas地址进行302跳转时使用
-                self.cache.set("CasCookie", r.request.headers.get("Cookie"))
+                Global_Map.set("CasCookie", r.request.headers.get("Cookie"))
             # 如果响应码是302，且location是cas地址的跳转时，要加上cas的cookie并跳转这个location，如果取到的CasCookie为False时不跳转
-            elif r.status_code == 302 and "Location" in r.headers.keys() and self.pdsUrl in r.headers.get("Location") and self.cache.get("CasCookie",False):
+            elif r.status_code == 302 and "Location" in r.headers.keys() and self.pdsUrl in r.headers.get("Location") and Global_Map.get("CasCookie"):
                 header = json.loads(self.header)
-                header.update({"cookie":self.cache.get("CasCookie",False)})
+                header.update({"cookie":Global_Map.get("CasCookie")})
                 self.session.request(method=r.request.method, url=r.headers.get("Location"), headers=header,
                                      timeout=60, verify=False)
         except BaseException as e:

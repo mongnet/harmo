@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "luban_common"
-version = "3.0.18"
+version = "3.0.21"
 description = "鲁班API基础库"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
@@ -26,6 +26,7 @@ xmltodict = "^0.13.0"
 suds-py3 = "^1.4.5"
 pytest-rerunfailures = "^10.2"
 pytest = "^7.2.0"
+"ruamel.yaml" = "^0.17.21"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2"

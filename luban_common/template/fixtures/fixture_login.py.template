@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # @Time : 2022-12-4 16:38
 # @Author : hubiao
@@ -10,9 +11,10 @@ import time
 import pytest
 from luban_common import base_requests
 from business import public_login
+from luban_common.global_map import Global_Map
 
 @pytest.fixture(scope='session')
-def bimadmin_login(env_conf, global_cache):
+def bimadmin_login(env_conf):
     '''
     BIM Aadmin运维管理系统登录
     :return:
@@ -21,97 +23,94 @@ def bimadmin_login(env_conf, global_cache):
     yield BimAdminLogin
 
 @pytest.fixture(scope='session')
-def iworks_app_cas(env_conf, global_cache):
+def iworks_app_cas(env_conf):
     '''
     获取PDS登录凭证
     :return:
     '''
-    public_login.IworksApp(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'), env_conf, global_cache).login()
+    public_login.IworksApp(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'), env_conf).login()
     yield
 
 @pytest.fixture(scope='session')
-def lbbv(iworks_app_cas, env_conf, global_cache):
+def lbbv(iworks_app_cas, env_conf):
     '''
     获取LBBV登录凭证
     :return:
     '''
-    LBBV = base_requests.Send(global_cache.get('lbbv', False), env_conf, global_cache)
+    LBBV = base_requests.Send(Global_Map.get('lbbv'), env_conf)
     yield LBBV
 
 @pytest.fixture(scope='session')
-def bimco(iworks_app_cas, env_conf, global_cache):
+def bimco(iworks_app_cas, env_conf):
     '''
     获取BimCO登录凭证
     :return:
     '''
-    BimCO = base_requests.Send(global_cache.get('bimco', False), env_conf, global_cache)
+    BimCO = base_requests.Send(Global_Map.get('bimco'), env_conf)
     yield BimCO
 
 @pytest.fixture(scope='session')
-def process(iworks_app_cas, env_conf, global_cache):
+def process(iworks_app_cas, env_conf):
     '''
     获取Process登录凭证
     :return:
     '''
-    Process = base_requests.Send(global_cache.get('lbprocess', False), env_conf, global_cache)
+    Process = base_requests.Send(Global_Map.get('lbprocess'), env_conf)
     yield Process
 
 @pytest.fixture(scope='session')
-def pds_common(iworks_app_cas, env_conf, global_cache):
+def pds_common(iworks_app_cas, env_conf):
     '''
     获取PDSCommon登录凭证
     :return:
     '''
-    PDSCommon = base_requests.Send(global_cache.get('pdscommon', False), env_conf, global_cache)
+    PDSCommon = base_requests.Send(Global_Map.get('pdscommon'), env_conf)
     yield PDSCommon
 
 @pytest.fixture(scope='session')
-def pds_doc(iworks_app_cas, env_conf, global_cache):
+def pds_doc(iworks_app_cas, env_conf):
     '''
     获取pdsdoc登录凭证
     :return:
     '''
-    PDSDoc = base_requests.Send(global_cache.get('pdsdoc', False), env_conf, global_cache)
+    PDSDoc = base_requests.Send(Global_Map.get('pdsdoc'), env_conf)
     yield PDSDoc
 
 @pytest.fixture(scope='session')
-def builder_common_business_data(iworks_app_cas, env_conf, global_cache):
+def builder_common_business_data(iworks_app_cas, env_conf):
     '''
     获取BusinessData登录凭证
     :return:
     '''
-    builderCommonBusinessData = base_requests.Send(global_cache.get('buildercommonbusinessdata', False), env_conf, global_cache)
+    builderCommonBusinessData = base_requests.Send(Global_Map.get('buildercommonbusinessdata'), env_conf)
     yield builderCommonBusinessData
 
 @pytest.fixture(scope='session')
-def bimapp_login(env_conf, global_cache):
+def bimapp_login(env_conf):
     '''
     BIMApp 通行证系统登录
     :return:
     '''
-    BimAppLogin = public_login.Bimapp(env_conf.get('bimapp').get('username'), env_conf['bimapp']['password'], env_conf,
-                                      global_cache).login()
+    BimAppLogin = public_login.Bimapp(env_conf.get('bimapp').get('username'), env_conf['bimapp']['password'], env_conf).login()
     yield BimAppLogin
 
 @pytest.fixture(scope='session')
-def bussiness_login(env_conf, global_cache):
+def bussiness_login(env_conf):
     '''
     Bussiness 业务管理系统登录
     :return:
     '''
-    BussinessLogin = public_login.Bussiness(env_conf.get('Bussiness').get('username'), env_conf.get('Bussiness').get('password'), env_conf,
-                                            global_cache).login()
+    BussinessLogin = public_login.Bussiness(env_conf.get('Bussiness').get('username'), env_conf.get('Bussiness').get('password'), env_conf).login()
     yield BussinessLogin
 
 
 @pytest.fixture(scope='session')
-def lubansoft_login(env_conf, global_cache):
+def lubansoft_login(env_conf):
     '''
     算量软件登录
     :return:
     '''
-    LubansoftLogin = public_login.LubanSoft(env_conf.get('lubansoft').get('username'), env_conf.get('lubansoft').get('password'), env_conf,
-                                            global_cache).login()
+    LubansoftLogin = public_login.LubanSoft(env_conf.get('lubansoft').get('username'), env_conf.get('lubansoft').get('password'), env_conf).login()
     yield LubansoftLogin
 
 
@@ -146,7 +145,7 @@ def appToken(env_conf):
     resule.logout()
 
 @pytest.fixture(scope='session')
-def openapi_motor_token(token, env_conf, global_cache):
+def openapi_motor_token(token, env_conf):
     '''
     获取openapi_motor_token
     :return:
@@ -225,15 +224,15 @@ def iworksjToken(env_conf):
     resule.logout()
 
 @pytest.fixture(scope='session')
-def OpenAPIToken(env_conf, global_cache):
+def OpenAPIToken(env_conf):
     '''
     登录获取token
     '''
-    OpenAPIToken = public_login.OpenAPI(env_conf.get("openapi").get("apikey"), env_conf.get("openapi").get("apisecret"), env_conf, global_cache).login()
+    OpenAPIToken = public_login.OpenAPI(env_conf.get("openapi").get("apikey"), env_conf.get("openapi").get("apisecret"), env_conf).login()
     yield OpenAPIToken
 
 @pytest.fixture(scope='session')
-def openapi_motor_token_V1(token, env_conf, global_cache):
+def openapi_motor_token_V1(token, env_conf):
     '''
     获取openapi_motor_token motot 1.0
     :return:
@@ -242,7 +241,7 @@ def openapi_motor_token_V1(token, env_conf, global_cache):
     yield  resule
 
 @pytest.fixture(scope='session')
-def openapi_motor_token_V2(token, env_conf, global_cache):
+def openapi_motor_token_V2(token, env_conf):
     '''
     获取openapi_motor_token motot 2.0
     :return:

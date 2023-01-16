@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # Created by hu on 2018/4/29
 
@@ -64,9 +64,9 @@ class OperationExcel:
 
 if __name__ == '__main__':
     oper = OperationExcel(file_path="../../data/Quality_check_lib.xls",sheetID=0)
-    # print(oper.get_data().nrows)
+    print(oper.get_data())
+    print(oper.get_data().nrows)
     print(oper.get_lines())
     print(oper.get_cells())
     print(oper.get_line(0))
     print(oper.get_cell(0,0))
-    print(type(oper.get_cell(0,0)))
