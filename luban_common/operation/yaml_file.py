@@ -7,7 +7,7 @@ from ruamel import yaml
 from luban_common.base_utils import file_is_exist
 from pathlib2 import Path
 
-def get_yaml_data(file_path):
+def get_yaml_data(file_path) -> dict:
     '''
     传入yaml文件路径，返回yaml文件内的数据，返回类型为dcit
     :param yaml_file:
@@ -23,7 +23,7 @@ def get_yaml_data(file_path):
 
 def get_yaml_data_all(catalogue) -> dict:
     '''
-    获取目录下全部，返回yaml文件内的数据，返回类型为dcit
+    获取指定目录下全部yaml文件，并返回yaml文件内的数据，返回类型为dcit
     :param catalogue:目录
     :return:
     '''

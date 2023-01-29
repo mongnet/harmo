@@ -146,7 +146,7 @@ class WeiXin:
         wechat_json = {
             "msgtype": "file",
             "file": {
-                 "media_id": self.up_file(hookkey,file)
+                 "media_id": self.__up_file(hookkey,file)
             }
         }
 
@@ -158,7 +158,7 @@ class WeiXin:
             print("发送文件失败")
 
     @classmethod
-    def up_file(self,hookkey,file):
+    def __up_file(self,hookkey,file):
         """
         上传文件
         :param hookkey: webhook的key

@@ -1,12 +1,13 @@
-# 出现在这里的值，不会做为方法的参数；黑名单只支持列表，一行一个
 # yaml的列表语法为 "- key"，横杆和key之间必须要有空格
+# 注意冒号后要有空格，这是yaml的语法
+# 如果要引用变量或代码，可通过 $变量$ 的方式
+
+# 黑名单，出现在这里的值，不会做为方法的参数；黑名单只支持列表，一行一个
 blacklist:
  - lubanremarks # 这是一个例子
 
 # 方法里面需要设置默认参数时的配置，key就是参数名称，后面的value就是默认值
 # 只支持key: value 的形式
-# 注意冒号后要有空格，这是yaml的语法
-# 如果要引用变量或代码，可通过 $变量$ 的方式
 defaultParame:
  currentPage: 1 # 当前页
  page: 1 # 也是当前页，设计未统一导致的问题
@@ -27,15 +28,7 @@ defaultParame:
  parentNodeId: "" # 父节点，如果父节点为项目部传空字符串
  prevNodeId: -1 # 排序时的上一个节点id, 没有则传-1
 
-#微信配置
-weixin :
-  corpid : ww7cfc619509f4c78c
-  secret : 0fmsVQuSrClZG9pi0BjvpiSdPCBuaQdukmKZwezf4PY
-  agentid : 1000003
-
 # 替换脚本文件内容，会用到 body 请求体中，比如有些排序参数，没有指定参数时需要有默认处理方式，用替换方式简单、快速、直接
-# yaml的列表语法为 "- key"，横杆和key之间必须要有空格
-# 如果要引用变量或代码，可通过 $变量$ 的方式
 matchs:
  -
   name: "排序"

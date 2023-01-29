@@ -77,6 +77,7 @@ if __name__ == '__main__':
     gl = Global_Map()
     gl.set("name","hubiao")
     gl.set("age","25")
+    gl.sets({"公众号":"彪哥的测试之路"})
     gl.del_key("aged")
     print(gl.get("all"))
     print(gl.get("name","ada"))

@@ -7,7 +7,6 @@
 from luban_common import base_utils
 from luban_common.base_assert import Assertions
 from swagger.pdscommon.fileaddressV2 import FileaddressV2
-from utils import utils
 
 
 class Common:
@@ -24,7 +23,7 @@ class Common:
         :param isCheckFastUpload: 是否快速上传，默认快速上传
         :return: 返回文件UUID
         '''
-        filepath = utils.file_absolute_path(fileRelativePath)
+        filepath = base_utils.file_absolute_path(fileRelativePath)
         fileName = base_utils.getFileName(filepath)
         fileMd5 = base_utils.getFileMD5(filepath)
         fileSize = base_utils.getFileSize(filepath)

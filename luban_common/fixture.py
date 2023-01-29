@@ -25,8 +25,6 @@ def pytest_addoption(parser):
     :return:
     '''
     # 自定义的配置选项需要先注册如果，才能在ptest.ini中使用，注册方法如下
-    # parser.addini('email_subject', help='test reports email subject')
-    parser.addini('globalConf', help='global configuration')
     parser.addini('message_switch', help='message_switch configuration')
     parser.addini('success_message', help='success_message configuration')
     parser.addini('load_locally', help='load_locally configuration')
@@ -49,17 +47,18 @@ def pytest_configure(config):
     :param config:
     :return:
     '''
-    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
-    browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
-    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
+    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
+    _browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
+    _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
     _load_locally = config.getini("load_locally")
+    Global_Map.sets({"--lb-env":_env_config,"--lb-driver":_browser,"--lb-base-url":_base_url,"load_locally":_load_locally})
     if hasattr(config, "_metadata"):
-        if envConf is not None:
-            config._metadata["运行配置"] = envConf
-        if browser is not None:
-            config._metadata["浏览器"] = browser
-        if baseUrl is not None:
-            config._metadata["基础URL"] = baseUrl
+        if _env_config is not None:
+            config._metadata["运行配置"] = _env_config
+        if _browser is not None:
+            config._metadata["浏览器"] = _browser
+        if _base_url is not None:
+            config._metadata["基础URL"] = _base_url
         if _load_locally is not None:
             config._metadata["本地载入初始化"] = _load_locally
 
@@ -70,34 +69,36 @@ def pytest_report_header(config):
     :param startdir:
     :return:
     '''
-    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
-    browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
-    baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
-    if envConf is not None:
-        return f'lb_driver: {browser}, lb_base_url: {baseUrl}, lb_env: {envConf}'
+    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
+    _browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
+    _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
+    if _env_config is not None:
+        return f'lb_driver: {_browser}, lb_base_url: {_base_url}, lb_env: {_env_config}'
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    '''收集测试结果并发送到对应IM'''
+    '''
+    收集测试结果并发送到对应IM
+    '''
     # 读取配置文件中的robot
-    envConf = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption('--lb-env')
-    envConfDate = yaml_file.get_yaml_data(file_absolute_path(envConf))
-    weixin_robot = envConfDate.get('weixin_robot')
+    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
+    envConfDate = yaml_file.get_yaml_data(file_absolute_path(_env_config))
+    weixin_robot = envConfDate.get("weixin_robot")
     # 定义测试结果
     total = terminalreporter._numcollected
-    passed = len([i for i in terminalreporter.stats.get('passed', []) if i.when != 'teardown'])
-    failed = len([i for i in terminalreporter.stats.get('failed', []) if i.when != 'teardown'])
-    error = len([i for i in terminalreporter.stats.get('error', []) if i.when != 'teardown'])
-    skipped = len([i for i in terminalreporter.stats.get('skipped', []) if i.when != 'teardown'])
+    passed = len([i for i in terminalreporter.stats.get("passed", []) if i.when != "teardown"])
+    failed = len([i for i in terminalreporter.stats.get("failed", []) if i.when != "teardown"])
+    error = len([i for i in terminalreporter.stats.get("error", []) if i.when != "teardown"])
+    skipped = len([i for i in terminalreporter.stats.get("skipped", []) if i.when != "teardown"])
     total_times = time.time() - terminalreporter._sessionstarttime
-    message_switch = True if config.getini('message_switch') == 'True' else False
-    success_message = True if config.getini('success_message') == 'True' else False
-    html_report = config.getoption('--html')
+    message_switch = True if config.getini("message_switch") == "True" else False
+    success_message = True if config.getini("success_message") == "True" else False
+    html_report = config.getoption("--html")
     # 判断是否要发送消息
     if message_switch:
         if weixin_robot:
             send = WeiXin()
             # 通过jenkins构件时，可以获取到JOB_NAME
-            JOB_NAME = '通用' if config._metadata.get('JOB_NAME') is None else config._metadata.get('JOB_NAME')
+            JOB_NAME = "通用" if config._metadata.get("JOB_NAME") is None else config._metadata.get("JOB_NAME")
             if failed + error != 0:
                 markdown_content = f'''
                                     # 警告！`{JOB_NAME}` 巡检出现异常
@@ -126,40 +127,48 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         else:
             print("配置文件中 weixin_robot 未配置，无法发送报告")
 
-@pytest.fixture(scope='session')
+def pytest_unconfigure(config):
+    '''
+    在退出测试过程之前调用
+    :param config:
+    :return:
+    '''
+    # 判断是否要把全局变量写入到 _global_conf_date.yaml 文件
+    _load_locally = True if config.getini("load_locally") == "True" else False
+    if _load_locally:
+        yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_conf_date.yaml"), data=Global_Map.get())
+
+@pytest.fixture(scope="session")
 def env_conf(pytestconfig):
     '''
     获取lb-env和global环境配置文件
     :return:
     '''
-    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else pytestconfig.getoption('--lb-env')
+    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else pytestconfig.getoption("--lb-env")
     _global_conf_date = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir,"config/global"))
-    _globalConf = pytestconfig.getini('globalConf')
-    _baseUrl = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption('--lb-base-url')
+    _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption("--lb-base-url")
     if _env_config:
         _global_conf_date = {**_global_conf_date,**yaml_file.get_yaml_data(file_absolute_path(_env_config))}
-        if _baseUrl:
-            _global_conf_date["base_url"] = _baseUrl
-        if _globalConf:
-            return {**_global_conf_date, **yaml_file.get_yaml_data(file_absolute_path(_globalConf))}
+        if _base_url:
+            _global_conf_date["base_url"] = _base_url
         Global_Map.sets(_global_conf_date)
         return _global_conf_date
     else:
-        raise RuntimeError('Configuration --lb-env not found')
+        raise RuntimeError("Configuration --lb-env not found")
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def base_url(pytestconfig):
     '''
     base URL
     :return:
     '''
-    base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption('--lb-base-url')
-    if base_url:
-        return base_url
+    _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption("--lb-base-url")
+    if _base_url:
+        return _base_url
     else:
-        raise RuntimeError('--lb-base-url not found')
+        raise RuntimeError("--lb-base-url not found")
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def global_cache(request):
     '''
     全局缓存，当前执行生命周期有效

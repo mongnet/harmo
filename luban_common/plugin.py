@@ -16,17 +16,17 @@ def get_fixture():
     :return: fixture路径列表
     """
     _fixtures_dir = os.path.join(Config.project_root_dir,"fixtures")
-    fixtures = []
+    _fixtures = []
     # 项目目录fixtures目录下的fixture
     for root, _, files in os.walk(_fixtures_dir):
         for file in files:
             if file.startswith("fixture") and file.endswith(".py"):
                 full_path = os.path.join(root, file)
                 import_path = full_path.replace(_fixtures_dir, "").replace("\\", ".").replace("/", ".").replace(".py", "")
-                fixtures.append("fixtures" + import_path)
+                _fixtures.append("fixtures" + import_path)
     # luban-common框架自带的fixture
-    fixtures.append("luban_common.fixture")
-    return fixtures
+    _fixtures.append("luban_common.fixture")
+    return _fixtures
 
 def all_plugins():
     '''
@@ -34,11 +34,11 @@ def all_plugins():
     :return:
     '''
     # 设置项目目录
-    caller = inspect.stack()[1]
-    Config.project_root_dir = os.path.dirname(caller.filename)
+    _caller = inspect.stack()[1]
+    Config.project_root_dir = os.path.dirname(_caller.filename)
     # 获取全部插件
-    plugins = get_fixture()
-    return plugins
+    _fixtures = get_fixture()
+    return _fixtures
 
 if __name__ == '__main__':
     print(all_plugins())
