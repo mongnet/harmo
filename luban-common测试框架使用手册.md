@@ -1642,9 +1642,54 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之
 
 
 
-### 4.3 自定义fixture
+### 4.3 系统自带fixture
 
-项目目录下的fixtures文件夹用来存放自定义fixture，测试启动时会自动匹配和加载fixtures文件夹下以 fixture 开头，且以 .py 结尾的文件。
+系统自带了2个fixtrue
+
+#### 4.3.1 env_conf
+
+环境配置，合并了 `pytest.ini` 配置中 `--lb-env` 和 `config/global` 文件夹中的 yaml 数据，使用字典的方式取值，使用方法为：
+
+```python
+env_conf.get("center").get("username")
+```
+
+例：获取产品 header 信息等
+
+```python
+class Token:
+    '''
+    通用token登录类
+    '''
+    def __init__(self,username,password,productId,envConf,loginType=None):
+        self.productId = productId
+        self.username = username
+        self.password = password
+        self.header = envConf.get("headers").get("json_header")
+        self.Login = base_requests.Send(envConf.get('base_url'), envConf)
+        self.epid = ""
+        self.token = ""
+        self.loginType = "CENTER_WEB" if loginType is None else loginType
+        self.envConf = envConf
+```
+
+> **提示**：读取到的 env_conf 数据也会同时写入到 Global_Map 中，方便数据共享，但 Global_Map  中的数据是可以修改的，修改后 env_conf  中不会同步修改
+
+
+
+#### 4.3.2 base_url
+
+基础URL， `base_url `  获取的是  `--lb-base-url` 的值，可在 `pytest.ini` 中指定，或在cmd命令中使用  `--lb-base-url` 指定，使用时只要把 `base_url ` 当参数传入对应的函数即可，使用方法为：
+
+```
+web框架时使用，暂未使用到
+```
+
+
+
+### 4.4 自定义fixture
+
+项目目录下的fixtures文件夹用来存放自定义fixture，测试启动时会自动匹配和加载fixtures文件夹下以 fixture 开头，且以 .py 结尾的文件，前提是这些文件中的函数要指定了 `@pytest.fixture` 。
 
 > **规范**：conftest中不要出现自定义的fixture，conftest中只要引入 pytest_plugins = all_plugins() 即可
 
@@ -1658,37 +1703,29 @@ pytest_plugins = all_plugins()
 
 
 
-#### 4.3.1 env_conf
+#### 4.4.1 登录并获取token的fixture
 
-环境配置，合并了 `pytest.ini` 配置中 `--lb-env` 和 `config/global` 文件夹中的 yaml 数据，使用字典的方式取值，使用方法为：
-
-```python
-env_conf.get("center").get("username")
-```
-
-例：获取产品productId、header信息等
+在 fixtures 文件夹下，新建 fixture_login.py，代码如下：
 
 ```python
-def __init__(self,username,password,envConf):
-    self.productId = envConf['iworksWebProductId']
-    self.username = username
-    self.password = password
-    self.header = envConf["headers"]["json_header"]
-    self.casLogin = base_requests.Send(envConf['pds'], envConf)
-    self.epid = ''
+# -*- coding: utf-8 -*-
+# @Time : 2022-12-4 16:38
+# @Author : hubiao
+# @Email : 250021520@qq.com
+# @公众号 : 彪哥的测试之路
+
+@pytest.fixture(scope='session')
+def token(env_conf):
+    '''
+    数据管理平台获取登录凭证
+    :return:
+    '''
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksWeb'), env_conf,env_conf['productId']['iworksWeb'])
+    yield  resule.login()
+    resule.logout()
 ```
 
-> **提示**：读取到的 env_conf 数据也会同时写入到 Global_Map 中，方便数据共享，但 Global_Map  中的数据是可以修改的，修改后 env_conf  中不会同步修改
-
-
-
-#### 4.3.2 base_url
-
-基础URL，当参数传入对应的函数即可，使用方法为：
-
-```
-web框架时使用
-```
+这样一个自定义的 fixture 就定义完成了
 
 
 
@@ -1710,6 +1747,9 @@ luban new CenterAutomation
 
 ```python
 ├─business
+│   ├─dev
+│  	    ├─public_login.py
+│   │	└─common.py
 │   └─__init__.py
 ├─config
 │   ├─dev
@@ -1720,8 +1760,12 @@ luban new CenterAutomation
 │   │	└─config.yaml
 │   ├─release
 │   │	└─config.yaml
-│   └─globalConf.yaml
+│   └─global
+│   	└─globalConf.yaml
 ├─data
+├─fixtures
+│   ├─fixture_login.py
+│   └─__init__.py
 ├─reports
 ├─swagger
 │   ├─__init__.py
@@ -1767,11 +1811,13 @@ luban new CenterAutomation
 
 > **pytest.ini**：pytest 配置文件，有些默认配置
 
+> **fixtures**：存放自定义 `fixture`
+
 
 
 ### 5.2 执行测试
 
-生成项目时默认会生成一份演示数据，进入 `CenterAutomation`  目录，执行测试有二种方式
+执行测试有二种方式，生成项目时默认会生成一份演示数据，进入 `CenterAutomation`  目录：
 
 **使用默认配置执行**：在命令行中输入如下命令，表示使用 `pytest.ini` 中的默认配置执行测试
 

@@ -171,7 +171,7 @@ def base_url(pytestconfig):
 @pytest.fixture(scope="session")
 def global_cache(request):
     '''
-    全局缓存，当前执行生命周期有效
+    全局缓存，当前执行生命周期有效，即将废弃
     :param request:
     :return:
     '''

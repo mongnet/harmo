@@ -1,8 +1,9 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # @TIME    : 2019/1/2 11:19
 # @Author  : hubiao
 # @File    : public_login.py
+
 import json
 import re
 import xmltodict
@@ -39,17 +40,17 @@ class Center:
     Center CAS登录类
     '''
     def __init__(self,centerusername,centerpassword,envConf):
-        self.productId = envConf.get('productId').get('center')
+        self.productId = envConf.get("productId").get("center")
         self.username = centerusername if isinstance(centerusername,int) else quote(centerusername)
         self.password = centerpassword
         self.header = envConf.get("headers").get("plain_header")
-        self.CenterLogin = base_requests.Send(envConf.get('pds'), envConf)
+        self.CenterLogin = base_requests.Send(envConf.get("pds"), envConf)
 
     def getServerUrl(self):
         '''
         获取服务器地址信息
         '''
-        resource = '/rs/centerLogin/serverurl'
+        resource = "/rs/centerLogin/serverurl"
         response = self.CenterLogin.request('get', resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         assert len(response.get("serverURL")) != 0
@@ -62,19 +63,19 @@ class Center:
         获取部署类型
         :return:
         '''
-        resource = '/rs/centerLogin/deployType'
-        response = self.CenterLogin.request('get', resource)
+        resource = "/rs/centerLogin/deployType"
+        response = self.CenterLogin.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         deployType = response.get("Response_text")
-        Global_Map.set('deployType', deployType)
+        Global_Map.set("deployType", deployType)
 
     def getLT(self):
         '''
         获取LT
         :return:
         '''
-        resource = '/login'
-        response = self.CenterLogin.request('get', resource)
+        resource = "/login"
+        response = self.CenterLogin.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         html = response.get("Response_text")
         pattern = 'value="LT(.+?)" />'
@@ -86,9 +87,9 @@ class Center:
         获取TGC，依赖getLT接口
         :return:
         '''
-        resource = '/login'#?service=+serverlist[6]["serverURL"].replace("://","%3A%2F%2F")
+        resource = "/login"
         body = f'_eventId=submit&execution=e1s1&lt=LT{self.getLT()}&password={self.password}&productId={self.productId}&submit=%25E7%2599%25BB%25E5%25BD%2595&username={self.username}'
-        response = self.CenterLogin.request('post', resource, body, self.header)
+        response = self.CenterLogin.request("post", resource, body, self.header)
         Assertions().assert_code(response,response.get("status_code"), 200)
 
     def getCompanyList(self):
@@ -98,10 +99,10 @@ class Center:
         '''
         resource = "/rs/centerLogin/companyList"
         body = {"password": self.password,"username": self.username}
-        response = self.CenterLogin.request('post', resource, body)
+        response = self.CenterLogin.request("post", resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
         if len(response.get("epid")) > 0:
-            Global_Map.set('CenterEpid',response.get("epid")[0])
+            Global_Map.set("CenterEpid",response.get("epid")[0])
 
     def switchCompany(self):
         '''
@@ -110,7 +111,7 @@ class Center:
         '''
         resource = "/rs/centerLogin/login"
         body = {"epid":Global_Map.get("CenterEpid"),"password": self.password,"username": self.username}
-        response = self.CenterLogin.request('post', resource, body)
+        response = self.CenterLogin.request("post", resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
 
     def login(self):
@@ -129,12 +130,12 @@ class IworksApp:
     BV CAS登录类
     '''
     def __init__(self,username,password,envConf):
-        self.productId = envConf.get('productId').get('iworksApp')
+        self.productId = envConf.get("productId").get("iworksApp")
         self.username = username if isinstance(username,int) else quote(username)
         self.password = password
         self.header = envConf.get("headers").get("plain_header")
         self.clientVersion = envConf.get("iworksApp").get("clientVersion")
-        self.casLogin = base_requests.Send(envConf.get('pds'), envConf)
+        self.casLogin = base_requests.Send(envConf.get("pds"), envConf)
         self.epid = ''
 
     def getServerUrl(self):
@@ -142,7 +143,7 @@ class IworksApp:
         获取服务器地址信息
         '''
         resource = '/rs/casLogin/serverUrl'
-        response = self.casLogin.request('get', resource)
+        response = self.casLogin.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         assert len(response.get("serverURL")) != 0
         for server in response.get("serverURL"):
@@ -155,7 +156,7 @@ class IworksApp:
         :return:
         '''
         resource = '/login'
-        response = self.casLogin.request('get', resource)
+        response = self.casLogin.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         html = response.get("Response_text")
         pattern = 'value="LT(.+?)" />'
@@ -169,7 +170,7 @@ class IworksApp:
         '''
         resource = '/login'#?service=+serverlist[6]["serverURL"].replace("://","%3A%2F%2F")
         body = f'_eventId=submit&execution=e1s1&lt=LT{self.getLT()}&password={self.password}&productId={self.productId}&submit=%25E7%2599%25BB%25E5%25BD%2595&username={self.username}'
-        response = self.casLogin.request('post', resource, body, self.header)
+        response = self.casLogin.request("post", resource, body, self.header)
         Assertions().assert_code(response,response.get("status_code"), 200)
 
     def getCompanyList(self):
@@ -182,10 +183,10 @@ class IworksApp:
          "phoneModel": "国行(A1865)、日行(A1902)iPhone X", "platform": "ios", "innetIp": "192.168.7.184", "productId": self.productId,
          "token": "f54d6c8c13445a723a2863a72d460e5aec48010560ea2351bda6474de5164899", "systemVersion": "13.5.1",
          "hardwareCodes": "3465192946d57f13482640578c77ffa77d1f66a4"}
-        response = self.casLogin.request('post', resource, body)
+        response = self.casLogin.request("post", resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
         if len(response.get("enterpriseId")) > 0:
-            Global_Map.set('iworksAppEpid', response.get("enterpriseId")[0])
+            Global_Map.set("iworksAppEpid", response.get("enterpriseId")[0])
             self.epid = response.get("enterpriseId")[0]
             return self.epid
 
@@ -195,7 +196,7 @@ class IworksApp:
         :return:
         '''
         resource = f"/rs/casLogin/changeEnterprise/{self.epid}"
-        response = self.casLogin.request('get', resource)
+        response = self.casLogin.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
 
     def login(self):
@@ -218,7 +219,7 @@ class appToken:
         self.password = password
         self.header = envConf.get("headers").get("json_header")
         self.Login = base_requests.Send(envConf.get('base_url'), envConf)
-        self.epid = ''
+        self.epid = ""
         self.token = ""
 
     def getToken(self):
@@ -289,7 +290,7 @@ class Iworks:
         self.header =envConf.get("headers").get("soap_header")
         self.header1 = envConf.get("headers").get("urlencoded_header")
         self.casLogin = base_requests.Send(envConf.get('pds'), envConf)
-        self.epid = ''
+        self.epid = ""
 
     def getServerUrl(self):
         '''
@@ -416,7 +417,7 @@ class WebToken:
         self.password = password
         self.header = envConf.get("headers").get("json_header")
         self.Login = base_requests.Send(envConf.get('base_url'), envConf)
-        self.epid = ''
+        self.epid = ""
         self.token = ""
 
     def getToken(self):
@@ -514,8 +515,8 @@ class Token:
         self.username = username
         self.password = password
         self.header = envConf.get("headers").get("json_header")
-        self.Login = base_requests.Send(envConf.get('base_url'), envConf)
-        self.epid = ''
+        self.Login = base_requests.Send(envConf.get("base_url"), envConf)
+        self.epid = ""
         self.token = ""
         self.loginType = "CENTER_WEB" if loginType is None else loginType
         self.envConf = envConf
@@ -527,7 +528,7 @@ class Token:
         if not self.envConf.get("pds"):
             assert False,"pds地址未配置"
         resource = f'{self.envConf.get("pds")}/rs/casLogin/serverUrl'
-        response = self.Login.request('get', resource)
+        response = self.Login.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         assert len(response.get("serverURL")) != 0
         for server in response.get("serverURL"):
@@ -540,7 +541,7 @@ class Token:
         '''
         resource = "/auth-server/auth/token"
         body = {"loginType": self.loginType,"password": self.password,"username": self.username}
-        response = self.Login.request('post', resource, body)
+        response = self.Login.request("post", resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data")) > 0:
@@ -555,7 +556,7 @@ class Token:
         获取有对应客户端权限的企业列表
         '''
         resource = f"/auth-server/auth/enterprises/productId/{self.productId}"
-        response = self.Login.request('get', resource,header={"access-token":self.token},flush_header=True)
+        response = self.Login.request("get", resource,header={"access-token":self.token},flush_header=True)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data_epid")) > 0:
@@ -568,7 +569,7 @@ class Token:
         获取企业列表
         '''
         resource = f"/auth-server/auth/enterprises"
-        response = self.Login.request('get', resource,header={"access-token":self.token},flush_header=True)
+        response = self.Login.request("get", resource,header={"access-token":self.token},flush_header=True)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         if len(response.get("data_epid")) > 0:
@@ -582,7 +583,7 @@ class Token:
         '''
         resource = f"/auth-server/auth/enterprise"
         body = {"epid": self.epid}
-        response = self.Login.request('put', resource,body)
+        response = self.Login.request("put", resource,body)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
 
@@ -591,7 +592,7 @@ class Token:
         获取授权
         '''
         resource = f"/auth-server/auth/authgroup/{self.productId}"
-        response = self.Login.request('get', resource)
+        response = self.Login.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
 
@@ -600,7 +601,7 @@ class Token:
         获取产品权限
         '''
         resource = f"/auth-server/auth/client"
-        response = self.Login.request('get', resource)
+        response = self.Login.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         Assertions().assert_in_value(response.get("data_productId"),192)
@@ -610,7 +611,7 @@ class Token:
         获取模块权限
         '''
         resource = f"/auth-server/auth/clientModule"
-        response = self.Login.request('get', resource)
+        response = self.Login.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         Assertions().assert_in_key(response.get("source_response"), "productId")
@@ -620,7 +621,7 @@ class Token:
         退出登录接口
         '''
         resource = "/auth-server/auth/logout"
-        response = self.Login.request('get', resource)
+        response = self.Login.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
 
@@ -651,15 +652,15 @@ class OpenAPI:
     def __init__(self,apikey,apisecret,envConf):
         self.apikey = apikey
         self.apisecret = apisecret
-        self.username = envConf.get("openapi").get('username')
-        self.OpenAPIToken = base_requests.Send(envConf.get("openapi").get('host'), envConf)
+        self.username = envConf.get("openapi").get("username")
+        self.OpenAPIToken = base_requests.Send(envConf.get("openapi").get("host"), envConf)
 
     def login(self):
         '''
         登录获取token
         '''
         resource = f"/rs/token/{self.apikey}/{self.apisecret}/{self.username}"
-        response = self.OpenAPIToken.request('get', resource)
+        response = self.OpenAPIToken.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         # 获取到响应的token并更新到header中
         header = json.loads(self.OpenAPIToken.header)
@@ -680,7 +681,7 @@ class OpenApiMotorToken:
         :param item_fixture: item fixture,
         '''
         resource = f'/auth-server/auth/motor/client_token'
-        response = token.request('GET', resource)
+        response = token.request("GET", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         return response
@@ -692,7 +693,7 @@ class OpenApiMotorToken:
         '''
         header = {"access_token": WebToken}
         resource = f'/openapi/motor/v1.0/service/uc/auth/validateToken'
-        response = item_fixture.request('GET', resource,header=header,flush_header=True)
+        response = item_fixture.request("GET", resource,header=header,flush_header=True)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         return response
@@ -718,7 +719,7 @@ class OpenApiMotorToken_V2:
         :param item_fixture: item fixture,
         '''
         resource = f'/auth-server/auth/motor/client_token'
-        response = token.request('GET', resource)
+        response = token.request("GET", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         # 验证token中是否包含epid
@@ -733,7 +734,7 @@ class OpenApiMotorToken_V2:
         '''
         header = {"access_token": WebToken}
         resource = f'/openapi/rs/motor/v2/service/uc/auth/validateToken'
-        response = item_fixture.request('GET', resource,header=header,flush_header=True)
+        response = item_fixture.request("GET", resource,header=header,flush_header=True)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response,response.get("code")[0], 200)
         return response
@@ -754,16 +755,16 @@ class Bimapp:
     def __init__(self,username,password,envConf):
         self.username = base_utils.ToBase64(username)
         self.password = password
-        self.token = ''
-        self.AcAddress = ''
-        self.BimappLogin = base_requests.Send(envConf.get("bimapp").get('host'), envConf)
+        self.token = ""
+        self.AcAddress = ""
+        self.BimappLogin = base_requests.Send(envConf.get("bimapp").get("host"), envConf)
 
     def getCookie(self):
         '''
         获取cookie
         '''
         resource = "/login.htm"
-        response = self.BimappLogin.request('get', resource)
+        response = self.BimappLogin.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
 
     def getAcAddress(self):
@@ -771,7 +772,7 @@ class Bimapp:
         获取ac地址
         '''
         resource = "/getAcAddress.htm"
-        response = self.BimappLogin.request('get', resource)
+        response = self.BimappLogin.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         if response.get("Response_text") is not None:
             self.AcAddress = response.get("Response_text")
@@ -781,7 +782,7 @@ class Bimapp:
         获取token
         '''
         resource = f"{self.AcAddress}/rs/rest/user/login/{self.username}/{self.password}"
-        response = self.BimappLogin.request('get', resource)
+        response = self.BimappLogin.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         self.token = response.get('loginToken')[0]
 
@@ -790,7 +791,7 @@ class Bimapp:
          token登录
         '''
         resource = f"/bimapp/doLoginWithToken.htm?token={self.token}"
-        response = self.BimappLogin.request('get', resource)
+        response = self.BimappLogin.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
 
 
@@ -811,7 +812,7 @@ class Bussiness:
     def __init__(self,username,password,envConf):
         self.username = username
         self.password = password
-        self.BussinessLogin = base_requests.Send(envConf.get("Bussiness").get('host'), envConf)
+        self.BussinessLogin = base_requests.Send(envConf.get("Bussiness").get("host"), envConf)
 
     def login(self):
         '''
@@ -821,7 +822,7 @@ class Bussiness:
         '''
         resource = "/login"
         body = {"username":self.username,"password":self.password}
-        response = self.BussinessLogin.request('post', resource, body)
+        response = self.BussinessLogin.request("post", resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
         Assertions().assert_code(response, response.get("rtcode")[0], 0)
         return self.BussinessLogin
@@ -834,7 +835,7 @@ class LubanSoft:
         self.username = username
         self.password = password
         self.header = envConf.get("headers").get("soap_header")
-        self.lubansoftLogin = base_requests.Send(envConf.get("lubansoft").get('host'), envConf)
+        self.lubansoftLogin = base_requests.Send(envConf.get("lubansoft").get("host"), envConf)
 
     def login(self):
         '''
@@ -860,7 +861,7 @@ class LubanSoft:
         <version>30.2.1</version>
         </LBLoginParam>
         </ns6:login></SOAP-ENV:Body></SOAP-ENV:Envelope>'''
-        response = self.lubansoftLogin.request('post', resource, body)
+        response = self.lubansoftLogin.request("post", resource, body)
         Assertions().assert_code(response,response.get("status_code"), 200)
         return self.lubansoftLogin
 
