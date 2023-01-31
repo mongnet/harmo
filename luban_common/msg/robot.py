@@ -4,8 +4,11 @@
 
 import json
 import requests
+import urllib3
 from luban_common import base_utils
 
+
+urllib3.disable_warnings()
 
 class WeiXin:
     """
