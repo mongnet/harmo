@@ -29,7 +29,7 @@ class Global_Map:
     def sets(self, dict_kwargs: dict):
         '''
         添加多个指定变量到全局变量
-        :param kwargs: 变量字典
+        :param dict_kwargs: 变量字典
         :return:
         '''
         try:
