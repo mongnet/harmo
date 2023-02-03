@@ -4,6 +4,8 @@
 # Author  : hubiao
 # File    : global_map.py
 
+import copy
+
 class Global_Map:
     '''
     全局变量
@@ -19,7 +21,7 @@ class Global_Map:
         :return:
         '''
         try:
-            self.map[key] = value
+            self.map[key] = copy.deepcopy(value)
         except BaseException as msg:
             raise msg
 
@@ -33,7 +35,7 @@ class Global_Map:
         try:
             if isinstance(dict_kwargs, dict):
                 for key, value in dict_kwargs.items():
-                    self.map[key] = value
+                    self.map[key] = copy.deepcopy(value)
         except BaseException as msg:
             raise msg
 
@@ -76,7 +78,12 @@ class Global_Map:
 if __name__ == '__main__':
     gl = Global_Map()
     gl.set("name","hubiao")
-    gl.set("age","25")
+    left = [4]
+    gl.set("age",left)
+    print(gl.get("age"))
+    left.append(7)
+    print(left)
+    print(gl.get("age"))
     gl.sets({"公众号":"彪哥的测试之路"})
     gl.del_key("aged")
     print(gl.get("all"))

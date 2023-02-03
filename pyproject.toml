@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "luban_common"
-version = "3.0.24"
+version = "3.0.27"
 description = "鲁班API基础库"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/mongnet/luban_common"
 repository = "https://github.com/mongnet/luban_common"
-keywords = ["HTTP", "api", "test", "requests", "pytest"]
+keywords = ["api", "Testing", "requests", "pytest"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
