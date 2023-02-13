@@ -94,3 +94,8 @@ if __name__ == '__main__':
     print(gl.get("named"))
     projId = [] if not Global_Map.get("projId") else [Global_Map.get("projId")]
     print("projId:",projId)
+    gl.set("sh",True)
+    gl.set("shs",None)
+    print(gl.get())
+    print(type(gl.get("sh")))
+    print(type(gl.get("shs")))

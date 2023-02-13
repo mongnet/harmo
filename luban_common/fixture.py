@@ -40,6 +40,9 @@ def pytest_addoption(parser):
     group.addoption('--lb-env',
                     default=os.getenv('lb_env', None),
                     help='set testing environment')
+    group.addoption('--lb-robot',
+                    default=os.getenv('lb_robot', None),
+                    help='set robot')
 
 def pytest_configure(config):
     '''
@@ -50,17 +53,46 @@ def pytest_configure(config):
     _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
     _browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
     _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
-    _load_locally = config.getini("load_locally")
-    Global_Map.sets({"--lb-env":_env_config,"--lb-driver":_browser,"--lb-base-url":_base_url,"load_locally":_load_locally})
-    if hasattr(config, "_metadata"):
-        if _env_config is not None:
-            config._metadata["运行配置"] = _env_config
-        if _browser is not None:
-            config._metadata["浏览器"] = _browser
-        if _base_url is not None:
-            config._metadata["基础URL"] = _base_url
-        if _load_locally is not None:
-            config._metadata["本地载入初始化"] = _load_locally
+    _robot = os.getenv("lb_robot", None) if os.getenv("lb_robot", None) else config.getoption("--lb-robot")
+    _load_locally =  True if config.getini("load_locally") == "True" else False
+    _message_switch = True if config.getini("message_switch") == "True" else False
+    _success_message = True if config.getini("success_message") == "True" else False
+    pytestini = {
+        "lb_env": _env_config,
+        "lb_driver": _browser,
+        "lb_base_url": _base_url,
+        "lb_robot": _robot,
+        "load_locally": _load_locally,
+        "message_switch": _message_switch,
+        "success_message": _success_message
+    }
+    Global_Map.sets(pytestini)
+    if _env_config:
+        if hasattr(config, "_metadata"):
+            if _env_config is not None:
+                config._metadata["运行配置"] = _env_config
+            if _browser is not None:
+                config._metadata["浏览器"] = _browser
+            if _base_url is not None:
+                config._metadata["基础URL"] = _base_url
+            if _load_locally is not None:
+                config._metadata["本地载入初始化"] = _load_locally
+            if _message_switch is not None:
+                config._metadata["消息开关"] = _message_switch
+            if _success_message is not None:
+                config._metadata["成功是否发送消息"] = _success_message
+            if _robot is not None:
+                config._metadata["机器人"] = _robot
+        _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
+        _global = {**_global_conf, **yaml_file.get_yaml_data(file_absolute_path(_env_config))}
+        if _base_url:
+            _global["base_url"] = _base_url
+        if _robot:
+            _global["weixin_robot"] = _robot
+        Global_Map.sets(_global)
+    else:
+        raise RuntimeError("Configuration --lb-env not found")
+
 
 def pytest_report_header(config):
     '''
@@ -69,20 +101,15 @@ def pytest_report_header(config):
     :param startdir:
     :return:
     '''
-    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
-    _browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
-    _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
-    if _env_config is not None:
-        return f'lb_driver: {_browser}, lb_base_url: {_base_url}, lb_env: {_env_config}'
+    if Global_Map.get("lb_env") is not None:
+        return f'lb_env: {Global_Map.get("lb_env")}, lb_driver: {Global_Map.get("lb_driver")}, lb_base_url: {Global_Map.get("lb_base_url")}'
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     '''
     收集测试结果并发送到对应IM
     '''
     # 读取配置文件中的robot
-    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
-    envConfDate = yaml_file.get_yaml_data(file_absolute_path(_env_config))
-    weixin_robot = envConfDate.get("weixin_robot")
+    weixin_robot = Global_Map.get("weixin_robot")
     # 定义测试结果
     total = terminalreporter._numcollected
     passed = len([i for i in terminalreporter.stats.get("passed", []) if i.when != "teardown"])
@@ -90,8 +117,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     error = len([i for i in terminalreporter.stats.get("error", []) if i.when != "teardown"])
     skipped = len([i for i in terminalreporter.stats.get("skipped", []) if i.when != "teardown"])
     total_times = time.time() - terminalreporter._sessionstarttime
-    message_switch = True if config.getini("message_switch") == "True" else False
-    success_message = True if config.getini("success_message") == "True" else False
+    message_switch = Global_Map.get("message_switch")
+    success_message = Global_Map.get("success_message")
     html_report = config.getoption("--html")
     # 判断是否要发送消息
     if message_switch:
@@ -134,8 +161,7 @@ def pytest_unconfigure(config):
     :return:
     '''
     # 判断是否要把全局变量写入到 _global_conf_date.yaml 文件
-    _load_locally = True if config.getini("load_locally") == "True" else False
-    if _load_locally:
+    if Global_Map.get("load_locally"):
         yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_conf_date.yaml"), data=Global_Map.get())
 
 @pytest.fixture(scope="session")
@@ -144,17 +170,7 @@ def env_conf(pytestconfig):
     获取lb-env和global环境配置文件
     :return:
     '''
-    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else pytestconfig.getoption("--lb-env")
-    _global_conf_date = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir,"config/global"))
-    _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption("--lb-base-url")
-    if _env_config:
-        _global_conf_date = {**_global_conf_date,**yaml_file.get_yaml_data(file_absolute_path(_env_config))}
-        if _base_url:
-            _global_conf_date["base_url"] = _base_url
-        Global_Map.sets(_global_conf_date)
-        return _global_conf_date
-    else:
-        raise RuntimeError("Configuration --lb-env not found")
+    return Global_Map.get()
 
 @pytest.fixture(scope="session")
 def base_url(pytestconfig):
