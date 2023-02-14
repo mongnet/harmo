@@ -8,15 +8,12 @@
 
 import os
 import time
-
 import pytest
-
 from luban_common.global_map import Global_Map
 from luban_common.msg.robot import WeiXin
 from luban_common.operation import yaml_file
 from luban_common.base_utils import file_absolute_path
 from luban_common.config import Config
-
 
 def pytest_addoption(parser):
     '''
@@ -102,14 +99,16 @@ def pytest_report_header(config):
     :return:
     '''
     if Global_Map.get("lb_env") is not None:
-        return f'lb_env: {Global_Map.get("lb_env")}, lb_driver: {Global_Map.get("lb_driver")}, lb_base_url: {Global_Map.get("lb_base_url")}'
+        return f'lb_base_url: {Global_Map.get("lb_base_url")}, lb_driver: {Global_Map.get("lb_driver")}, lb_env: {Global_Map.get("lb_env")}'
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     '''
     收集测试结果并发送到对应IM
     '''
-    # 读取配置文件中的robot
+    # 读取消息通知配置
     weixin_robot = Global_Map.get("weixin_robot")
+    message_switch = Global_Map.get("message_switch")
+    success_message = Global_Map.get("success_message")
     # 定义测试结果
     total = terminalreporter._numcollected
     passed = len([i for i in terminalreporter.stats.get("passed", []) if i.when != "teardown"])
@@ -117,11 +116,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     error = len([i for i in terminalreporter.stats.get("error", []) if i.when != "teardown"])
     skipped = len([i for i in terminalreporter.stats.get("skipped", []) if i.when != "teardown"])
     total_times = time.time() - terminalreporter._sessionstarttime
-    message_switch = Global_Map.get("message_switch")
-    success_message = Global_Map.get("success_message")
     html_report = config.getoption("--html")
     # 判断是否要发送消息
-    if message_switch:
+    if message_switch or Global_Map.get("lb_robot"):
         if weixin_robot:
             send = WeiXin()
             # 通过jenkins构件时，可以获取到JOB_NAME
