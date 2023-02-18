@@ -25,6 +25,7 @@ def pytest_addoption(parser):
     parser.addini('message_switch', help='message_switch configuration')
     parser.addini('success_message', help='success_message configuration')
     parser.addini('load_locally', help='load_locally configuration')
+    parser.addini('is_clear', help='is_clear configuration')
     # 注册命令行参数
     group = parser.getgroup('testing environment configuration')
     group.addoption('--lb-driver',
@@ -54,6 +55,7 @@ def pytest_configure(config):
     _load_locally =  True if config.getini("load_locally") == "True" else False
     _message_switch = True if config.getini("message_switch") == "True" else False
     _success_message = True if config.getini("success_message") == "True" else False
+    _is_clear = True if config.getini("is_clear") == "True" else False
     pytestini = {
         "lb_env": _env_config,
         "lb_driver": _browser,
@@ -61,7 +63,8 @@ def pytest_configure(config):
         "lb_robot": _robot,
         "load_locally": _load_locally,
         "message_switch": _message_switch,
-        "success_message": _success_message
+        "success_message": _success_message,
+        "is_clear": _is_clear
     }
     Global_Map.sets(pytestini)
     if _env_config:
@@ -80,6 +83,8 @@ def pytest_configure(config):
                 config._metadata["成功是否发送消息"] = _success_message
             if _robot is not None:
                 config._metadata["机器人"] = _robot
+            if _is_clear is not None:
+                config._metadata["是否清理数据"] = _is_clear
         _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
         _global = {**_global_conf, **yaml_file.get_yaml_data(file_absolute_path(_env_config))}
         if _base_url:

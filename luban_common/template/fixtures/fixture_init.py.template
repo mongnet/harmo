@@ -57,7 +57,7 @@ product_dict = {"质检":"inspection",
                 "工作台":"work",
                 "文档":"doc"}
 
-def pytest_runtest_setup(item):
+def pytest_runtest_call(item):
     '''
     1.过滤未购买、已无可用授权数量的用例
     2.基建和房建同时存在时，过滤房建用例
@@ -84,6 +84,38 @@ def Center_initialize(CenterToken,env_conf):
     数据初始化
     :return:
     '''
+    # 处理数字平台套餐
+    roleResponse = Rolerest().findClientAuthInfosUsingGET(CenterToken)
+    Assertions.assert_code(roleResponse, roleResponse.get("status_code"), 200)
+    Assertions.assert_code(roleResponse, roleResponse.get("code")[0], 200)
+    authCodes = jsonpath.jsonpath(roleResponse.get("source_response"), "$..[?(@.authCode)].authCode")
+    products = jsonpath.jsonpath(roleResponse.get("source_response"), "$..[?(@.productId)].productId")
+    if 192 in products:
+        menuResponse = Rolerest().getMenuListUsingGET(CenterToken)
+        Assertions.assert_code(menuResponse, menuResponse.get("status_code"), 200)
+        Assertions.assert_code(menuResponse, menuResponse.get("code")[0], 200)
+        nameList = jsonpath.jsonpath(menuResponse.get("source_response"), "$..[?(@.name)]..name")
+        for k,v in product_dict.items():
+            if k in nameList:
+                Package.append(v)
+    # 获取套餐_产品信息
+    response = Appallocation().getAppAllocationPackageInfoUsingGET(CenterToken)
+    Assertions.assert_code(response, response.get("status_code"), 200)
+    Assertions.assert_code(response, response.get("code")[0], 200)
+    # 分配工程管理数字化平台套餐packageType=31
+    packages_2 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=2)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=2) else []
+    packages_3 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3) else []
+    packages_11 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11) else []
+    packages_12 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12) else []
+    productIds = base_utils.jpath(response.get("source_response"), check_key="productId", sub_key="productId")
+    packageInfos = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=31, sub_key="packageInfos")[0]
+    # 获取已购买的产品名称，用来过滤哪些产品需要运行
+    for markname,productId in env_conf.get("productId").items():
+        if productId in productIds:
+            Package.append(markname)
+    # 本地载入时，不执行后续的脚本
+    if Global_Map.get("load_locally"):
+        return
     # 获取部署类型
     resource = '/pds/rs/centerLogin/deployType'
     response = CenterToken.request('get', resource)
@@ -126,27 +158,7 @@ def Center_initialize(CenterToken,env_conf):
         Assertions.assert_code(response, response.get("code")[0], 200)
         postid = response.get("result_content_id")[0]
     Global_Map.set("postId",postid)
-    # 获取套餐_产品信息
-    response = Appallocation().getAppAllocationPackageInfoUsingGET(CenterToken)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    # 分配工程管理数字化平台套餐packageType=31
-    packages_2 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=2)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=2) else []
-    packages_3 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3) else []
-    packages_11 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11) else []
-    packages_12 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12) else []
-    productIds = base_utils.jpath(response.get("source_response"), check_key="productId", sub_key="productId")
-    packageInfos = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=31, sub_key="packageInfos")[0]
-    # 获取已购买的产品名称，用来过滤哪些产品需要运行
-    for markname,productId in env_conf.get("productId").items():
-        if productId in productIds:
-            Package.append(markname)
     # 判断角色是否存在，不存在创建角色
-    response = Rolerest().findClientAuthInfosUsingGET(CenterToken)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    authCodes = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.authCode)].authCode")
-    products = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.productId)].productId")
     RoleName = "系统校验创建角色"
     response = RoleRest().find_Page_Roles(CenterToken, searchStr=RoleName)
     Assertions.assert_code(response, response.get("status_code"), 200)
@@ -163,15 +175,11 @@ def Center_initialize(CenterToken,env_conf):
         roleid= jsonpath.jsonpath(response.get("source_response"), "$..[?(@.roleId)].roleId")[0]
     # 如果有192权限，192角色权限与老角色权限授权方式不一样
     if 192 in products:
-        response = Rolerest().getMenuListUsingGET(CenterToken)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        nameList = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.name)]..name")
-        for k,v in product_dict.items():
-            if k in nameList:
-                Package.append(v)
-        menuList = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.menuType!='S')]..id")
-        moduleList = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.menuType=='S')]..id")
+        menuResponse = Rolerest().getMenuListUsingGET(CenterToken)
+        Assertions.assert_code(menuResponse, menuResponse.get("status_code"), 200)
+        Assertions.assert_code(menuResponse, menuResponse.get("code")[0], 200)
+        menuList = jsonpath.jsonpath(menuResponse.get("source_response"), "$..[?(@.menuType!='S')]..id")
+        moduleList = jsonpath.jsonpath(menuResponse.get("source_response"), "$..[?(@.menuType=='S')]..id")
         response = Rolerest().getAuthMenuCodeListUsingPOST(CenterToken,menuIdList=menuList,productId="192",roleId=roleid)
         Assertions.assert_code(response, response.get("status_code"), 200)
         Assertions.assert_code(response, response.get("code")[0], 200)
@@ -433,33 +441,35 @@ def Center_initialize(CenterToken,env_conf):
                 Assertions.assert_code(response, response.get("code")[0], 200)
 
     yield
-    # 标记删除工程到回收站
-    projId = [] if not Global_Map.get("projId") else [Global_Map.get("projId")]
-    RsBimrest().deleteProjectsUsingPOST(CenterToken,array_integer_int32=projId)
-    # 删除回收站中的工程
-    RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=projId)
-    if "iworksWeb" in Package or "iworksf" in Package:
-        # 删除单位
-        Orgnode().deleteOrgUsingDELETE_2(CenterToken, [unitid])
-        # 删除单项
-        Orgnode().deleteOrgUsingDELETE_2(CenterToken, [itemid])
-        # 删除标段
-        Orgnode().deleteOrgUsingDELETE_2(CenterToken, [bidid])
-        # 删除项目部
-        Org().deleteOrgUsingDELETE(CenterToken, orgId=deptid)
-    if "iworksWeb" in Package or "iworksj" in Package:
-        # 删除基建标段
-        Orgnode().deleteOrgUsingDELETE_2(CenterToken,[infraBidId])
-        # 删除基建项目
-        InfraDept().deleteInfraDeptUsingDELETE(CenterToken,[infraDeptId])
-    # 删除组织机构
-    Org().deleteOrgUsingDELETE(CenterToken, orgId=orgid)
-    # 删除用户
-    User().deleteUsers(CenterToken,userNames=userName)
-    # 删除角色
-    RoleRest().deleteRole(CenterToken,roleIds=roleid)
-    # 删除项岗位
-    Post().post_del(CenterToken, postId=postid)
+    # 是否清理生成的数据
+    if Global_Map.get("is_clear"):
+        # 标记删除工程到回收站
+        projId = [] if not Global_Map.get("projId") else [Global_Map.get("projId")]
+        RsBimrest().deleteProjectsUsingPOST(CenterToken,array_integer_int32=projId)
+        # 删除回收站中的工程
+        RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=projId)
+        if "iworksWeb" in Package or "iworksf" in Package:
+            # 删除单位
+            Orgnode().deleteOrgUsingDELETE_2(CenterToken, [unitid])
+            # 删除单项
+            Orgnode().deleteOrgUsingDELETE_2(CenterToken, [itemid])
+            # 删除标段
+            Orgnode().deleteOrgUsingDELETE_2(CenterToken, [bidid])
+            # 删除项目部
+            Org().deleteOrgUsingDELETE(CenterToken, orgId=deptid)
+        if "iworksWeb" in Package or "iworksj" in Package:
+            # 删除基建标段
+            Orgnode().deleteOrgUsingDELETE_2(CenterToken,[infraBidId])
+            # 删除基建项目
+            InfraDept().deleteInfraDeptUsingDELETE(CenterToken,[infraDeptId])
+        # 删除组织机构
+        Org().deleteOrgUsingDELETE(CenterToken, orgId=orgid)
+        # 删除用户
+        User().deleteUsers(CenterToken,userNames=userName)
+        # 删除角色
+        RoleRest().deleteRole(CenterToken,roleIds=roleid)
+        # 删除项岗位
+        Post().post_del(CenterToken, postId=postid)
 
 @pytest.fixture(scope="session")
 def initialize(token):
@@ -800,9 +810,11 @@ def meter_ruleId_init(CenterToken):
     Assertions.assert_code(response, response.get("status_code"), 200)
     Assertions.assert_code(response, response.get("code")[0], 200)
     yield
-    response = LubanMeterCenterMeterRule().deleteCardUsingPOST(CenterToken,ids=ruleId)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
+    # 是否清理生成的数据
+    if Global_Map.get("is_clear"):
+        response = LubanMeterCenterMeterRule().deleteCardUsingPOST(CenterToken,ids=ruleId)
+        Assertions.assert_code(response, response.get("status_code"), 200)
+        Assertions.assert_code(response, response.get("code")[0], 200)
 
 @pytest.fixture(scope="session")
 def meterHighway_ruleId_init(CenterToken):
@@ -1188,12 +1200,12 @@ def processInspection_init(CenterToken):
     Assertions.assert_code(response, response.get("status_code"), 200)
     Assertions.assert_code(response, response.get("code")[0], 200)
     Assertions.assert_equal_value(response.get("msg")[0], "Success")
-
     yield
-
-    response = LubanMiscData().deleteDataTemplateItemUsingPOST(CenterToken, templateId=processInspection_tempId, ids=[reportId])
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    response = Process().process_template_del(CenterToken, templateId =Global_Map.get("processInspectionProcessId"))
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
+    # 是否清理生成的数据
+    if Global_Map.get("is_clear"):
+        response = LubanMiscData().deleteDataTemplateItemUsingPOST(CenterToken, templateId=processInspection_tempId, ids=[reportId])
+        Assertions.assert_code(response, response.get("status_code"), 200)
+        Assertions.assert_code(response, response.get("code")[0], 200)
+        response = Process().process_template_del(CenterToken, templateId =Global_Map.get("processInspectionProcessId"))
+        Assertions.assert_code(response, response.get("status_code"), 200)
+        Assertions.assert_code(response, response.get("code")[0], 200)

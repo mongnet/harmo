@@ -1649,8 +1649,8 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之
   addopts =
       --lb-env=config/release/config.yaml
       --lb-driver=firefox
-  ```
-  
+```
+
   
 
 ### 4.3 pytest.ini配置
@@ -1662,6 +1662,8 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之
 - `message_switch` ：消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为Flase
 
 - `success_message` ： 成功时是否发送消息通知，默认为False
+
+- `is_clear` ： 用例执行成功后是否清理数据，默认为True
 
 - 默认使用 `pytest-html` 插件生成报告，生成在当前执行目录的 `reports/report.html` 中
 
