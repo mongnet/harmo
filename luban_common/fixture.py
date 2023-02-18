@@ -24,7 +24,7 @@ def pytest_addoption(parser):
     # 自定义的配置选项需要先注册如果，才能在ptest.ini中使用，注册方法如下
     parser.addini('message_switch', help='message_switch configuration')
     parser.addini('success_message', help='success_message configuration')
-    parser.addini('load_locally', help='load_locally configuration')
+    parser.addini('is_local', help='is_local configuration')
     parser.addini('is_clear', help='is_clear configuration')
     # 注册命令行参数
     group = parser.getgroup('testing environment configuration')
@@ -52,7 +52,7 @@ def pytest_configure(config):
     _browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
     _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
     _robot = os.getenv("lb_robot", None) if os.getenv("lb_robot", None) else config.getoption("--lb-robot")
-    _load_locally =  True if config.getini("load_locally") == "True" else False
+    _is_local =  True if config.getini("is_local") == "True" else False
     _message_switch = True if config.getini("message_switch") == "True" else False
     _success_message = True if config.getini("success_message") == "True" else False
     _is_clear = True if config.getini("is_clear") == "True" else False
@@ -61,7 +61,7 @@ def pytest_configure(config):
         "lb_driver": _browser,
         "lb_base_url": _base_url,
         "lb_robot": _robot,
-        "load_locally": _load_locally,
+        "is_local": _is_local,
         "message_switch": _message_switch,
         "success_message": _success_message,
         "is_clear": _is_clear
@@ -75,8 +75,8 @@ def pytest_configure(config):
                 config._metadata["浏览器"] = _browser
             if _base_url is not None:
                 config._metadata["基础URL"] = _base_url
-            if _load_locally is not None:
-                config._metadata["本地载入初始化"] = _load_locally
+            if _is_local is not None:
+                config._metadata["本地载入初始化"] = _is_local
             if _message_switch is not None:
                 config._metadata["消息开关"] = _message_switch
             if _success_message is not None:
@@ -162,9 +162,9 @@ def pytest_unconfigure(config):
     :param config:
     :return:
     '''
-    # 判断是否要把全局变量写入到 _global_conf_date.yaml 文件
-    if Global_Map.get("load_locally"):
-        yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_conf_date.yaml"), data=Global_Map.get())
+    # 判断是否要把全局变量写入到 _global_map.yaml 文件
+    if Global_Map.get("is_local"):
+        yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_map.yaml"), data=Global_Map.get())
 
 @pytest.fixture(scope="session")
 def env_conf(pytestconfig):

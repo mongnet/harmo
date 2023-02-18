@@ -1657,7 +1657,7 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之
 
 在 `pytest.ini` 文件中新增如下配置：
 
-- `load_locally` ：是否走本地初始化，为True时走本地配置文件，为False时走线上初始化数据，默认为False
+- `is_local` ：是否走本地初始化，为True时走本地配置文件，为False时走线上初始化数据，默认为False
 
 - `message_switch` ：消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为Flase
 
