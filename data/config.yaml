@@ -1,14 +1,94 @@
-pds : http://192.168.13.197:8082/pds
-centerProductid : 100
-AppProductId : 94
-headers:
-    multipart_header : '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
-    json_header : '{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}'
-    urlencoded_header : '{"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/x-www-form-urlencoded","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"}'
-    plain_header : '{"Accept": "text/plain","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/x-www-form-urlencoded;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3"}'
-    soap_header : '{"Content-Type": "text/xml;charset=utf-8","Accept-Encoding": "gzip, deflate","SOAPAction": ""}'
+pds : http://app.lbuilder.cn
+ac : http://ac.myluban.com
+base_url : http://service.lbuilder.cn
+iworks_web: http://lbuilder.cn
+iworks_web_old: http://iworks.lbuilder.cn
+center_web: http://center.lbuilder.cn
+weixin_robot : "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
 sysadmin :
-  host: http://192.168.3.195:8083
-  logininfo : adminName
+  host : http://bim.myluban.com/sysadmin
+  logininfo : adminName=%E8%BF%90%E8%90%A5%E7%B3%BB%E7%BB%9F%E8%87%AA%E5%8A%A8%E5%8C%96&password=c535782e3364128df9fad18a1d5d0c52
+  password : 96e79218965eb72c92a549dd5a330112
+demoCenter :
+  username : 13800138000
+  password : c06bdb5221beefb096b524b655a6ec91
+center :
+  username : 13916829125
+  password : 7fb519db4b8953999901d466e67b322b
+iworksApp :
+  username : pytest_api_app
+  password : 96e79218965eb72c92a549dd5a330112
+  clientVersion: 2.1.0
+iworksWeb:
+  username: pytest_api_app
+  password: 96e79218965eb72c92a549dd5a330112
+bimapp :
+  host : http://bim.myluban.com
+  username : pytest_api_app
+  password : 96e79218965eb72c92a549dd5a330112
+lubansoft :
+  host : http://bim.myluban.com
+  username : pytest_api_app
+  password : 96e79218965eb72c92a549dd5a330112
+MylubanWeb :
+  host : http://www.myluban.com
+  username : pytest_api_app
+  password : 96e79218965eb72c92a549dd5a330112
+Bussiness :
+  host : http://bussiness2.lubansoft.com:8089
+  username : api自动化测试
+  password : 572f43db702b36c9f3cf5c400a728f84
+openapi :
+  host : http://openapi.lbuilder.cn
+  apikey : d46e1fcf4c07ce4a69ee07e4134bcef1
+  apisecret : 6659d4d1cdba61ceb1db9942a4a74f41
+  username : sunli
+  password : 96e79218965eb72c92a549dd5a330112
+  deptid: 299971713eff4c91a3fdd1c05e4bc68a
+  deptid_all : 524019d46ce84123ad16b8b18011e362
+  deptid_all_list : 846f74592e5e4824b80a113058d67f67
+  ppid : 171954
+  coid : 5d391c08e4b03725833ed03c
   code : '010403002001'
-
+  code_rcjsummary : 1-1-5
+  nodeName : '190716'
+  uuidkey_qtxm : sys_qtxm_zlje
+  uuidkey_gfsj : 1409955dd1a868a6c5ef72602bb69bfa
+  ppid_govern : 169741
+  unid_govern : 4c1fb1e4a1974b7a959cfe9c9a57809b
+  deptid_all_govern : 27131b7cabe046819a9fdfb4302730e2
+  floor : 2
+  handle : ad112d1a-c64d-4a87-bd3c-268c0fd7a3b9
+  projtype : 土建
+  uuid : 181e1505c1444bbbb49b2951b35a6a86
+  docid : f7d19803-efd7-41ac-a649-6fccb23f748c
+  az-ppid : 140132
+  az-floor : 1
+  az-handle : 1613a
+  az-projtype : 安装
+  az-uuid : 804ad29c818d4779be954d4f8b622e58
+  az-docid : 7aca9c84-7721-4da9-a6bf-2cd70e2ff69f
+  tj-ppid : 140112
+  tj-floor : 1
+  tj-handle : a7d7c51b-ebd8-4c96-bdbb-f3c129f1deee
+  tj-projtype : 土建
+  tj-uuid : 66a2083f1f1249439d259ed685f91c61
+  tj-docid : fa6d9ec5-9d34-4405-8611-5a65c7161c0c
+project :
+  projPath : data/system_assert_projRevit.pds
+  projType: "Revit"
+  projTypeInt: 4
+  floor : 标高 1
+  compClass : 墙
+  subClass : 基本墙
+  handle : fe026e86-efaa-4330-b57c-b8b36d57aab6-000516e6
+  handleName : CW 102-50-100p
+  projGuid : "8764c510-57b7-44c3-bddf-266d86c26380-0000c160"
+  projModel : "SLYS"
+  bimModelType : GCMX
+  type : 8
+  productid : 93
+dwgFile :
+  filePath : data/autotest.dwg
+processInspectionFile:
+  filePath: data/processInspection.xml

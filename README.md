@@ -444,7 +444,7 @@ get_yaml_data() 传入yaml文件路径，返回yaml文件内的数据，返回�
 ```python
 from luban_common.operation.yaml_file import get_yaml_data
 
-get_yaml_data(file_path='../../data/config.yaml')
+get_yaml_data(file_path='../../data/config1.yaml')
 ```
 
 > **file_path**：文件路径

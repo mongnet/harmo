@@ -570,7 +570,7 @@ if __name__ == "__main__":
     print(ToBa)
     print(FromBase64(ToBa))
     print(toFileBase64("../data/20201222101200.png"))
-    print(toFileBase64("../data/config.yaml"))
+    print(toFileBase64("../data/config1.yaml"))
     print(getFileSize("../data/20201222101200.png"))
     print(UnixToTime(unix=1644844153000))
     print(UnixToTime(unix=1636942336))

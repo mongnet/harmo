@@ -5,7 +5,7 @@
 # @Email : 250021520@qq.com
 # @File : fixture.py
 # @Project : luban-common
-
+import copy
 import os
 import time
 import pytest
@@ -167,7 +167,7 @@ def env_conf(pytestconfig):
     获取lb-env和global环境配置文件
     :return:
     '''
-    return Global_Map.get()
+    return copy.deepcopy(Global_Map.get())
 
 @pytest.fixture(scope="session")
 def base_url(pytestconfig):
