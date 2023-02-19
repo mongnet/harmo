@@ -114,7 +114,7 @@ def Center_initialize(CenterToken,env_conf):
         if productId in productIds:
             Package.append(markname)
     # 本地载入时，不执行后续的脚本
-    if not Global_Map.get("load_locally"):
+    if not Global_Map.get("is_local"):
         # 获取部署类型
         resource = '/pds/rs/centerLogin/deployType'
         response = CenterToken.request('get', resource)
