@@ -1,0 +1,6 @@
+1. 建议自定义fixture的名称规则为 fixture_产品名.py 的形式，每个产品、独立业务独立fixture文件，不要掺杂在一起，不方便后续的集成
+2. 非必须不要设置fixture自动执行，要考虑没有购买服务的情况
+3. 是否有套餐权限 fixture_init.py，初始化已经处理好了，不需要大家关心
+4. 不要随意修改 fixture_init.py ，如果要加东西加在自己产品的fixture里面
+5. fixture_init.py 中初始化好了一部分数据，各自系统需要统一使用这里面已初始化好的数据，不要再自己新建，方便数据管理
+6. 在测试运行结束后会把 Global_Map 中的数据全部写回到 config/global/_global_map.yaml 中

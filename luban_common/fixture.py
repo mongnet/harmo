@@ -162,9 +162,8 @@ def pytest_unconfigure(config):
     :param config:
     :return:
     '''
-    # 判断是否要把全局变量写入到 _global_map.yaml 文件
-    if Global_Map.get("is_local"):
-        yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_map.yaml"), data=Global_Map.get())
+    # 把全局变量写入到 _global_map.yaml 文件
+    yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_map.yaml"), data=Global_Map.get())
 
 @pytest.fixture(scope="session")
 def env_conf(pytestconfig):
