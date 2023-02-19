@@ -77,7 +77,7 @@ pip install -U luban_common-0.5.27-py3-none-any.whl
 
 ```
 C:\Users\admin>luban -V
-Luban version 0.4.0
+Luban version 3.0.0
 ```
 
 
@@ -88,9 +88,9 @@ luban-common 框架项目结构如下：
 
 ```python
 ├─config
-│   ├─blacklist.yaml
-│   ├─default_parame.yaml
-│   ├─global_default.yaml
+│   ├─config.yaml
+│   ├─parameConfig.yaml
+│   ├─cases.mustache
 │   └─interface.mustache
 ├─console
 │   ├─analysis_swagger.py
@@ -112,11 +112,11 @@ luban-common 框架项目结构如下：
 
 > **config**：中放的是一些配置文件
 
-> **blacklist.yaml**：白名单列表，在生成swagger接口时，会过滤这些字段（不把这些参数加放到方法上）
+> **config.yaml**：其它默认配置项
 
-> **default_parame.yaml**：默认参数，在生成swagger接口时，会把匹配到的参数设置上默认值
+> **parameConfig.yaml**：黑名单列表和默认参数等配置，在生成swagger接口时，会把匹配到的参数进行替换和过滤
 
-> **global_default.yaml**：其它默认配置项
+> **cases.mustache**：模生成case接口时的板文件，一般不需要动
 
 > **interface.mustache**：模生成swagger接口时的板文件，一般不需要动
 
@@ -124,9 +124,9 @@ luban-common 框架项目结构如下：
 
 > **msg**：消息模块
 
-> **weixin.py**：企业微信消息模块
+> **robot.py**：企业微信机器人消息模块
 
-> **youdu.py**：有度消息模块
+> **weixin.py**：企业微信消息模块
 
 > **operation**：封装了四种文通用件的操作方法
 
@@ -150,7 +150,7 @@ luban-common 框架项目结构如下：
 
 消息模块，封装了 `企业微信机器人`消息推送功能
 
-#### 3.1.1 企业微信消息
+#### 3.1.1 企业微信机器人消息
 
 当前微信机器人消息封装了5种消息格式，分别为 `文本`、`卡片`、`markdown`  、`发送图片`  、`发送文件`  消息，可针对不同场景使用对应消息，消息样式如下
 
@@ -183,17 +183,13 @@ send.send_message_text(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content="�
 
 
 
-##### 3.1.1.2 卡片消息
+##### 3.1.1.2 图文卡片消息
 
-send_message_textcard() 函数可发送卡片消息，传三个参数，调用方式如下：
+send_message_card() 函数可发送卡片消息，传三个参数，调用方式如下：
 
 ```python
-send.send_message_textcard(,hookkey,title,url,content,picurl)
+send.send_message_card(hookkey,title,url,content,picurl)
 ```
-
-> **title**：消息标题
-
-> **content**：消息内容
 
 > **hookkey**：webhook的key
 
@@ -201,7 +197,9 @@ send.send_message_textcard(,hookkey,title,url,content,picurl)
 
 > **url**：点击后跳转的链接
 
-> **picurl**：图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图 1068*455，小图150*150。
+> **content**：消息内容
+
+> **picurl**：图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图 1068X455，小图150X150。
 
 
 
@@ -224,9 +222,9 @@ send_message_markdown() 函数可发送 markdown 消息，需要传二个参数�
 send.send_message_markdown(hookkey,content)
 ```
 
-> **content**：消息内容
-
 > **hookkey**：webhook的key
+
+> **content**：消息内容
 
 例：
 
@@ -259,9 +257,9 @@ send_image() 发送图片，最大不能超过2M，支持JPG,PNG格式，调用�
 send.send_image(hookkey,file)
 ```
 
-> **imgBase64**：图片（base64编码）最大不能超过2M，支持JPG,PNG格式
-
 > **hookkey**：webhook的key
+
+> **imgBase64**：图片（base64编码）最大不能超过2M，支持JPG,PNG格式
 
 例：
 
@@ -282,9 +280,9 @@ send_file() 发送其它文件，调用方式如下：
 send.send_file(hookkey,file)
 ```
 
-> **file**：文件相对路径
-
 > **hookkey**：webhook的key
+
+> **file**：文件相对路径
 
 例：
 
@@ -294,8 +292,6 @@ from luban_common.msg.robot import WeiXin
 send = WeiXin()
 send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
 ```
-
-
 
 
 
@@ -437,17 +433,45 @@ cf.writeConfig(section='pds',key='cas',value='http://cas.com')
 
 yaml操作模板当前只支持获取yaml数据功能，其它功能未实现
 
-##### 3.2.4.1 获取ymal文件数据
+##### 3.2.4.1 获取指定的ymal文件
 
 get_yaml_data() 传入yaml文件路径，返回yaml文件内的数据，返回类型为dcit，调用格式如下：
 
 ```python
-from luban_common.operation.yaml_file import get_yaml_data
+from luban_common.operation import yaml_file
 
-get_yaml_data(file_path='../../data/config1.yaml')
+yaml_file.get_yaml_data(file_path='../../data/config1.yaml')
 ```
 
 > **file_path**：文件路径
+
+
+
+##### 3.2.4.2 获取指定目录下全部yaml文件
+
+get_yaml_data_all() 获取指定目录下全部yaml文件，并返回yaml文件内的数据，返回类型为dcit，调用格式如下：
+
+```python
+from luban_common.operation import yaml_file
+
+yaml_file.get_yaml_data_all(catalogue='../config/global')
+```
+
+> **catalogue**：指定的文件夹路径
+
+
+
+##### 3.2.4.3 写yaml文件
+
+writer_yaml() 写yaml文件，调用格式如下：
+
+```python
+from luban_common.operation import yaml_file
+
+yaml_file.writer_yaml(file="../config/global/te.yaml",data=yamldata)
+```
+
+> **file**：文件路径
 
 
 
@@ -1239,9 +1263,134 @@ base_utils.jpath(data,check_key="functionKey",check_value="D-2",sub_key="openSta
 
 
 
+#### 3.5.21 获取全部字典的key
+
+调用格式如下：
+
+```python
+get_all_key(data)
+```
+
+> **data**：list或dict数据
+
+例：
+
+```python
+from luban_common import base_utils
+
+dict5 = {'busiModuleList': {'type': 'array', 'description': '流程类型id列表', 'items': {'type': 'string'}}}
+base_utils.get_all_key(dict5)
+```
+
+
+
+#### 3.5.22 获取全部value
+
+可取list和dict的value值，调用格式如下：
+
+```python
+get_all_value(data)
+```
+
+> **data**：list或dict数据
+
+例：
+
+```python
+from luban_common import base_utils
+
+dict5 = {'busiModuleList': {'type': 'array', 'description': '流程类型id列表', 'items': {'type': 'string'}}}
+base_utils.get_all_value(dict5)
+```
+
+
+
+#### 3.5.23 字符串类型的列表转为列表
+
+调用格式如下：
+
+```python
+strListToList(string)
+```
+
+> **string**："['1', '2', '3']" ---> ['1', '2', '3']
+
+例：
+
+```python
+from luban_common import base_utils
+
+strlist = "['1', '2', '3']"
+base_utils.strListToList(strlist)
+```
+
+
+
+#### 3.5.24 生成uuid
+
+调用格式如下：
+
+```python
+gen_uuid(filter)
+```
+
+> **filter**：生成的uuid默认会带有'-'，当filter为False时不过滤'-'，默认为False
+
+例：
+
+```python
+from luban_common import base_utils
+
+base_utils.gen_uuid(True)
+```
+
+
+
+#### 3.5.25 生成签名
+
+根据时间戳和secret生成签名，使用场景：请求数据时发送当前时间戳和生成的签名，接受方根据约定的secret和发送过来的时间戳，以相同方式获取签名，如生成的签名一致，表示签名有效，调用格式如下：
+
+```python
+gen_sign(timestamp, secret)
+```
+
+> **timestamp**：时间戳
+
+> **secret**：秘钥
+
+例：
+
+```python
+from luban_common import base_utils
+
+base_utils.gen_sign(getUnix(), "123456")
+```
+
+
+
+#### 3.5.26 返回文件绝对路径
+
+通过文件相对路径，返回文件绝对路径，调用格式如下：
+
+```python
+file_absolute_path(rel_path)
+```
+
+> **rel_path**：相对于项目根目录的路径，如data/check_lib.xlsx
+
+例：
+
+```python
+from luban_common import base_utils
+
+base_utils.file_absolute_path('../data/Quality_check_lib.xls')
+```
+
+
+
 ### 3.6 Global_Map.py
 
-全局变量函数，效果同 `global_cache` ，为什么有了 `global_cache` 还要再搞一个 Global_Map 了，因为 `global_cache` 是一个 fixture 函数，调用会有局限性，它只能在 fixture 函数或测试方法下调用，但实际场景有时候需要在其它函数中获取全局变量
+全局变量函数
 
 #### 3.6.1 set 设置变量
 
@@ -1266,19 +1415,18 @@ Global_Map.set("username","hubiao")
 
 #### 3.6.2 sets 设置多变量
 
-
-
 调用格式如下：
 
 ```python
-Global_Map.sets(**keys)
+Global_Map.sets(dict_kwargs)
 ```
 
-> **keys**：设置参数变量，支持
+> **dict_kwargs**：添加多个指定变量到全局变量
 
 ```python
 from luban_common.global_map import Global_Map
-Global_Map().sets(age=20,shcool="luban")
+
+Global_Map.sets({"公众号":"彪哥的测试之路"})
 ```
 
 
@@ -1314,13 +1462,13 @@ Global_Map.del_key("username")
 Global_Map.get(*args)
 ```
 
-> **args**：需要获取的变量名，支持传元组
+> **args**：需要获取的变量名，当只有一个变量且名称为’all’ 或 没有args参数时，返回全部变量; 当获取多个变量时，只返回存在的变量
 
 ```python
 from luban_common.global_map import Global_Map
 Global_Map.get("username")
 或
-Global_Map().get('username','age')
+Global_Map().get("username","age")
 ```
 
 
@@ -1365,13 +1513,13 @@ luban swagger [-p [<...>]] <swagger-url-json> <project-directory>
 
 > **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
-例：生成接口文件到 `builder` 目录
+例：生成接口文件到swagger目录下的 `builder` 目录
 
 ```python
 luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder
 ```
 
-例：生成接口文件到 `builder` 目录，且指定项目名为 `builder` 
+例：生成接口文件到swagger目录下的 `builder` 目录，且指定项目名为 `builder` 
 
 ```python
 luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
@@ -1385,7 +1533,7 @@ luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
 注：必须要在项目根目录下执行，会在对应的 `swagger` 和 `testcases` 目录下同时生成swagger接口方法和对应测试用例，如果指定了 `-p` 参数时会在 `testcases` 目录下生成对应的项目目录，并把测试用例放在里面
 
 ```python
-luban swaggerCase [-p [<...>]] <swagger-url-json> <project-directory> <case-directory>
+luban swaggerCase [-p [<...>]] [-b] [-t <...>] [-s] <swagger-url-json> <project-directory> <case-directory>
 ```
 
 > **swaggger-url-json**：swagger url 地址（必须要是json地址），必填参数
@@ -1402,13 +1550,13 @@ luban swaggerCase [-p [<...>]] <swagger-url-json> <project-directory> <case-dir
 
 > **-s**：是否生成 swagger 脚本，默认生成 swagger 脚本，可选项
 
-例：生成接口文件到 `builder` 目录，生成测试用例到 `center` 目录
+例：生成接口文件到swagger目录下的 `builder` 目录，生成测试用例到 `center` 目录
 
 ```python
 luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center
 ```
 
-例：生成接口文件到 `builder` 目录，生成测试用例到 `center` 目录，且指定项目名为 `builder` 
+例：生成接口文件到swagger目录下的 `builder` 目录，生成测试用例到 `center` 目录，且指定项目名为 `builder` 
 
 ```python
 luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center -p builder
@@ -1421,7 +1569,7 @@ luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center 
 `luban weixin`：发送 `企业微信机器人` 消息命令，格式如下：
 
 ```python
-luban weixin [-o <...>] <title> <content> <department>
+luban weixin [-m <...>] [-t <...>] [-u <...>] [-o <...>] <hookkey> <content>
 ```
 
 > **hookkey**：webhook连接中的key，必填参数
@@ -1453,14 +1601,14 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "ca
 例：发送 `markdown` 消息
 
 ```python
-luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "markdown"
+luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之路` " -o "markdown"
 ```
 
 
 
-### 4.2 pytest.ini 配置
+### 4.2 pytest命令行参数
 
-在项目根目录的 `pytest.ini` 文件中新增如下配置：
+新增如下命令行参数：
 
 - `--lb-env`：环境配置文件，如 `dev`、`enterprise`、`preRelease`、`release`
 
@@ -1482,126 +1630,131 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "ma
   pytest --lb-base-url http://www.lbuilder.cn
   ```
 
-- `globalConf` ：通用配置文件，把固定不变的内容配置到这里
+- `--lb-robot`： 指定机器人消息id，当执行失败时，发消息到企业微信
 
-- `message_switch` ：有度消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为Flase
+  ```
+  pytest --lb-robot ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42
+  ```
+
+  **注意**：
+
+  ​	`--lb-env` 参数是必须指定的参数
+  
+  ​	`--lb-robot` 参数指定后会替换 `--lb-env` 配置文件中的 robot ，且会忽略 `message_switch` 配置
+  
+  如果参数不常变，也可直接写在 `pytest.ini` 中，类似如下形式
+  
+```
+  [pytest]
+  addopts =
+      --lb-env=config/release/config.yaml
+      --lb-driver=firefox
+```
+
+  
+
+### 4.3 pytest.ini配置
+
+在 `pytest.ini` 文件中新增如下配置：
+
+- `is_local` ：是否走本地初始化，为True时走本地配置文件，为False时走线上初始化数据，默认为False
+
+- `message_switch` ：消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为Flase
 
 - `success_message` ： 成功时是否发送消息通知，默认为False
 
+- `is_clear` ： 用例执行成功后是否清理数据，默认为True
+
 - 默认使用 `pytest-html` 插件生成报告，生成在当前执行目录的 `reports/report.html` 中
 
-- 其它，指定了 `pytest` 的最低版本号为 `5.0` ，只到 `testcases`、 `testsuites` 下搜索用例
+- 其它，指定了 `pytest` 的最低版本号为 `7.0` ，只到 `testcases`、 `testsuites` 下搜索用例
 
+  
 
+### 4.4 系统自带fixture
 
-### 4.3 自定义fixture
+系统自带了2个fixtrue
 
-在根目录的 `conftest.py` 中自定义了部分通用 `fixture` ，`fixture` 使用非常简单，只要把你想使用的 `fixture` 当参数传入对应的函数即可，`fixture`  可以当参数传入任意 `fixture`  或 测试方法中。
+#### 4.4.1 env_conf
 
-> **限制**：fixture 只能应用到 fixture 函数和测试用例上，其它函数不支持，但可以通过 fixture 函数传到其它函数实现数据共享
-
-如下 `Send` 不是一个 `fixture` 函数，但他通过 `lbbv` 这个 `fixture` 实现了数据共享
-
-```python
-@pytest.fixture(scope="session")
-def lbbv(iworks_app_cas, env_conf, global_cache):
-    '''
-    获取LBBV登录凭证
-    :return:
-    '''
-    LBBV = base_requests.Send(global_cache.get("lbbv", False), env_conf, global_cache)
-    yield LBBV
-```
-
-
-
-####  4.3.1 global_cache（推荐使用Global_Map）
-
-全局缓存生命周期内产生的数据，主要用来解决数据依赖问题，比如 serverUrl 返回的项目地址、企业ID、项目部ID等通用数据
-
-`global_cache` 提供了二个函数 `set`、`get`
-
-##### 4.3.1.1 set 函数
-
-用来设置需要缓存的数据，需要传二个参数，第一个参数是要设置的变量名称，第二个是要设置的数据，使用方式为：
-
-```python
-global_cache.set("rootid",rootid)
-```
-
-例：设置部署类型
-
-```python
-def getDeployType(self,global_cache):
-    '''
-    获取部署类型
-    :return:
-    '''
-    resource = '/rs/centerLogin/deployType'
-    response = self.CenterLogin.request('get', resource)
-    Assertions().assert_code(response, response["status_code"], 200)
-    deployType = response["Response_body"]
-    global_cache.set('deployType', deployType)
-```
-
-当设置的变量名称已存在时，会进行覆盖操作。
-
-
-
-##### 4.3.1.2 get 函数
-
-用来获取缓存中的数据，需要传二个参数，第一个参数是要获取的变量名称，第二个是当获取的变量不存在时，默认返回什么，使用方式为：
-
-```python
-global_cache.get("builder", False)
-```
-
-例：获取企业id
-
-```python
-def switchCompany(self,global_cache):
-    '''
-    切换到指定企业
-    :return:
-    '''
-    resource = f"/rs/casLogin/casLogin"
-    body = {"epid": global_cache.get("epid", False)}
-    response = self.casLogin.request('post', resource,body)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-```
-
-
-
-#### 4.3.2 env_conf
-
-环境配置，合并了 `pytest.ini` 配置中 `--lb-env` 和 `globalConf` 文件中的 yaml 数据，使用字典的方式取值，使用方法为：
+环境配置，合并了 `pytest.ini` 配置中 `--lb-env` 和 `config/global` 文件夹中的 yaml 数据，使用字典的方式取值，使用方法为：
 
 ```python
 env_conf.get("center").get("username")
 ```
 
-例：获取产品id、header信息等
+例：获取产品 header 信息等
 
 ```python
-def __init__(self,username,password,envConf,global_cache):
-    self.cache = global_cache
-    self.productId = envConf['iworksWebProductId']
-    self.username = username
-    self.password = password
-    self.header = envConf["headers"]["json_header"]
-    self.casLogin = base_requests.Send(envConf['pds'], envConf, global_cache=self.cache)
-    self.epid = ''
+class Token:
+    '''
+    通用token登录类
+    '''
+    def __init__(self,username,password,productId,envConf,loginType=None):
+        self.productId = productId
+        self.username = username
+        self.password = password
+        self.header = envConf.get("headers").get("json_header")
+        self.Login = base_requests.Send(envConf.get('base_url'), envConf)
+        self.epid = ""
+        self.token = ""
+        self.loginType = "CENTER_WEB" if loginType is None else loginType
+        self.envConf = envConf
+```
+
+> **提示**：读取到的 env_conf 数据也会同时写入到 Global_Map 中，方便数据共享，但 Global_Map  中的数据是可以修改的，修改后 env_conf  中不会同步修改
+
+
+
+#### 4.4.2 base_url
+
+基础URL， `base_url `  获取的是  `--lb-base-url` 的值，可在 `pytest.ini` 中指定，或在cmd命令中使用  `--lb-base-url` 指定，使用时只要把 `base_url ` 当参数传入对应的函数即可，使用方法为：
+
+```
+web框架时使用，暂未使用到
 ```
 
 
 
-#### 4.3.3 base_url
+### 4.5 自定义fixture
 
-基础URL，当参数传入对应的函数即可，使用方法为：
+项目目录下的fixtures文件夹用来存放自定义fixture，测试启动时会自动匹配和加载fixtures文件夹下以 fixture 开头，且以 .py 结尾的文件，前提是这些文件中的函数要指定了 `@pytest.fixture` 。
 
+> **规范**：conftest中不要出现自定义的fixture，conftest中只要引入 pytest_plugins = all_plugins() 即可
+
+conftest.py 格式如下：
+
+```python
+from luban_common.plugin import all_plugins
+
+pytest_plugins = all_plugins()
 ```
-web框架时使用，暂未
+
+
+
+#### 4.5.1 登录并获取token的fixture
+
+在 fixtures 文件夹下，新建 fixture_login.py，代码如下：
+
+```python
+# -*- coding: utf-8 -*-
+# @Time : 2022-12-4 16:38
+# @Author : hubiao
+# @Email : 250021520@qq.com
+# @公众号 : 彪哥的测试之路
+
+@pytest.fixture(scope='session')
+def token(env_conf):
+    '''
+    数据管理平台获取登录凭证
+    :return:
+    '''
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksWeb'), env_conf,env_conf['productId']['iworksWeb'])
+    yield  resule.login()
+    resule.logout()
 ```
+
+这样一个自定义的 fixture 就定义完成了
 
 
 
@@ -1617,14 +1770,15 @@ luban new CenterAutomation
 
 > **luban**：框架提供的命令入口
 
-> **new**：创建项目命令
-
 > **CenterAutomation**：项目名称，可修改为自己想要的名称
 
 看到 `Successfully Created CenterAutomation` 表示项目创建成功，生成的项目结构如下
 
 ```python
 ├─business
+│   ├─dev
+│  	    ├─public_login.py
+│   │	└─common.py
 │   └─__init__.py
 ├─config
 │   ├─dev
@@ -1635,8 +1789,12 @@ luban new CenterAutomation
 │   │	└─config.yaml
 │   ├─release
 │   │	└─config.yaml
-│   └─globalConf.yaml
+│   └─global
+│   	└─globalConf.yaml
 ├─data
+├─fixtures
+│   ├─fixture_login.py
+│   └─__init__.py
 ├─reports
 ├─swagger
 │   ├─__init__.py
@@ -1682,11 +1840,13 @@ luban new CenterAutomation
 
 > **pytest.ini**：pytest 配置文件，有些默认配置
 
+> **fixtures**：存放自定义 `fixture`
+
 
 
 ### 5.2 执行测试
 
-生成项目时默认会生成一份演示数据，进入 `CenterAutomation`  目录，执行测试有二种方式
+执行测试有二种方式，生成项目时默认会生成一份演示数据，进入 `CenterAutomation`  目录：
 
 **使用默认配置执行**：在命令行中输入如下命令，表示使用 `pytest.ini` 中的默认配置执行测试
 
@@ -1730,7 +1890,7 @@ luban new iworksweb
 
 > 第2个是swagger对应的json地址，这个地址就是我们需要的地址
 
-在命令行中输入如下命令生成用例和接口方法
+在命令行中输入如下命令生成用例和接口方法，如果不知道 luban swaggerCase 怎么使用，可看前面的说明
 
 ```python
 luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan plan
@@ -1746,7 +1906,7 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 ![image-20210918153115409](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153115409.png)
 
-生成好的接口文件就可以直接在用例中调用了，调用方式和程序的类和方法调用方式一样，没有区别.
+生成好的接口文件就可以直接在用例中调用了，调用方式和程序的类和方法调用方式一样没有区别.
 
 打开 `test_webPlanCalendar.py` 文件，看看生成的测试用例是什么样子，查看到 `test_setPlanCalenDar` 测试用例如下
 
@@ -1758,7 +1918,7 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 #### 6.1.3 修改测试用例文件
 
-
+根据情况修改和完善自动生成的用例，比如参数、参数上下文引用、断言添加等，默认会添加http状态断言
 
 
 
@@ -1766,7 +1926,7 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 进入 config 目录，由于现在演示的这个项目是企业部署项目，所以我们进入了 enterprise 目录，我复制了一个 yaml 配置文件，命名为 202_config.yaml ，修改后的配置内容如下
 
-![image-20200901210924480](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901210924480.png)
+![](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901210924480.png)
 
 > **注意**：账号和地址信息必须要按默认文件的方式，建议大家在不了解运行机制时，只修改登录地址、用户名、密码，不要调整格式，如果需要添加信息，按已有样式添加即可
 
@@ -1776,13 +1936,15 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 在 `iworksweb` 根目录找到 `pytest.ini` 文件，定位到 `--lb-env` 配置，把 `--lb-env` 配置修改为我们刚新建的 `Config/enterprise/202_config.yaml` 调整后的样子如下图
 
-![image-20200901211726879](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901211726879.png)
+![](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20230219165838091.png)
+
+
 
 
 
 #### 6.1.6 运行测试
 
-进入 `testsuites` 目录，新建一个 `test_plan_add.py` 文件
+进入 `testcase` 目录，执行 pytest 就可以运行case了
 
 
 

@@ -26,7 +26,6 @@ class Send:
         请求数据初始化
         :param host：请求的地址前缀
         :param envConf：环境配置信息
-        :param global_cache：缓存信息
         :param header：请求头信息
         """
         self.host = host

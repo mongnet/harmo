@@ -185,14 +185,5 @@ def base_url(pytestconfig):
     else:
         raise RuntimeError("--lb-base-url not found")
 
-@pytest.fixture(scope="session")
-def global_cache(request):
-    '''
-    全局缓存，当前执行生命周期有效，即将废弃
-    :param request:
-    :return:
-    '''
-    return request.config.cache
-
 if __name__ == '__main__':
     pass

@@ -1390,7 +1390,7 @@ base_utils.file_absolute_path('../data/Quality_check_lib.xls')
 
 ### 3.6 Global_Map.py
 
-全局变量函数，效果同 `global_cache` ，为什么有了 `global_cache` 还要再搞一个 Global_Map 了，因为 `global_cache` 是一个 fixture 函数，调用会有局限性，它只能在 fixture 函数或测试方法下调用，但实际场景有时候需要在其它函数中获取全局变量
+全局变量函数
 
 #### 3.6.1 set 设置变量
 
@@ -1926,7 +1926,7 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 进入 config 目录，由于现在演示的这个项目是企业部署项目，所以我们进入了 enterprise 目录，我复制了一个 yaml 配置文件，命名为 202_config.yaml ，修改后的配置内容如下
 
-![image-20200901210924480](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901210924480.png)
+![](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901210924480.png)
 
 > **注意**：账号和地址信息必须要按默认文件的方式，建议大家在不了解运行机制时，只修改登录地址、用户名、密码，不要调整格式，如果需要添加信息，按已有样式添加即可
 
@@ -1936,7 +1936,9 @@ luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 在 `iworksweb` 根目录找到 `pytest.ini` 文件，定位到 `--lb-env` 配置，把 `--lb-env` 配置修改为我们刚新建的 `Config/enterprise/202_config.yaml` 调整后的样子如下图
 
-![image-20200901211726879](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901211726879.png)
+![](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20230219165838091.png)
+
+
 
 
 
