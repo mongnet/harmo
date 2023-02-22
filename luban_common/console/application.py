@@ -3,11 +3,9 @@
 # @TIME    : 2020/8/15 20:00
 # @Author  : hubiao
 
-from cleo import Application as BaseApplication
-
+from cleo.application import Application as BaseApplication
 from luban_common.__version__ import __version__
 from .cases_command import CasesCommand
-from .youdu_msg_command import YouduMsgCommand
 from .weixin_msg_command import WeixinMsgCommand
 from .swagger_command import SwaggerCommand
 from .new_command import NewCommand
@@ -25,7 +23,6 @@ class Application(BaseApplication):
             NewCommand(),
             SwaggerCommand(),
             WeixinMsgCommand(),
-            YouduMsgCommand(),
             CasesCommand()
         ]
 

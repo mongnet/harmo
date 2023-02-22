@@ -4,15 +4,18 @@
 # @Author  : hubiao
 import os
 
-from cleo import Command as BaseCommand
+from cleo.commands.command import Command
+from cleo.helpers import argument, option
 
-class NewCommand(BaseCommand):
-    """
-    Create a new test project
-
-    new
-        {name : 测试项目的名称}
-    """
+class NewCommand(Command):
+    name = "new"
+    description = "新建测试项目"
+    arguments = [
+        argument(
+            "name",
+            description="测试项目的名称，必填"
+        )
+    ]
     def handle(self):
         from pathlib2 import Path
 
@@ -47,7 +50,6 @@ class NewCommand(BaseCommand):
                     with open(os.path.join(root, file), encoding="utf-8") as f:
                         NewCommand().create_file(os.path.join(name, relative_path, file.replace(".template","")), f.read())
                         self.line(f"Created file: <fg=green>{file.replace('.template','')}</>")
-        self.line("Initializing End")
         self.line("")
         self.line(f"<fg=green>Successfully Created {name}</>")
 

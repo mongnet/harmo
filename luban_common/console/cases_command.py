@@ -5,7 +5,8 @@
 import os
 
 import chevron
-from cleo import Command as BaseCommand
+from cleo.commands.command import Command
+from cleo.helpers import argument, option
 from luban_common.global_map import Global_Map
 from pathlib2 import Path
 
@@ -14,19 +15,48 @@ from ..console.analysis_swagger import AnalysisSwaggerJson
 from datetime import datetime
 
 
-class CasesCommand(BaseCommand):
-    """
-    Test cases generated from Swagger need to be executed in the root of the project. Both the Swagger interface method and the corresponding testcases are generated in the corresponding "Swagger" and "testcases" directories
-
-    swaggerCase
-        {swagger-url-json : Swagger URL address, must be a JSON address, required parameter}
-        {project-directory : Interface project name, required parameters}
-        {case-directory : Use case classification, required parameters}
-        {--p|project=? : Project name, which merges the project name and interface address into a new interface address (the Resource field in the interface file), optional}
-        {--b|body : Generate request body, default generated, optional}
-        {--t|token=token : Default token fixture, default is token, optional}
-        {--s|swagger : Generate swagger script, default generated, optional}
-    """
+class CasesCommand(Command):
+    name = "swaggerCase"
+    description = "通过swagger生成测试用例"
+    arguments = [
+        argument(
+            "swagger-url-json",
+            description="swagger url 地址（必须要是json地址），必填"
+        ),
+        argument(
+            "project-directory",
+            description="生成的接口方法存放的目录，通常为接口项目目录，必填"
+        ),
+        argument(
+            "case-directory",
+            description="生成的测试用例存放的目录，通常为用例存放目录，必填"
+        )
+    ]
+    options = [
+        option(
+            "project",
+            "p",
+            description="项目名或 basePath 地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选",
+            flag=False
+        ),
+        option(
+            "body",
+            "b",
+            description="是否生成请求体，当接口有请求体时，默认生成请求体，可选项"
+        ),
+        option(
+            "token",
+            "t",
+            description="是否携带 token fixture，默认名称为 token，可选",
+            default="token",
+            flag=False
+        ),
+        option(
+            "swagger",
+            "s",
+            description="是否生成 swagger 接口方法，默认生成 swagger 接口方法，可选"
+        )
+    ]
 
     def handle(self):
         excludes = ["None", "null", "false", "true", "undefined"]
@@ -139,6 +169,7 @@ class CasesCommand(BaseCommand):
                                 with interface_file.open("w", encoding="utf-8") as f:
                                     f.write(interfaces)
                                 self.line("Created file: <fg=green>{}</>".format(interface_file))
+                        self.line("")
                         self.line("<fg=green>Successfully generate interface</>")
                         self.line("")
             # Generate case script
@@ -198,4 +229,5 @@ class CasesCommand(BaseCommand):
                             with interface_file.open("w", encoding="utf-8") as f:
                                 f.write(interfaces.replace("'$","").replace("$'","").replace("$",""))
                             self.line("Created file: <fg=green>{}</>".format(interface_file))
+                    self.line("")
                     self.line("<fg=green>Successfully generate cases</>")

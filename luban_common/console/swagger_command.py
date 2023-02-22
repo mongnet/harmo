@@ -5,7 +5,8 @@
 import os
 
 import chevron
-from cleo import Command as BaseCommand
+from cleo.commands.command import Command
+from cleo.helpers import argument, option
 from datetime import datetime
 
 from luban_common.operation import yaml_file
@@ -13,16 +14,27 @@ from ..global_map import Global_Map
 from pathlib2 import Path
 from ..console.analysis_swagger import AnalysisSwaggerJson
 
-
-class SwaggerCommand(BaseCommand):
-    """
-    Swagger generates file interfaces
-
-    swagger
-        {swagger-url-json : Swagger URL address, must be a JSON address, required parameter}
-        {project-directory : Interface project name, required parameters}
-        {--p|project=? : Project name, which merges the project name and interface address into a new interface address (the Resource field in the interface file), optional}
-    """
+class SwaggerCommand(Command):
+    name = "swagger"
+    description = "通过swagger生成接口方法"
+    arguments = [
+        argument(
+            "swagger-url-json",
+            description="swagger url 地址（必须要是json地址），必填"
+        ),
+        argument(
+            "project-directory",
+            description="生成的接口方法存放的目录，通常为接口项目目录，必填"
+        )
+    ]
+    options = [
+        option(
+            "project",
+            "p",
+            description="项目名或 basePath 地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选",
+            flag=False
+        )
+    ]
 
     def handle(self):
         excludes = ["None", "null", "false", "true", "undefined"]
@@ -119,5 +131,6 @@ class SwaggerCommand(BaseCommand):
                             with interface_file.open("w", encoding="utf-8") as f:
                                 f.write(interfaces)
                             self.line("Created file: <fg=green>{}</>".format(interface_file))
+                    self.line("")
                     self.line("<fg=green>Successfully generate interface</>")
 

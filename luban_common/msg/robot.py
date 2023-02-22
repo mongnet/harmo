@@ -28,12 +28,15 @@ class WeiXin:
             raise ValueError("文本内容，最长不超过2048个字节")
         if len(hookkey) != 36:
             raise ValueError("hookkey错误，hookkey应该是一个36位的字符串")
-        if mentioned_mobile_list is not None and isinstance(mentioned_mobile_list, list):
-            for m in mentioned_mobile_list:
-                if len(m) == 11 and m.startswith("1"):
-                    pass
-                else:
-                    raise ValueError(f"{m} 不是一个正确的手机号")
+        if not mentioned_mobile_list:
+            if isinstance(mentioned_mobile_list, list):
+                for m in mentioned_mobile_list:
+                    if len(m) == 11 and m.startswith("1"):
+                        pass
+                    else:
+                        raise ValueError(f"{m} 不是一个正确的手机号")
+            else:
+                raise ValueError("mobile必须是一个列表")
         wechat_json = {
             "msgtype": "text",
             "text": {
@@ -92,9 +95,9 @@ class WeiXin:
             "news": {
                "articles" : [
                    {
-                       "title" : "无标题消息" if title == "None" or title is None else title,
+                       "title" : "无标题消息" if title == None else title,
                        "description" : content,
-                       "url" : "#" if url == "None" or url is None else url,
+                       "url" : "#" if url == None else url,
                        "picurl" : picurl
                    }
                 ]
