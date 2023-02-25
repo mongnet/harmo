@@ -512,7 +512,7 @@ def wbs_config_init(CenterToken):
         configtype ={
          "configType" : configTypeKye
         }
-        if configTypeKye in configTypes:
+        if not isinstance(configTypes,bool) and configTypeKye in configTypes:
             for i in configs:
                 if configTypeKye in i.get("configType"):
                     if i.get("startTempNodeKey"):

@@ -1,12 +1,8 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # @Time : 2022-12-4 16:38
 # @Author : hubiao
 # @Email : 250021520@qq.com
 # @File : fixture_login.py
-
-import os
-import time
 
 import pytest
 from luban_common import base_requests
@@ -37,7 +33,7 @@ def lbbv(iworks_app_cas, env_conf):
     获取LBBV登录凭证
     :return:
     '''
-    LBBV = base_requests.Send(Global_Map.get('lbbv'), env_conf)
+    LBBV = base_requests.Send(Global_Map.get('LBBV'), env_conf)
     yield LBBV
 
 @pytest.fixture(scope='session')
@@ -55,7 +51,7 @@ def process(iworks_app_cas, env_conf):
     获取Process登录凭证
     :return:
     '''
-    Process = base_requests.Send(Global_Map.get('lbprocess'), env_conf)
+    Process = base_requests.Send(Global_Map.get('LBprocess'), env_conf)
     yield Process
 
 @pytest.fixture(scope='session')
@@ -82,7 +78,7 @@ def builder_common_business_data(iworks_app_cas, env_conf):
     获取BusinessData登录凭证
     :return:
     '''
-    builderCommonBusinessData = base_requests.Send(Global_Map.get('buildercommonbusinessdata'), env_conf)
+    builderCommonBusinessData = base_requests.Send(Global_Map.get('BuilderCommonBusinessdata'), env_conf)
     yield builderCommonBusinessData
 
 @pytest.fixture(scope='session')
