@@ -8,20 +8,17 @@ import json
 import logging
 import requests
 import urllib3
-
 from luban_common.global_map import Global_Map
-
 urllib3.disable_warnings()
-
 from mimetypes import MimeTypes
 from luban_common import base_utils
-
+from typing import Optional
 
 class Send:
     """
     发送请求类
     """
-    def __init__(self,host,envConf,header=None):
+    def __init__(self,host: str, envConf: dict, header: Optional[dict]=None):
         """
         请求数据初始化
         :param host：请求的地址前缀
@@ -30,12 +27,18 @@ class Send:
         """
         self.host = host
         self.session = requests.session()
-        if "headers" in envConf:
-            self.header = envConf["headers"]["json_header"] if header is None else header
-            self.pdsUrl = envConf["pds"]
+        if header:
+            self.header = json.loads(header) if not isinstance(header, dict) else header
         else:
-            # wgj新增，不动原有逻辑，不传入pds
-            self.header = envConf
+            self.header = {
+                "Accept": "application/json,text/plain",
+                "User-Agent": "Mozilla/5.0(Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400",
+                "Content-Type": "application/json;charset=utf-8",
+                "Accept-Encoding":"gzip, deflate",
+                "Accept-Language": "zh-CN,zh;q=0.8"
+            }
+        if "pds" in envConf:
+            self.pdsUrl = envConf.get("pds")
 
     def request(self, method, address, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,timeout=60,**kwargs):
         """
@@ -52,13 +55,12 @@ class Send:
         """
         # 如果address不是http开头，组装请求地址
         self.Url = address if address.startswith("http") else "".join([self.host,address])
-        request_header = copy.deepcopy(json.loads(self.header) if not isinstance(self.header, dict) else self.header)
+        request_header = copy.deepcopy(self.header)
         # 添加header信息，有些接口请求时添加请求头,flush_header用来指定是否更新基线header
         if header is not None:
             header = json.loads(header) if not isinstance(header, dict) else header
             request_header.update(header)
             if flush_header:
-                self.header = json.loads(self.header) if not isinstance(self.header, dict) else self.header
                 self.header.update(header)
         # 添加cookies信息，有些接口请求时要在cookies上添加信息
         if cookies_kwargs is not None:
@@ -162,7 +164,7 @@ class Send:
                 Global_Map.set("CasCookie", r.request.headers.get("Cookie"))
             # 如果响应码是302，且location是cas地址的跳转时，要加上cas的cookie并跳转这个location，如果取到的CasCookie为False时不跳转
             elif r.status_code == 302 and "Location" in r.headers.keys() and self.pdsUrl in r.headers.get("Location") and Global_Map.get("CasCookie"):
-                header = json.loads(self.header)
+                header = self.header
                 header.update({"cookie":Global_Map.get("CasCookie")})
                 self.session.request(method=r.request.method, url=r.headers.get("Location"), headers=header,
                                      timeout=60, verify=False)
