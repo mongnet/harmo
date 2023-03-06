@@ -47,7 +47,7 @@ class NewCommand(Command):
                     self.line(f"Created folder: <fg=green>{dir}</>")
             if files:
                 for file in files:
-                    with open(os.path.join(root, file), encoding="utf-8") as f:
+                    with open(os.path.join(root, file), mode="rb") as f:
                         NewCommand().create_file(os.path.join(name, relative_path, file.replace(".template","")), f.read())
                         self.line(f"Created file: <fg=green>{file.replace('.template','')}</>")
         self.line("")
@@ -56,9 +56,9 @@ class NewCommand(Command):
     def create_folder(self,folder):
         os.makedirs(folder, mode=0o777)
 
-    def create_file(self,file, file_content=""):
-        with open(file, "w", encoding="utf-8") as f:
-            f.write(file_content)
+    def create_file(self,file, file_content):
+        with open(file, mode="wb") as ff:
+            ff.write(file_content)
 
 if __name__ == '__main__':
     pass

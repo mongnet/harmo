@@ -37,7 +37,7 @@ from swagger.misc.lubanMiscReport import LubanMiscReport
 # 购买的产品套餐列表
 Package = []
 # 需要排除的 mark 列表，比如mark关键字、环境相关mark等一些必须要运行的mark
-excludeMark = ["parametrize","usefixtures","cloud","enterprise","center","allure_label","allure_display_name","configCheck"]
+excludeMark = ["parametrize","usefixtures","cloud","enterprise","center","allure_label","allure_display_name","skipif","configCheck"]
 # 已购，但无可用授权的产品套餐
 noPackage = []
 # 数字平台授权，合并产品成菜单后的处理方式，根据菜单名来判断企业是否有对应产品，从而判断是否执行对应用例，key为center后台菜单名，value为定义的mark名称
@@ -47,15 +47,18 @@ product_dict = {"质检":"inspection",
                 "工序报验":"processInspection",
                 "BIM管理系统":"bim",
                 "质量":"quality",
+                "质量管理":"quality",
                 "安全":"security",
-                "物资管理":"produce",
+                "安全管理":"security",
                 "进度":"plan",
-                "通用配置":"configuration",
-                "个人设置":"basicConfiguration",
+                "进度管理":"plan",
+                "物资管理":"produce",
                 "资料管理":"docManage",
                 "试验室":"laboratory",
                 "工作台":"work",
-                "文档":"doc"}
+                "文档":"doc",
+                "通用配置":"configuration",
+                "个人设置":"basicConfiguration"}
 
 def pytest_runtest_call(item):
     '''
