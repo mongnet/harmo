@@ -446,9 +446,10 @@ def Center_initialize(CenterToken,env_conf):
     if Global_Map.get("is_clear"):
         # 标记删除工程到回收站
         projId = [] if not Global_Map.get("projId") else [Global_Map.get("projId")]
-        RsBimrest().deleteProjectsUsingPOST(CenterToken,array_integer_int32=projId)
-        # 删除回收站中的工程
-        RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=projId)
+        if projId:
+            RsBimrest().deleteProjectsUsingPOST(CenterToken,array_integer_int32=projId)
+            # 删除回收站中的工程
+            RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=projId)
         if "iworksWeb" in Package or "iworksf" in Package:
             # 删除单位
             Orgnode().deleteOrgUsingDELETE_2(CenterToken, [unitid])

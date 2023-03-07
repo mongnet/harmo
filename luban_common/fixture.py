@@ -66,7 +66,6 @@ def pytest_configure(config):
         "success_message": _success_message,
         "is_clear": _is_clear
     }
-    Global_Map.sets(pytestini)
     if _env_config:
         if hasattr(config, "_metadata"):
             if _env_config is not None:
@@ -92,6 +91,7 @@ def pytest_configure(config):
         if _robot:
             _global["weixin_robot"] = _robot
         Global_Map.sets(_global)
+        Global_Map.sets(pytestini)
     else:
         raise RuntimeError("Configuration --lb-env not found")
 
