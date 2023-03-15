@@ -3,7 +3,6 @@
 # @TIME    : 2019/1/2 11:19
 # @Author  : hubiao
 # @File    : public_login.py
-
 import json
 import re
 import xmltodict
@@ -663,9 +662,7 @@ class OpenAPI:
         response = self.OpenAPIToken.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         # 获取到响应的token并更新到header中
-        header = json.loads(self.OpenAPIToken.header)
-        header.update({"token": response.get("data")[0]})
-        self.OpenAPIToken.header = json.dumps(header)
+        self.OpenAPIToken.header.update({"token": response.get("data")[0]})
         return self.OpenAPIToken
 
 class OpenApiMotorToken:
