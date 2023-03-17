@@ -36,7 +36,7 @@ def get_yaml_data_all(catalogue) -> dict:
                 _full_path = os.path.join(root, file)
                 with open(_full_path,'r',encoding='utf-8-sig') as f:
                     _full_path = f.read()
-                    _conf_date = {**_conf_date,**yaml.load(_full_path)}
+                    _conf_date = {**yaml.load(_full_path),**_conf_date}
     return _conf_date
 
 def writer_yaml(file,data:dict):

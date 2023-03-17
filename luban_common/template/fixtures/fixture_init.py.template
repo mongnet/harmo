@@ -350,14 +350,14 @@ def Center_initialize(CenterToken,env_conf):
                 assert len(response.get("source_response").get("data")) >= 1
 
         # 添加用户
-        userName = env_conf['iworksApp']['username']
+        userName = env_conf.get('iworksApp').get('username')
         if User().check_username(CenterToken,userName)["code"][0] != 200:
             response = User().deleteUsers(CenterToken, userNames=userName)
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
         email = base_utils.generate_random_mail()
         mobile = base_utils.generate_random_mobile()
-        pwd =  env_conf['iworksApp']['password'] if not deployType else None
+        pwd =  env_conf.get('iworksApp').get('password') if not deployType else None
         response = User().addUser(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
                        realName="系统校验用户", postIdList=postid)
         Assertions.assert_code(response, response.get("status_code"), 200)
@@ -441,6 +441,46 @@ def Center_initialize(CenterToken,env_conf):
                     continue
                 else:
                     Assertions.assert_code(response, response.get("code")[0], 200)
+        # wbs配置初始化
+        # 获取wbs模板节点
+        response = LubanInfrastructureCenterWbsTemplate().listWbsTempNodeUsingGET(CenterToken, tempId="DEFAULT")
+        Assertions.assert_code(response, response.get("status_code"), 200)
+        Assertions.assert_code(response, response.get("code")[0], 200)
+        startTempNodeKey = \
+        jsonpath.jsonpath(response.get("source_response"), "$..[?(@.businessType=='DANWEI')].defKey")[0]
+        endTempNodeKey = \
+        jsonpath.jsonpath(response.get("source_response"), "$..[?(@.businessType=='ZI_FENXIANG')].defKey")[0]
+        # 获取已配置的wbs信息
+        WbsConfig = LubanInfrastructureCenterWbsTemplate().listWbsConfigUsingGET(CenterToken, tempId="DEFAULT")
+        Assertions.assert_code(WbsConfig, WbsConfig.get("status_code"), 200)
+        Assertions.assert_code(WbsConfig, WbsConfig.get("code")[0], 200)
+        configs = jsonpath.jsonpath(WbsConfig.get("source_response"), "$..[?(@.configType)]")
+        configTypes = jsonpath.jsonpath(WbsConfig.get("source_response"), "$..[?(@.configType)].configType")
+        for configTypeKye in ["INSPECTION", "QUALITY_SAFETY", "EBS", "METER", "PROCESS_INSPECTION"]:
+            configtype = {
+                "configType": configTypeKye
+            }
+            if not isinstance(configTypes, bool) and configTypeKye in configTypes:
+                for i in configs:
+                    if configTypeKye in i.get("configType"):
+                        if i.get("startTempNodeKey"):
+                            configtype.update({"startTempNodeKey": i.get("startTempNodeKey")})
+                        else:
+                            configtype.update({"startTempNodeKey": startTempNodeKey})
+                        if i.get("endTempNodeKey"):
+                            configtype.update({"endTempNodeKey": i.get("endTempNodeKey")})
+                        else:
+                            configtype.update({"endTempNodeKey": endTempNodeKey})
+            else:
+                configtype.update({"startTempNodeKey": startTempNodeKey, "endTempNodeKey": endTempNodeKey})
+            if "EBS" in configTypeKye:
+                configtype.pop("endTempNodeKey")
+                configtype.update({"startTempNodeKey": endTempNodeKey})
+            # 循环设置各系统的wbs配置
+            response = LubanInfrastructureCenterWbsTemplate().wbsConfigUsingPUT(CenterToken, tempId="DEFAULT",
+                                                                                bodyKwargs=configtype)
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
     yield
     # 是否清理生成的数据
     if Global_Map.get("is_clear"):
@@ -466,8 +506,9 @@ def Center_initialize(CenterToken,env_conf):
             InfraDept().deleteInfraDeptUsingDELETE(CenterToken,[infraDeptId])
         # 删除组织机构
         Org().deleteOrgUsingDELETE(CenterToken, orgId=orgid)
-        # 删除用户
-        User().deleteUsers(CenterToken,userNames=userName)
+        # 删除用户，如果center账号和登录的账号是同一个，就不删除
+        if env_conf.get('center').get('username') != env_conf.get('iworksApp').get('username'):
+            User().deleteUsers(CenterToken,userNames=env_conf.get('iworksApp').get('username'))
         # 删除角色
         RoleRest().deleteRole(CenterToken,roleIds=roleid)
         # 删除项岗位
@@ -492,50 +533,6 @@ def initialize(token):
     Assertions.assert_code(response, response.get("status_code"), 200)
     Assertions.assert_code(response, response.get("code")[0], 200)
     Global_Map.set("sectionId",response["data_id"][0])
-
-@pytest.fixture(scope="session",autouse=True)
-def wbs_config_init(CenterToken):
-    '''
-    wbs配置初始化
-    :param CenterToken:
-    :return:
-    '''
-    # 获取wbs模板节点
-    response = LubanInfrastructureCenterWbsTemplate().listWbsTempNodeUsingGET(CenterToken, tempId="DEFAULT")
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    startTempNodeKey = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.businessType=='DANWEI')].defKey")[0]
-    endTempNodeKey = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.businessType=='ZI_FENXIANG')].defKey")[0]
-    # 获取已配置的wbs信息
-    WbsConfig = LubanInfrastructureCenterWbsTemplate().listWbsConfigUsingGET(CenterToken,tempId="DEFAULT")
-    Assertions.assert_code(WbsConfig, WbsConfig.get("status_code"), 200)
-    Assertions.assert_code(WbsConfig, WbsConfig.get("code")[0], 200)
-    configs = jsonpath.jsonpath(WbsConfig.get("source_response"), "$..[?(@.configType)]")
-    configTypes = jsonpath.jsonpath(WbsConfig.get("source_response"), "$..[?(@.configType)].configType")
-    for configTypeKye in ["INSPECTION","QUALITY_SAFETY","EBS","METER","PROCESS_INSPECTION"]:
-        configtype ={
-         "configType" : configTypeKye
-        }
-        if not isinstance(configTypes,bool) and configTypeKye in configTypes:
-            for i in configs:
-                if configTypeKye in i.get("configType"):
-                    if i.get("startTempNodeKey"):
-                        configtype.update({"startTempNodeKey":i.get("startTempNodeKey")})
-                    else:
-                        configtype.update({"startTempNodeKey": startTempNodeKey})
-                    if i.get("endTempNodeKey"):
-                        configtype.update({"endTempNodeKey":i.get("endTempNodeKey")})
-                    else:
-                        configtype.update({"endTempNodeKey": endTempNodeKey})
-        else:
-            configtype.update({"startTempNodeKey": startTempNodeKey,"endTempNodeKey": endTempNodeKey})
-        if "EBS" in configTypeKye:
-            configtype.pop("endTempNodeKey")
-            configtype.update({"startTempNodeKey": endTempNodeKey})
-        # 循环设置各系统的wbs配置
-        response = LubanInfrastructureCenterWbsTemplate().wbsConfigUsingPUT(CenterToken, tempId="DEFAULT", bodyKwargs=configtype)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
 
 @pytest.fixture(scope="session")
 def meter_ruleId_init(CenterToken):

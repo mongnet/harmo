@@ -85,7 +85,7 @@ def pytest_configure(config):
             if _is_clear is not None:
                 config._metadata["是否清理数据"] = _is_clear
         _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
-        _global = {**_global_conf, **yaml_file.get_yaml_data(file_absolute_path(_env_config))}
+        _global = {**yaml_file.get_yaml_data(file_absolute_path(_env_config)),**_global_conf}
         if _base_url:
             _global["base_url"] = _base_url
         if _robot:
