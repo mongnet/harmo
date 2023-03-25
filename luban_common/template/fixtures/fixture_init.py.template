@@ -351,17 +351,18 @@ def Center_initialize(CenterToken,env_conf):
 
         # 添加用户
         userName = env_conf.get('iworksApp').get('username')
-        if User().check_username(CenterToken,userName)["code"][0] != 200:
-            response = User().deleteUsers(CenterToken, userNames=userName)
+        # response = User().deleteUsers(CenterToken, userNames=userName)
+        # Assertions.assert_code(response, response.get("status_code"), 200)
+        # Assertions.assert_code(response, response.get("code")[0], 200)
+        if User().check_username(CenterToken,userName)["code"][0] == 200:
+            email = base_utils.generate_random_mail()
+            mobile = base_utils.generate_random_mobile()
+            pwd =  env_conf.get('iworksApp').get('password') if not deployType else None
+            response = User().addUser(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
+                           realName="系统校验用户", postIdList=postid)
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
-        email = base_utils.generate_random_mail()
-        mobile = base_utils.generate_random_mobile()
-        pwd =  env_conf.get('iworksApp').get('password') if not deployType else None
-        response = User().addUser(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
-                       realName="系统校验用户", postIdList=postid)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
+            Global_Map.set("is_adduser", True)
         Global_Map.set("username", userName)
         # 授权项目部
         if "iworksWeb" in Package or "iworksj" in Package:
@@ -506,9 +507,12 @@ def Center_initialize(CenterToken,env_conf):
             InfraDept().deleteInfraDeptUsingDELETE(CenterToken,[infraDeptId])
         # 删除组织机构
         Org().deleteOrgUsingDELETE(CenterToken, orgId=orgid)
-        # 删除用户，如果center账号和登录的账号是同一个，就不删除
-        if env_conf.get('center').get('username') != env_conf.get('iworksApp').get('username'):
-            User().deleteUsers(CenterToken,userNames=env_conf.get('iworksApp').get('username'))
+        # 删除用户，如果是添加的用户，就执行删除
+        if Global_Map.get("is_adduser"):
+            # 如果center账号和登录的账号是同一个，就不删除
+            if env_conf.get('center').get('username') != env_conf.get('iworksApp').get('username'):
+                User().deleteUsers(CenterToken,userNames=env_conf.get('iworksApp').get('username'))
+                Global_Map.set("is_adduser", False)
         # 删除角色
         RoleRest().deleteRole(CenterToken,roleIds=roleid)
         # 删除项岗位

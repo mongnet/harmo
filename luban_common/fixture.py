@@ -84,8 +84,15 @@ def pytest_configure(config):
                 config._metadata["机器人"] = _robot
             if _is_clear is not None:
                 config._metadata["是否清理数据"] = _is_clear
-        _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
-        _global = {**yaml_file.get_yaml_data(file_absolute_path(_env_config)),**_global_conf}
+        if _is_local:
+            _tmp_data = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
+            if _tmp_data.get("lb_env") in _env_config or not _tmp_data.get("lb_env"):
+                _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
+            else:
+                _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"), filter=["_global_map.yaml"])
+        else:
+            _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"), filter=["_global_map.yaml"])
+        _global = {**_global_conf,**yaml_file.get_yaml_data(file_absolute_path(_env_config))}
         if _base_url:
             _global["base_url"] = _base_url
         if _robot:

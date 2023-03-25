@@ -3,6 +3,8 @@
 # @TIME    : 2020/2/15 20:00
 # @Author  : hubiao
 import os
+from typing import Optional, List, Dict, Tuple
+
 from ruamel.yaml import YAML
 from luban_common.base_utils import file_is_exist
 from pathlib2 import Path
@@ -22,10 +24,11 @@ def get_yaml_data(file_path) -> dict:
     else:
         raise RuntimeError("The file format must be yaml")
 
-def get_yaml_data_all(catalogue) -> dict:
+def get_yaml_data_all(catalogue: str,filter: Optional[List[str]]=None) -> dict:
     '''
     获取指定目录下全部yaml文件，并返回yaml文件内的数据，返回类型为dcit
     :param catalogue:目录
+    :param filter:需要过滤的文件
     :return:
     '''
     _conf_date = {}
@@ -33,6 +36,8 @@ def get_yaml_data_all(catalogue) -> dict:
     for root, _, files in os.walk(catalogue):
         for file in files:
             if Path(file).suffix in (".yaml",".yml"):
+                if filter is not None and file in filter:
+                    continue
                 _full_path = os.path.join(root, file)
                 with open(_full_path,'r',encoding='utf-8-sig') as f:
                     _full_path = f.read()
@@ -53,8 +58,8 @@ def writer_yaml(file,data:dict):
 
 if __name__ == '__main__':
     #读取信息
-    yamldata = get_yaml_data(file_path='../../data/config.yaml')
-    print(yamldata)
-    yamldataall = get_yaml_data_all(catalogue='../template/config/global')
+    # yamldata = get_yaml_data(file_path='../../data/config.yaml')
+    # print(yamldata)
+    yamldataall = get_yaml_data_all(catalogue='../template/config/global',filter=["globalConf.yaml"])
     print(yamldataall)
-    writer_yaml(file="../template/config/global/te.yaml",data=yamldataall)
+    # writer_yaml(file="../template/config/global/te.yaml",data=yamldataall)
