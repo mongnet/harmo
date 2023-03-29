@@ -40,7 +40,10 @@ class AnalysisSwaggerJson():
             assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
             res = response.json()
             if isinstance(res,dict):
-                http_interface_groups.append(self.analysis(res))
+                if res.get("paths"):
+                    http_interface_groups.append(self.analysis(res))
+                else:
+                    print(f'注意 {self.url} 中没有定义接口')
             else:
                 if isinstance(res,list) and "swagger-resources" in self.url:
                     print(f"这是一个 swagger-resources, 共有 {len(res)} 个group")
@@ -52,7 +55,7 @@ class AnalysisSwaggerJson():
                             if res.get("paths"):
                                 http_interface_groups.append(self.analysis(res))
                             else:
-                                print(f'注意 {i.get("url")} 中没有接口')
+                                print(f'注意 {i.get("url")} 中没有定义接口')
                         else:
                             raise ValueError(u"不是一个有效的swagger地址")
                 else:
@@ -501,7 +504,7 @@ if __name__ == "__main__":
     url20 = "http://192.168.13.246:8182/gateway/process-inspection/v2/api-docs?group=Center"
     url21 = "http://192.168.13.246:8182/pdscommon/rs/swagger/swagger.json"
     url30 = "http://192.168.13.242:8864/sphere/swagger-resources"
-    url31 = "http://192.168.13.246:8182/gateway/process-inspection/v2/api-docs?group=工序报检"
+    url31 = "http://192.168.13.157:8022/luban-bi/v2/api-docs?group=%E6%95%B0%E6%8D%AE%E6%BA%90"
     url32 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url33 = "http://192.168.13.157:8022/luban-bi/swagger-resources"
 
