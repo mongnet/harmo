@@ -14,6 +14,7 @@ from luban_common.msg.robot import WeiXin
 from luban_common.operation import yaml_file
 from luban_common.base_utils import file_absolute_path
 from luban_common.config import Config
+from py._xmlgen import html
 
 def pytest_addoption(parser):
     '''
@@ -44,7 +45,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     '''
-    在测试报告中添加环境信息
+    获取配置信息
     :param config:
     :return:
     '''
@@ -101,7 +102,6 @@ def pytest_configure(config):
         Global_Map.sets(pytestini)
     else:
         raise RuntimeError("Configuration --lb-env not found")
-
 
 def pytest_report_header(config):
     '''
@@ -191,6 +191,101 @@ def base_url(pytestconfig):
         return _base_url
     else:
         raise RuntimeError("--lb-base-url not found")
+
+def pytest_collection_modifyitems(items):
+    # item表示每个测试用例，解决用例名称中文显示问题
+    for item in items:
+        item.name = item.name.encode("utf-8").decode("unicode-escape")
+        item._nodeid = item._nodeid.encode("utf-8").decode("unicode-escape")
+
+def pytest_html_results_table_header(cells):
+    cells.insert(2, html.th("Description"))
+    cells.pop()
+
+def pytest_html_results_table_row(report, cells):
+    cells.insert(2, html.td(report.description))
+    cells.pop()
+#
+# @pytest.fixture(scope="session")
+# def browser(pytestconfig):
+#     '''
+#     根据 --lb-driver 确定使用什么浏览器执行自动化
+#     :param cmdopt: 调用命令行选项函数
+#     :return:
+#     '''
+#     global driver
+#     browser = pytestconfig.getoption("--lb-driver")
+#     if browser is not None:
+#         if browser == "chrome":
+#             options = webdriver.ChromeOptions()
+#             # options.add_argument('--disable-infobars')  # 禁止策略化
+#             # options.add_argument('--no-sandbox')  # 解决DevToolsActivePort文件不存在的报错
+#             # options.add_argument('window-size=1920x3000')  # 指定浏览器分辨率
+#             # options.add_argument('--disable-gpu')  # 谷歌文档提到需要加上这个属性来规避bug
+#             # options.add_argument('--incognito')  # 隐身模式（无痕模式）
+#             # options.add_argument('--disable-javascript')  # 禁用javascript
+#             # options.add_argument('--hide-scrollbars')  # 隐藏滚动条, 应对一些特殊页面
+#             options.add_argument('blink-settings=imagesEnabled=false')  # 不加载图片, 提升速度
+#             # options.add_argument('--headless')  # 浏览器不提供可视化页面. linux下如果系统不支持可视化不加这条会启动失败
+#             # options.add_argument('--user-data-dir=C:\Users\Administrator\AppData\Local\Google\Chrome\User Data')  # 设置成用户自己的数据目录
+#             # options.add_argument('--user-agent=iphone')   # 修改浏览器的User-Agent来伪装你的浏览器访问手机m站
+#             options.add_experimental_option("excludeSwitches", ['enable-automation'])  # 禁用浏览器正在被自动化程序控制的提示（--disable-infobars 在新版本已经被弃用）
+#             # options.binary_location = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"  # 手动指定使用的浏览器位置
+#             options.add_argument('--start-maximized') # 最大化运行（全屏窗口）,不设置，取元素会报错
+#             driver = webdriver.Chrome(chrome_options = options,executable_path="../../DriverPath/chromedriver.exe")
+#         elif browser == "firefox":
+#             driver = webdriver.Firefox(executable_path="../../DriverPath/geckodriver.exe")
+#             driver.maximize_window()
+#         elif browser == "ie":
+#             driver = webdriver.Ie()
+#         yield driver
+#         driver.quit()
+#     else:
+#         raise RuntimeError("Configuration --lb-driver not found")
+#
+# @pytest.mark.hookwrapper
+# def pytest_runtest_makereport(item):
+#     """
+#     当测试失败的时候，自动截图，展示到html报告中
+#     :param item:
+#     """
+#     pytest_html = item.config.pluginmanager.getplugin('html')
+#     outcome = yield
+#     report = outcome.get_result()
+#     # 对test一列重新编码，显示中文
+#     report.nodeid = report.nodeid.encode("utf-8").decode("unicode_escape")
+#     # 当测试失败的时候，自动截图，展示到html报告中
+#     extra = getattr(report, 'extra', [])
+#     if report.when == 'call' or report.when == "setup":
+#         xfail = hasattr(report, 'wasxfail')
+#         if (report.skipped and xfail) or (report.failed and not xfail):
+#             file_name = report.nodeid.replace("::", "_")+".png"
+#             screen_img = _capture_screenshot()
+#             if file_name:
+#                 html = f'<div><img src="data:image/png;base64,{screen_img}" alt="screenshot" style="width:600px;height:300px;" ' \
+#                        'onclick="window.open(this.src)" align="right"/></div>'
+#                 extra.append(pytest_html.extras.html(html))
+#         report.extra = extra
+#         report.description = str(item.function.__doc__)
+#
+# @pytest.mark.optionalhook
+# def pytest_html_results_table_header(cells):
+#     cells.insert(1, html.th('Description'))
+#     # cells.insert(1, html.th('Time', class_='sortable time', col='time'))
+#     cells.pop()
+#
+# @pytest.mark.optionalhook
+# def pytest_html_results_table_row(report, cells):
+#     cells.insert(1, html.td(report.description))
+#     # cells.insert(1, html.td(datetime.utcnow(), class_='col-time'))
+#     cells.pop()
+#
+# def _capture_screenshot():
+#     '''
+#     截图保存为base64，展示到html中
+#     :return:
+#     '''
+#     return driver.get_screenshot_as_base64()
 
 if __name__ == '__main__':
     pass

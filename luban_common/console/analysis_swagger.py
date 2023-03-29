@@ -10,7 +10,6 @@ import copy
 from luban_common import base_utils
 from luban_common.operation import yaml_file
 
-
 class AnalysisSwaggerJson():
     """
     swagger自动生成接口测试用例的工具类,此类以生成json格式的测试用例
@@ -50,7 +49,10 @@ class AnalysisSwaggerJson():
                             response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"), headers=header)
                             assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
                             res = response.json()
-                            http_interface_groups.append(self.analysis(res))
+                            if res.get("paths"):
+                                http_interface_groups.append(self.analysis(res))
+                            else:
+                                print(f'注意 {i.get("url")} 中没有接口')
                         else:
                             raise ValueError(u"不是一个有效的swagger地址")
                 else:
@@ -501,6 +503,7 @@ if __name__ == "__main__":
     url30 = "http://192.168.13.242:8864/sphere/swagger-resources"
     url31 = "http://192.168.13.246:8182/gateway/process-inspection/v2/api-docs?group=工序报检"
     url32 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
+    url33 = "http://192.168.13.157:8022/luban-bi/swagger-resources"
 
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
@@ -527,5 +530,6 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url21).analysis_json_data())
     # print(AnalysisSwaggerJson(url30).analysis_json_data())
     # print(AnalysisSwaggerJson(url31).analysis_json_data())
-    print(AnalysisSwaggerJson(url32).analysis_json_data())
+    # print(AnalysisSwaggerJson(url32).analysis_json_data())
+    print(AnalysisSwaggerJson(url33).analysis_json_data())
 
