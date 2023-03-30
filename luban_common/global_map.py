@@ -73,7 +73,10 @@ class Global_Map:
                     dic[key]=self.map[key]
                 except:
                     pass
-        return dic
+        if dic:
+            return dic
+        else:
+            return None
 
 if __name__ == '__main__':
     gl = Global_Map()
@@ -92,6 +95,7 @@ if __name__ == '__main__':
     print(gl.get("name"))
     print(gl.get())
     print(gl.get("named"))
+    print(gl.get("namedd"))
     projId = [] if not Global_Map.get("projId") else [Global_Map.get("projId")]
     print("projId:",projId)
     gl.set("sh",True)
@@ -99,3 +103,4 @@ if __name__ == '__main__':
     print(gl.get())
     print(type(gl.get("sh")))
     print(type(gl.get("shs")))
+    print(type(gl.get("shsda")))
