@@ -316,10 +316,19 @@ class Assertions:
             else:
                 assert False,"二个字典不相等"
         elif isinstance(reality, list) and isinstance(expected, list):
-            if list(set(reality).difference(set(expected))) == [] and list(set(expected).difference(set(reality))) == []:
+            ls1 = list(set(reality).difference(set(expected)))
+            ls2 = list(set(expected).difference(set(reality)))
+            if not ls1 and not ls2:
                 assert True
             else:
-                assert False, "二个列表不相等"
+                if ls1 and ls2:
+                    assert False, f"二个列表不相等,第一个列表比第二个列表多了：{ls1},第二个列表比第一个列表多了：{ls2}"
+                elif ls1:
+                    assert False, f"二个列表不相等,第一个列表比第二个列表多了：{ls1}"
+                elif ls2:
+                    assert False, f"二个列表不相等,第二个列表比第一个列表多了：{ls2}"
+                else:
+                    assert False, "列表对比失败，出现未预期的异常"
         else:
             assert False, "传入的数据不是字典或列表"
 

@@ -3,6 +3,7 @@
 # @TIME    : 2020/8/15 20:00
 # @Author  : hubiao
 import os
+import re
 
 import chevron
 from cleo.commands.command import Command
@@ -48,10 +49,12 @@ class SwaggerCommand(Command):
         for case in range(len(swagger_directory)):
             if len(swagger_directory[case]) == 0:
                 continue
-            if not swagger_directory[case].encode( 'UTF-8' ).isalpha():
+            ret = re.findall(f'[:*?"<>|]',swagger_directory[case])
+            if ret:
                 raise RuntimeError(
                     f'Destination <fg=yellow>{self.argument("project-directory")}</> '
-                    "The swagger directory can only contain letters"
+                    "The swagger directory Contains illegal characters, "
+                    f"Illegal characters: {ret}"
                 )
         replace_text = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
         swaggerIsEmpty = True

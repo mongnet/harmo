@@ -198,13 +198,13 @@ def pytest_collection_modifyitems(items):
         item.name = item.name.encode("utf-8").decode("unicode-escape")
         item._nodeid = item._nodeid.encode("utf-8").decode("unicode-escape")
 
-def pytest_html_results_table_header(cells):
-    cells.insert(2, html.th("Description"))
-    cells.pop()
-
-def pytest_html_results_table_row(report, cells):
-    cells.insert(2, html.td(report.description))
-    cells.pop()
+# def pytest_html_results_table_header(cells):
+#     cells.insert(2, html.th("Description"))
+#     cells.pop()
+#
+# def pytest_html_results_table_row(report, cells):
+#     cells.insert(2, html.td(report.description))
+#     cells.pop()
 #
 # @pytest.fixture(scope="session")
 # def browser(pytestconfig):
