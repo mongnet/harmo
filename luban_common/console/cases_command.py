@@ -76,20 +76,22 @@ class CasesCommand(Command):
         for case in range(len(swagger_directory)):
             if len(swagger_directory[case]) == 0:
                 continue
-            if not swagger_directory[case].encode('UTF-8').isalpha():
-                raise RuntimeError(
-                    f'Destination <fg=yellow>{self.argument("project-directory")}</> '
-                    "The swagger directory can only contain letters"
-                )
-        case_directory = self.argument("case-directory").split("/")[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory").split("/")
-        for case in range(len(case_directory)):
-            if len(case_directory[case]) == 0:
-                continue
             ret = re.findall(f'[:*?"<>|]',swagger_directory[case])
             if ret:
                 raise RuntimeError(
                     f'Destination <fg=yellow>{self.argument("project-directory")}</> '
                     "The swagger directory Contains illegal characters, "
+                    f"Illegal characters: {ret}"
+                )
+        case_directory = self.argument("case-directory").split("/")[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory").split("/")
+        for case in range(len(case_directory)):
+            if len(case_directory[case]) == 0:
+                continue
+            ret = re.findall(f'[:*?"<>|]',case_directory[case])
+            if ret:
+                raise RuntimeError(
+                    f'Destination <fg=yellow>{self.argument("project-directory")}</> '
+                    "The case directory Contains illegal characters, "
                     f"Illegal characters: {ret}"
                 )
         replace_text = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")

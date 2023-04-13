@@ -60,6 +60,6 @@ if __name__ == '__main__':
     #读取信息
     # yamldata = get_yaml_data(file_path='../../data/config.yaml')
     # print(yamldata)
-    yamldataall = get_yaml_data_all(catalogue='../template/config/global',filter=["globalConf.yaml"])
+    yamldataall = get_yaml_data_all(catalogue='../template/config/global',filter=["_global_map.yaml"])
     print(yamldataall)
     # writer_yaml(file="../template/config/global/te.yaml",data=yamldataall)
