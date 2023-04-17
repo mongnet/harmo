@@ -25,6 +25,7 @@ def pytest_addoption(parser):
     # 自定义的配置选项需要先注册如果，才能在ptest.ini中使用，注册方法如下
     parser.addini('message_switch', help='message_switch configuration')
     parser.addini('success_message', help='success_message configuration')
+    parser.addini('case_message', help='case_message configuration')
     parser.addini('is_local', help='is_local configuration')
     parser.addini('is_clear', help='is_clear configuration')
     # 注册命令行参数
@@ -53,18 +54,20 @@ def pytest_configure(config):
     _browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
     _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
     _robot = os.getenv("lb_robot", None) if os.getenv("lb_robot", None) else config.getoption("--lb-robot")
-    _is_local =  True if config.getini("is_local") == "True" else False
     _message_switch = True if config.getini("message_switch") == "True" else False
     _success_message = True if config.getini("success_message") == "True" else False
+    _case_message = True if config.getini("case_message") == "True" else False
+    _is_local =  True if config.getini("is_local") == "True" else False
     _is_clear = True if config.getini("is_clear") == "True" else False
     pytestini = {
         "lb_env": _env_config,
         "lb_driver": _browser,
         "lb_base_url": _base_url,
         "lb_robot": _robot,
-        "is_local": _is_local,
         "message_switch": _message_switch,
         "success_message": _success_message,
+        "case_message": _case_message,
+        "is_local": _is_local,
         "is_clear": _is_clear
     }
     if _env_config:
@@ -132,7 +135,6 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     # 判断是否要发送消息
     if message_switch or Global_Map.get("lb_robot"):
         if weixin_robot:
-            send = WeiXin()
             # 通过jenkins构件时，可以获取到JOB_NAME
             JOB_NAME = "通用" if config._metadata.get("JOB_NAME") is None else config._metadata.get("JOB_NAME")
             if failed + error != 0:
@@ -147,9 +149,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
                                     >共耗时 <font color=\'comment\'>**{round(total_times,2)}**</font> 秒
                                     >
                                     >可点击下方 report 文件查看详情'''
-                send.send_message_markdown(hookkey=weixin_robot,content=markdown_content)
+                WeiXin().send_message_markdown(hookkey=weixin_robot,content=markdown_content)
                 if html_report:
-                    send.send_file(hookkey=weixin_robot, file=html_report)
+                    WeiXin().send_file(hookkey=weixin_robot, file=html_report)
             elif success_message:
                 markdown_content = f'''
                                     # 恭喜 <font color=\'info\'>{JOB_NAME}</font> 巡检通过，请放心
@@ -157,9 +159,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
                                     >本次共执行 **{total}** 条用例，<font color=\'info\'>**全部执行通过**</font>，耗时 **{round(total_times,2)}** 秒
                                     >
                                     >可点击下方 report 文件查看详情'''
-                send.send_message_markdown(hookkey=weixin_robot, content=markdown_content)
+                WeiXin().send_message_markdown(hookkey=weixin_robot, content=markdown_content)
                 if html_report:
-                    send.send_file(hookkey=weixin_robot, file=html_report)
+                    WeiXin().send_file(hookkey=weixin_robot, file=html_report)
         else:
             print("配置文件中 weixin_robot 未配置，无法发送报告")
 
@@ -197,6 +199,37 @@ def pytest_collection_modifyitems(items):
     for item in items:
         item.name = item.name.encode("utf-8").decode("unicode-escape")
         item._nodeid = item._nodeid.encode("utf-8").decode("unicode-escape")
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """
+    当测试失败的时候，自动截图，展示到html报告中
+    :param item:
+    """
+    out = yield
+    report = out.get_result()
+    # 用例失败时
+    if report.when == "call" and report.outcome == "failed":
+        weixin_robot = Global_Map.get("weixin_robot")
+        message_switch = Global_Map.get("message_switch")
+        # 判断是否要发送消息
+        if message_switch or Global_Map.get("lb_robot"):
+            if weixin_robot and Global_Map.get("case_message"):
+                ds = str.strip(item.function.__doc__) if item.function.__doc__ else item.function.__name__
+                md = f'''
+                        # 用例 {ds} `{report.outcome}`
+                        >用例名称：<font color="comment">{item.function.__name__}</font>
+                        >用例描述：<font color="comment">{str.strip(item.function.__doc__) if item.function.__doc__ else "无"}</font>
+                        >用例位置：<font color="comment">{report.nodeid}</font>
+                        >失败原因：<font color="comment">{call.excinfo}</font>'''
+                if len(md.encode()) > 4096:
+                    print("最长不能超过4096个字节")
+                else:
+                    WeiXin().send_message_markdown(hookkey=weixin_robot, content=md)
+
+
+
+
 
 # def pytest_html_results_table_header(cells):
 #     cells.insert(2, html.th("Description"))
