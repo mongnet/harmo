@@ -73,9 +73,6 @@ def pytest_runtest_call(item):
     # 过滤掉必须排除的mark后，当前用例剩余的mark
     mark = list(set(markers).difference(set(excludeMark)))
     isPackage = list(set(Package).intersection(mark))
-    print()
-    print("Package:",Package)
-    print("mark:",mark)
     if not isPackage and mark:
         pytest.skip(f"未购买 {mark} 产品套餐 {item.name} 用例不用执行")
     elif list(set(noPackage).intersection(mark)):
