@@ -19,10 +19,10 @@ from swagger.builder.rolerest import Rolerest
 from swagger.builder.rsBimrecyclerest import RsBimrecyclerest
 from swagger.builder.rsBimrest import RsBimrest
 from swagger.builder.org import Org
+from swagger.builder.userrest import Userrest
 from swagger.center.post_controller import Post
 from swagger.center.process_controller import Process
 from swagger.center.role_rest import RoleRest
-from swagger.center.user_controller import User
 from swagger.infrastructure.lubanInfrastructureCenterWbs import LubanInfrastructureCenterWbs
 from swagger.infrastructure.lubanInfrastructureCenterWbsTemplate import LubanInfrastructureCenterWbsTemplate
 from swagger.meter.lubanMeterCenterMeterRule import LubanMeterCenterMeterRule
@@ -52,13 +52,14 @@ product_dict = {"质检":"inspection",
                 "安全管理":"security",
                 "进度":"plan",
                 "进度管理":"plan",
-                "物资管理":"produce",
+                "物料管理":"produce",
                 "资料管理":"docManage",
                 "试验室":"laboratory",
                 "工作台":"work",
                 "文档":"doc",
                 "通用配置":"configuration",
                 "个人设置":"basicConfiguration"}
+Global_Map.set("product_dict",product_dict)
 
 def pytest_runtest_call(item):
     '''
@@ -72,6 +73,9 @@ def pytest_runtest_call(item):
     # 过滤掉必须排除的mark后，当前用例剩余的mark
     mark = list(set(markers).difference(set(excludeMark)))
     isPackage = list(set(Package).intersection(mark))
+    print()
+    print("Package:",Package)
+    print("mark:",mark)
     if not isPackage and mark:
         pytest.skip(f"未购买 {mark} 产品套餐 {item.name} 用例不用执行")
     elif list(set(noPackage).intersection(mark)):
@@ -196,7 +200,7 @@ def Center_initialize(CenterToken,env_conf):
         response = RsBimrest().getProjectsUsingPOST(CenterToken, searchKey=projName,packageType=[1,2],delete=True,projType=0)
         Assertions.assert_code(response, response.get("status_code"), 200)
         Assertions.assert_code(response, response.get("code")[0], 200)
-        if response.get("result_totalElements")[0] >= 1:
+        if response.get("result_content_projId"):
             response = RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=response.get("result_content_projId"))
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
@@ -354,15 +358,24 @@ def Center_initialize(CenterToken,env_conf):
         # response = User().deleteUsers(CenterToken, userNames=userName)
         # Assertions.assert_code(response, response.get("status_code"), 200)
         # Assertions.assert_code(response, response.get("code")[0], 200)
-        if User().check_username(CenterToken,userName)["code"][0] == 200:
-            email = base_utils.generate_random_mail()
-            mobile = base_utils.generate_random_mobile()
-            pwd =  env_conf.get('iworksApp').get('password') if not deployType else None
-            response = User().addUser(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
-                           realName="系统校验用户", postIdList=postid)
+        email = base_utils.generate_random_mail()
+        mobile = base_utils.generate_random_mobile()
+        pwd =  env_conf.get('iworksApp').get('password') if not deployType else None
+        # 用户不存在添加用户，用户存在更新用户信息
+        if Userrest().checkPassCardUsingGET(CenterToken,userName)["code"][0] == 200:
+            response = Userrest().addUserUsingPOST_2(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
+                           realName="系统校验用户", postIdList=[postid])
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
             Global_Map.set("is_adduser", True)
+        else:
+            userinfo = Userrest().findUserUsingGET(CenterToken,userName=userName)
+            Assertions.assert_code(userinfo, userinfo.get("status_code"), 200)
+            Assertions.assert_code(userinfo, userinfo.get("code")[0], 200)
+            response = Userrest().updateUserUsingPOST(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
+                           realName="系统校验用户", postIdList=[postid], userId=userinfo.get("result_userId")[0])
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
         Global_Map.set("username", userName)
         # 授权项目部
         if "iworksWeb" in Package or "iworksj" in Package:
@@ -482,6 +495,8 @@ def Center_initialize(CenterToken,env_conf):
                                                                                 bodyKwargs=configtype)
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
+    Global_Map.set("Package",list(set(Package)))
+    Global_Map.set("noPackage",list(set(noPackage)))
     yield
     # 是否清理生成的数据
     if Global_Map.get("is_clear"):
@@ -511,7 +526,7 @@ def Center_initialize(CenterToken,env_conf):
         if Global_Map.get("is_adduser"):
             # 如果center账号和登录的账号是同一个，就不删除
             if env_conf.get('center').get('username') != env_conf.get('iworksApp').get('username'):
-                User().deleteUsers(CenterToken,userNames=env_conf.get('iworksApp').get('username'))
+                Userrest().deleteUsersUsingPOST(CenterToken,array_string=[env_conf.get('iworksApp').get('username')])
                 Global_Map.set("is_adduser", False)
         # 删除角色
         RoleRest().deleteRole(CenterToken,roleIds=roleid)

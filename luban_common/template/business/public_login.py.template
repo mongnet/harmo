@@ -5,6 +5,8 @@
 # @File    : public_login.py
 import json
 import re
+
+import pytest
 import xmltodict
 
 from urllib.parse import quote
@@ -21,7 +23,7 @@ class BimAdmin:
     def __init__(self,envConf):
         self.header = envConf.get("headers").get("urlencoded_header")
         self.body = envConf.get("sysadmin").get("logininfo")
-        self.BimAdminLogin = base_requests.Send(envConf.get("sysadmin").get("host"), envConf)
+        self.BimAdminLogin = base_requests.Send(envConf.get("sysadmin").get("host"))
 
     def login(self):
         '''
@@ -43,7 +45,7 @@ class Center:
         self.username = centerusername if isinstance(centerusername,int) else quote(centerusername)
         self.password = centerpassword
         self.header = envConf.get("headers").get("plain_header")
-        self.CenterLogin = base_requests.Send(envConf.get("pds"), envConf)
+        self.CenterLogin = base_requests.Send(envConf.get("pds"))
 
     def getServerUrl(self):
         '''
@@ -118,6 +120,14 @@ class Center:
         Center登录
         :return:
         '''
+        # 判断用户是否有套餐权限
+        product = [key for key, value in Global_Map.get("productId").items() if value == self.productId]
+        if set(product) <= set(Global_Map.get("Package")):
+            pass
+        elif Global_Map.get("noPackage") and set(product) <= set(Global_Map.get("Package")):
+            pytest.fail(f"{product} 产品套餐已无可用授权数量，用例无法执行，请释放套餐授权后重试")
+        else:
+            pytest.skip(f"未购买 {product} 产品套餐，用例不用执行")
         self.getServerUrl()
         self.getDeployType()
         self.getTGC()
@@ -134,7 +144,7 @@ class IworksApp:
         self.password = password
         self.header = envConf.get("headers").get("plain_header")
         self.clientVersion = envConf.get("iworksApp").get("clientVersion")
-        self.casLogin = base_requests.Send(envConf.get("pds"), envConf)
+        self.casLogin = base_requests.Send(envConf.get("pds"))
         self.epid = ''
 
     def getServerUrl(self):
@@ -217,7 +227,7 @@ class appToken:
         self.username = username
         self.password = password
         self.header = envConf.get("headers").get("json_header")
-        self.Login = base_requests.Send(envConf.get('base_url'), envConf)
+        self.Login = base_requests.Send(envConf.get('base_url'))
         self.epid = ""
         self.token = ""
 
@@ -273,6 +283,14 @@ class appToken:
         Assertions().assert_code(response,response.get("code")[0], 200)
 
     def login(self):
+        # 判断用户是否有套餐权限
+        product = [key for key, value in Global_Map.get("productId").items() if value == self.productId]
+        if set(product) <= set(Global_Map.get("Package")):
+            pass
+        elif Global_Map.get("noPackage") and set(product) <= set(Global_Map.get("Package")):
+            pytest.fail(f"{product} 产品套餐已无可用授权数量，用例无法执行，请释放套餐授权后重试")
+        else:
+            pytest.skip(f"未购买 {product} 产品套餐，用例不用执行")
         self.getToken()
         self.getCompanyList()
         self.enterprise()
@@ -288,7 +306,7 @@ class Iworks:
         self.password = password
         self.header =envConf.get("headers").get("soap_header")
         self.header1 = envConf.get("headers").get("urlencoded_header")
-        self.casLogin = base_requests.Send(envConf.get('pds'), envConf)
+        self.casLogin = base_requests.Send(envConf.get('pds'))
         self.epid = ""
 
     def getServerUrl(self):
@@ -401,6 +419,14 @@ class Iworks:
         登录BV CAS流程方法
         :return:
         '''
+        # 判断用户是否有套餐权限
+        product = [key for key, value in Global_Map.get("productId").items() if value == self.productId]
+        if set(product) <= set(Global_Map.get("Package")):
+            pass
+        elif Global_Map.get("noPackage") and set(product) <= set(Global_Map.get("Package")):
+            pytest.fail(f"{product} 产品套餐已无可用授权数量，用例无法执行，请释放套餐授权后重试")
+        else:
+            pytest.skip(f"未购买 {product} 产品套餐，用例不用执行")
         self.getServerUrl()
         self.getTGC()
         self.getCompanyList()
@@ -415,7 +441,7 @@ class WebToken:
         self.username = username
         self.password = password
         self.header = envConf.get("headers").get("json_header")
-        self.Login = base_requests.Send(envConf.get('base_url'), envConf)
+        self.Login = base_requests.Send(envConf.get('base_url'))
         self.epid = ""
         self.token = ""
 
@@ -497,6 +523,14 @@ class WebToken:
         Assertions().assert_code(response,response.get("code")[0], 200)
 
     def login(self):
+        # 判断用户是否有套餐权限
+        product = [key for key, value in Global_Map.get("productId").items() if value == self.productId]
+        if set(product) <= set(Global_Map.get("Package")):
+            pass
+        elif Global_Map.get("noPackage") and set(product) <= set(Global_Map.get("Package")):
+            pytest.fail(f"{product} 产品套餐已无可用授权数量，用例无法执行，请释放套餐授权后重试")
+        else:
+            pytest.skip(f"未购买 {product} 产品套餐，用例不用执行")
         self.getToken()
         self.getEnterprises()
         self.enterprise()
@@ -509,24 +543,23 @@ class Token:
     '''
     通用token登录类，所有标准版本token登录可使用这个类来登录
     '''
-    def __init__(self,username,password,productId,envConf,loginType=None):
+    def __init__(self,username,password,productId,loginType="CENTER_WEB"):
         self.productId = productId
         self.username = username
         self.password = password
-        self.header = envConf.get("headers").get("json_header")
-        self.Login = base_requests.Send(envConf.get("base_url"), envConf)
+        self.header = Global_Map.get("headers").get("json_header")
+        self.Login = base_requests.Send(Global_Map.get("base_url"))
         self.epid = ""
         self.token = ""
-        self.loginType = "CENTER_WEB" if loginType is None else loginType
-        self.envConf = envConf
+        self.loginType = loginType
 
     def getServerUrl(self):
         '''
         获取服务器地址信息
         '''
-        if not self.envConf.get("pds"):
+        if not Global_Map.get("pds"):
             assert False,"pds地址未配置"
-        resource = f'{self.envConf.get("pds")}/rs/casLogin/serverUrl'
+        resource = f'{Global_Map.get("pds")}/rs/casLogin/serverUrl'
         response = self.Login.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         assert len(response.get("serverURL")) != 0
@@ -625,6 +658,14 @@ class Token:
         Assertions().assert_code(response,response.get("code")[0], 200)
 
     def login(self):
+        # 判断用户是否有套餐权限
+        product = [key for key, value in Global_Map.get("productId").items() if value == self.productId]
+        if self.loginType == "CENTER_WEB" or set(product) <= set(Global_Map.get("Package")):
+            pass
+        elif Global_Map.get("noPackage") and set(product) <= set(Global_Map.get("Package")):
+            pytest.fail(f"{product} 产品套餐已无可用授权数量，用例无法执行，请释放套餐授权后重试")
+        else:
+            pytest.skip(f"未购买 {product} 产品套餐，用例不用执行")
         # 老客户端，使用soap的接口登录，需要调用
         if self.productId in [33,45,86,92,93,192]:
             self.getServerUrl()
@@ -652,7 +693,7 @@ class OpenAPI:
         self.apikey = apikey
         self.apisecret = apisecret
         self.username = envConf.get("openapi").get("username")
-        self.OpenAPIToken = base_requests.Send(envConf.get("openapi").get("host"), envConf)
+        self.OpenAPIToken = base_requests.Send(envConf.get("openapi").get("host"))
 
     def login(self):
         '''
@@ -662,7 +703,10 @@ class OpenAPI:
         response = self.OpenAPIToken.request("get", resource)
         Assertions().assert_code(response,response.get("status_code"), 200)
         # 获取到响应的token并更新到header中
-        self.OpenAPIToken.header.update({"token": response.get("data")[0]})
+        if isinstance(response.get("data"),list):
+            self.OpenAPIToken.header.update({"token": response.get("data")[0]})
+        else:
+            assert False,response.get("source_response") if response.get("source_response") else response.get("Response_text")
         return self.OpenAPIToken
 
 class OpenApiMotorToken:
@@ -754,7 +798,7 @@ class Bimapp:
         self.password = password
         self.token = ""
         self.AcAddress = ""
-        self.BimappLogin = base_requests.Send(envConf.get("bimapp").get("host"), envConf)
+        self.BimappLogin = base_requests.Send(envConf.get("bimapp").get("host"))
 
     def getCookie(self):
         '''
@@ -809,7 +853,7 @@ class Bussiness:
     def __init__(self,username,password,envConf):
         self.username = username
         self.password = password
-        self.BussinessLogin = base_requests.Send(envConf.get("Bussiness").get("host"), envConf)
+        self.BussinessLogin = base_requests.Send(envConf.get("Bussiness").get("host"))
 
     def login(self):
         '''
@@ -832,7 +876,7 @@ class LubanSoft:
         self.username = username
         self.password = password
         self.header = envConf.get("headers").get("soap_header")
-        self.lubansoftLogin = base_requests.Send(envConf.get("lubansoft").get("host"), envConf)
+        self.lubansoftLogin = base_requests.Send(envConf.get("lubansoft").get("host"))
 
     def login(self):
         '''

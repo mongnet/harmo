@@ -116,7 +116,7 @@ def token(env_conf):
     数据管理平台获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksWeb'), env_conf,env_conf['productId']['iworksWeb'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksWeb'),env_conf['productId']['iworksWeb'])
     yield  resule.login()
     resule.logout()
 
@@ -126,7 +126,7 @@ def CenterToken(env_conf):
     Center获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('center').get('username'), env_conf.get('center').get('password'),env_conf.get('productId').get('center'), env_conf)
+    resule = public_login.Token(env_conf.get('center').get('username'), env_conf.get('center').get('password'),env_conf.get('productId').get('center'))
     yield  resule.login()
     resule.logout()
 
@@ -136,7 +136,7 @@ def appToken(env_conf):
     appToken获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksApp'), env_conf,env_conf['productId']['iworksApp'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksApp'),env_conf['productId']['iworksApp'])
     yield  resule.login()
     resule.logout()
 
@@ -155,7 +155,7 @@ def inspectionToken(env_conf):
     web质检获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('inspection'), env_conf,env_conf.get('productId').get('inspection'))
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('inspection'),env_conf.get('productId').get('inspection'))
     yield  resule.login()
     resule.logout()
 
@@ -165,7 +165,7 @@ def archivesToken(env_conf):
     web档案获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('archives'), env_conf,env_conf.get('productId').get('archives'))
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('archives'),env_conf.get('productId').get('archives'))
     yield  resule.login()
     resule.logout()
 
@@ -175,7 +175,7 @@ def pcim(env_conf):
     PC质检计量
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('im'), env_conf,env_conf.get('productId').get('im'))
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('im'),env_conf.get('productId').get('im'))
     yield  resule.login()
     resule.logout()
 
@@ -185,7 +185,7 @@ def meterToken(env_conf):
     web计量获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('meter'), env_conf,env_conf.get('productId').get('meter'))
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('meter'),env_conf.get('productId').get('meter'))
     yield  resule.login()
     resule.logout()
 
@@ -195,7 +195,7 @@ def occToken(env_conf):
     指挥中心获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('LubanGO'), env_conf,env_conf.get('productId').get('LubanGO'))
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('LubanGO'),env_conf.get('productId').get('LubanGO'))
     yield  resule.login()
     resule.logout()
 
@@ -205,7 +205,7 @@ def iworksfToken(env_conf):
     iworks 房建获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksf'), env_conf,env_conf['productId']['iworksf'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksf'),env_conf['productId']['iworksf'])
     yield  resule.login()
     resule.logout()
 
@@ -216,7 +216,7 @@ def iworksjToken(env_conf):
     iworks 基建获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksj'), env_conf,env_conf['productId']['iworksj'])
+    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksj'),env_conf['productId']['iworksj'])
     yield  resule.login()
     resule.logout()
 

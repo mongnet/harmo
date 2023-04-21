@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "luban_common"
-version = "3.0.94"
+version = "3.0.96"
 description = "鲁班API基础库"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
@@ -11,25 +11,25 @@ keywords = ["api", "Testing", "requests", "pytest"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-requests = "^2.28.1"
-allure-pytest = "^2.11.1"
+requests = "^2.28.2"
+allure-pytest = "^2.13.1"
 jsonpath = "^0.82"
 pyyaml = "^6.0"
 faker = "^14.2.1"
 chevron = "^0.14.0"
 py = "^1.11.0"
-pytest-html = "4.0.0rc0"
+pytest-html = "4.0.0rc4"
 pathlib2 = "^2.3.7"
 xmltodict = "^0.13.0"
 suds-py3 = "^1.4.5"
-pytest-rerunfailures = "^10.2"
-pytest = "^7.2.2"
+pytest-rerunfailures = "^10.3"
+pytest = "^7.3.1"
 "ruamel.yaml" = "^0.17.21"
 cleo = "^2.0.1"
 openpyxl = "^3.1.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.2"
+pytest = "^7.3"
 
 [tool.poetry.scripts]
 luban = "luban_common.console:main"

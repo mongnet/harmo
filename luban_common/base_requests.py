@@ -18,7 +18,7 @@ class Send:
     """
     发送请求类
     """
-    def __init__(self,host: str, envConf: dict, header: Optional[dict]=None):
+    def __init__(self,host: str, header: Optional[dict]=None):
         """
         请求数据初始化
         :param host：请求的地址前缀
@@ -37,8 +37,7 @@ class Send:
                 "Accept-Encoding":"gzip, deflate",
                 "Accept-Language": "zh-CN,zh;q=0.8"
             }
-        if "pds" in envConf:
-            self.pdsUrl = envConf.get("pds")
+        self.pdsUrl = Global_Map.get("pds")
 
     def request(self, method, address, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,timeout=60,**kwargs):
         """

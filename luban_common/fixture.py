@@ -84,6 +84,8 @@ def pytest_configure(config):
                 config._metadata["消息开关"] = _message_switch
             if _success_message is not None:
                 config._metadata["成功是否发送消息"] = _success_message
+            if _case_message is not None:
+                config._metadata["单用例失败提醒"] = _case_message
             if _robot is not None:
                 config._metadata["机器人"] = _robot
             if _is_clear is not None:
