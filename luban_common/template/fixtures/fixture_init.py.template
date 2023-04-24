@@ -520,7 +520,7 @@ def Center_initialize(CenterToken,env_conf):
         # 删除组织机构
         Org().deleteOrgUsingDELETE(CenterToken, orgId=orgid)
         # 删除用户，如果是添加的用户，就执行删除
-        if Global_Map.get("is_adduser"):
+        if Global_Map.get("is_adduser") or env_conf.get('iworksApp').get('username')=="luban":
             # 如果center账号和登录的账号是同一个，就不删除
             if env_conf.get('center').get('username') != env_conf.get('iworksApp').get('username'):
                 Userrest().deleteUsersUsingPOST(CenterToken,array_string=[env_conf.get('iworksApp').get('username')])
