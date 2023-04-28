@@ -10,6 +10,7 @@
 import os
 import time
 import mitmproxy.http
+from luban_common import base_utils
 from mitmproxy import ctx
 
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,15 +41,21 @@ class Record:
         if self.match(flow.request.url):
             # method
             method = flow.request.method.lower()
-            ctx.log.error(method)
+            # options 请求直接跳过不录制
+            if method in ["options"]:
+                return
             # url
             url = flow.request.url
-            ctx.log.error(url)
+            # status_code
+            status_code = flow.response.status_code
             # headers
             headers = dict(flow.request.headers)
-            ctx.log.error(headers)
             # body
-            body = flow.request.text or {}
+            try:
+                body = flow.request.json()
+                base_utils.recursion_replace_dict_value(body, {"false":False})
+            except:
+                body = flow.request.text
             ctx.log.error(body)
             with open(case_file, "a", encoding="utf8") as fa:
                 fa.write(self.step(method, url, headers, body))
@@ -63,20 +70,30 @@ class Record:
         return False
 
     def step(self, method, url, headers, body):
+        '''
+        生成步骤
+        :param method:
+        :param url:
+        :param headers:
+        :param body:
+        :return:
+        '''
+        body_grammar = None
         if method == "get":
-            body_grammar = f"params={body}"
+            if body:
+                body_grammar = f"params={body}"
         else:
-            body_grammar = f"json={body}"
+            if body:
+                body_grammar = f"data={body}"
         return f"""
     # 描述
     # 数据
     # 请求
     response = request(
         "{method}",
-        url="{url}",
-        headers={headers},
-        {body_grammar}
-    )
+        url = "{url}",
+        headers = {headers},
+        {body_grammar})
     # 提取
     # 断言
     assert response.status_code < 400
@@ -103,3 +120,5 @@ mitmdump -s mitm_record.py
 mitmdump -s mitm_record.py --mode reverse:http://127.0.0.1:5000 --listen-host 127.0.0.1 --listen-port 8000
 ==================================命令说明结束==================================
 """
+if __name__ == '__main__':
+    pass

@@ -10,138 +10,138 @@ from business import public_login
 from luban_common.global_map import Global_Map
 
 @pytest.fixture(scope='session')
-def bimadmin_login(env_conf):
+def bimadmin_login():
     '''
     BIM Aadmin运维管理系统登录
     :return:
     '''
-    BimAdminLogin = public_login.BimAdmin(env_conf).login()
+    BimAdminLogin = public_login.BimAdmin().login()
     yield BimAdminLogin
 
 @pytest.fixture(scope='session')
-def iworks_app_cas(env_conf):
+def iworks_app_cas():
     '''
     获取PDS登录凭证
     :return:
     '''
-    public_login.IworksApp(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'), env_conf).login()
+    public_login.IworksApp(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password')).login()
     yield
 
 @pytest.fixture(scope='session')
-def lbbv(iworks_app_cas, env_conf):
+def lbbv(iworks_app_cas):
     '''
     获取LBBV登录凭证
     :return:
     '''
-    LBBV = base_requests.Send(Global_Map.get('LBBV'), env_conf)
+    LBBV = base_requests.Send(Global_Map.get('LBBV'))
     yield LBBV
 
 @pytest.fixture(scope='session')
-def bimco(iworks_app_cas, env_conf):
+def bimco(iworks_app_cas):
     '''
     获取BimCO登录凭证
     :return:
     '''
-    BimCO = base_requests.Send(Global_Map.get('bimco'), env_conf)
+    BimCO = base_requests.Send(Global_Map.get('bimco'))
     yield BimCO
 
 @pytest.fixture(scope='session')
-def process(iworks_app_cas, env_conf):
+def process(iworks_app_cas):
     '''
     获取Process登录凭证
     :return:
     '''
-    Process = base_requests.Send(Global_Map.get('LBprocess'), env_conf)
+    Process = base_requests.Send(Global_Map.get('LBprocess'))
     yield Process
 
 @pytest.fixture(scope='session')
-def pds_common(iworks_app_cas, env_conf):
+def pds_common(iworks_app_cas):
     '''
     获取PDSCommon登录凭证
     :return:
     '''
-    PDSCommon = base_requests.Send(Global_Map.get('pdscommon'), env_conf)
+    PDSCommon = base_requests.Send(Global_Map.get('pdscommon'))
     yield PDSCommon
 
 @pytest.fixture(scope='session')
-def pds_doc(iworks_app_cas, env_conf):
+def pds_doc(iworks_app_cas):
     '''
     获取pdsdoc登录凭证
     :return:
     '''
-    PDSDoc = base_requests.Send(Global_Map.get('pdsdoc'), env_conf)
+    PDSDoc = base_requests.Send(Global_Map.get('pdsdoc'))
     yield PDSDoc
 
 @pytest.fixture(scope='session')
-def builder_common_business_data(iworks_app_cas, env_conf):
+def builder_common_business_data(iworks_app_cas):
     '''
     获取BusinessData登录凭证
     :return:
     '''
-    builderCommonBusinessData = base_requests.Send(Global_Map.get('BuilderCommonBusinessdata'), env_conf)
+    builderCommonBusinessData = base_requests.Send(Global_Map.get('BuilderCommonBusinessdata'))
     yield builderCommonBusinessData
 
 @pytest.fixture(scope='session')
-def bimapp_login(env_conf):
+def bimapp_login():
     '''
     BIMApp 通行证系统登录
     :return:
     '''
-    BimAppLogin = public_login.Bimapp(env_conf.get('bimapp').get('username'), env_conf['bimapp']['password'], env_conf).login()
+    BimAppLogin = public_login.Bimapp(Global_Map.get('bimapp').get('username'), Global_Map.get('bimapp').get('password')).login()
     yield BimAppLogin
 
 @pytest.fixture(scope='session')
-def bussiness_login(env_conf):
+def bussiness_login():
     '''
     Bussiness 业务管理系统登录
     :return:
     '''
-    BussinessLogin = public_login.Bussiness(env_conf.get('Bussiness').get('username'), env_conf.get('Bussiness').get('password'), env_conf).login()
+    BussinessLogin = public_login.Bussiness(Global_Map.get('Bussiness').get('username'), Global_Map.get('Bussiness').get('password')).login()
     yield BussinessLogin
 
 
 @pytest.fixture(scope='session')
-def lubansoft_login(env_conf):
+def lubansoft_login():
     '''
     算量软件登录
     :return:
     '''
-    LubansoftLogin = public_login.LubanSoft(env_conf.get('lubansoft').get('username'), env_conf.get('lubansoft').get('password'), env_conf).login()
+    LubansoftLogin = public_login.LubanSoft(Global_Map.get('lubansoft').get('username'), Global_Map.get('lubansoft').get('password')).login()
     yield LubansoftLogin
 
 
 @pytest.fixture(scope='session')
-def token(env_conf):
+def token():
     '''
     数据管理平台获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksWeb'),env_conf['productId']['iworksWeb'])
+    resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('iworksWeb'),Global_Map.get('productId').get('iworksWeb'))
     yield  resule.login()
     resule.logout()
 
 @pytest.fixture(scope='session')
-def CenterToken(env_conf):
+def CenterToken():
     '''
     Center获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('center').get('username'), env_conf.get('center').get('password'),env_conf.get('productId').get('center'))
+    resule = public_login.Token(Global_Map.get('center').get('username'), Global_Map.get('center').get('password'),Global_Map.get('productId').get('center'))
     yield  resule.login()
     resule.logout()
 
 @pytest.fixture(scope='session')
-def appToken(env_conf):
+def appToken():
     '''
     appToken获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksApp'),env_conf['productId']['iworksApp'])
+    resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('iworksApp'),Global_Map.get('productId').get('iworksApp'))
     yield  resule.login()
     resule.logout()
 
 @pytest.fixture(scope='session')
-def openapi_motor_token(token, env_conf):
+def openapi_motor_token(token):
     '''
     获取openapi_motor_token
     :return:
@@ -150,73 +150,73 @@ def openapi_motor_token(token, env_conf):
     yield  resule
 
 @pytest.fixture(scope='session')
-def inspectionToken(env_conf):
+def inspectionToken():
     '''
     web质检获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('inspection'),env_conf.get('productId').get('inspection'))
+    resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('inspection'),Global_Map.get('productId').get('inspection'))
     yield  resule.login()
     resule.logout()
 
 @pytest.fixture(scope='session')
-def archivesToken(env_conf):
+def archivesToken():
     '''
     web档案获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('archives'),env_conf.get('productId').get('archives'))
+    resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('archives'),Global_Map.get('productId').get('archives'))
     yield  resule.login()
     resule.logout()
 
 @pytest.fixture(scope='session')
-def pcim(env_conf):
+def pcim():
     '''
     PC质检计量
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('im'),env_conf.get('productId').get('im'))
+    resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('im'),Global_Map.get('productId').get('im'))
     yield  resule.login()
     resule.logout()
 
 @pytest.fixture(scope='session')
-def meterToken(env_conf):
+def meterToken():
     '''
     web计量获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('meter'),env_conf.get('productId').get('meter'))
+    resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('meter'),Global_Map.get('productId').get('meter'))
     yield  resule.login()
     resule.logout()
 
 @pytest.fixture(scope='session')
-def occToken(env_conf):
+def occToken():
     '''
     指挥中心获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('LubanGO'),env_conf.get('productId').get('LubanGO'))
+    resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('LubanGO'),Global_Map.get('productId').get('LubanGO'))
     yield  resule.login()
     resule.logout()
 
 @pytest.fixture(scope='session')
-def iworksfToken(env_conf):
+def iworksfToken():
     '''
     iworks 房建获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksf'),env_conf['productId']['iworksf'])
+    resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('iworksf'),Global_Map.get('productId').get('iworksf'))
     yield  resule.login()
     resule.logout()
 
 
 @pytest.fixture(scope='session')
-def iworksjToken(env_conf):
+def iworksjToken():
     '''
     iworks 基建获取登录凭证
     :return:
     '''
-    resule = public_login.Token(env_conf.get('iworksApp').get('username'), env_conf.get('iworksApp').get('password'),env_conf.get('productId').get('iworksj'),env_conf['productId']['iworksj'])
+    resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('iworksj'),Global_Map.get('productId').get('iworksj'))
     yield  resule.login()
     resule.logout()
 
@@ -225,11 +225,11 @@ def OpenAPIToken(env_conf):
     '''
     登录获取token
     '''
-    OpenAPIToken = public_login.OpenAPI(env_conf.get("openapi").get("apikey"), env_conf.get("openapi").get("apisecret"), env_conf).login()
+    OpenAPIToken = public_login.OpenAPI(env_conf.get("openapi").get("apikey"), env_conf.get("openapi").get("apisecret"),env_conf).login()
     yield OpenAPIToken
 
 @pytest.fixture(scope='session')
-def openapi_motor_token_V1(token, env_conf):
+def openapi_motor_token_V1(token):
     '''
     获取openapi_motor_token motot 1.0
     :return:
@@ -238,7 +238,7 @@ def openapi_motor_token_V1(token, env_conf):
     yield  resule
 
 @pytest.fixture(scope='session')
-def openapi_motor_token_V2(token, env_conf):
+def openapi_motor_token_V2(token):
     '''
     获取openapi_motor_token motot 2.0
     :return:

@@ -12,6 +12,8 @@ import os
 import random
 import re
 import uuid
+from typing import Union
+
 import requests
 import subprocess
 import time
@@ -535,6 +537,33 @@ def file_absolute_path(rel_path):
     _file_path = os.path.join(_current_path, rel_path)
     return file_is_exist(_file_path)
 
+def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict):
+    '''
+    递归替换字典值
+    example:
+        source = {"ex": null,"state": false,"age": 38}
+        replaceDict = {"null": None,"false": False}
+        result = {"ex": None,"state": False,"age": 38}
+    :param source: 需要替换的字典对象
+    :param replaceDict: 要检查并替换的字段，key为要检查的值，value为需要替换的值
+    :return:
+    '''
+    if not isinstance(replaceDict,dict):
+        raise TypeError("replaceDict 必需是dict类型")
+    if isinstance(source, list):
+        for item in source:
+            recursion_replace_dict_value(item,replaceDict)
+    elif isinstance(source, dict):
+        for key, value in source.items():
+            if isinstance(value, dict):
+                recursion_replace_dict_value(value, replaceDict)
+                continue
+            else:
+                for checkValue, replaceValue in replaceDict.items():
+                    if str(value) == str(checkValue):
+                        source[key] = replaceValue
+    else:
+        pass
 
 if __name__ == "__main__":
     dict1 = {"projId": 113692, "ppid": 130817, "projName": "BW接口用工程-勿删160711"}
