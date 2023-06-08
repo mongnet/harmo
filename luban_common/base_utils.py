@@ -544,7 +544,7 @@ def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict):
         source = {"ex": null,"state": false,"age": 38}
         replaceDict = {"null": None,"false": False}
         result = {"ex": None,"state": False,"age": 38}
-    :param source: 需要替换的字典对象
+    :param source: 需要替换的字典或字典组成的列表
     :param replaceDict: 要检查并替换的字段，key为要检查的值，value为需要替换的值
     :return:
     '''
@@ -555,12 +555,34 @@ def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict):
             recursion_replace_dict_value(item,replaceDict)
     elif isinstance(source, dict):
         for key, value in source.items():
-            if isinstance(value, dict):
+            if isinstance(value, dict) or isinstance(value, list):
                 recursion_replace_dict_value(value, replaceDict)
-                continue
             else:
                 for checkValue, replaceValue in replaceDict.items():
                     if str(value) == str(checkValue):
+                        source[key] = replaceValue
+    else:
+        pass
+
+def replace_key_value(source: Union[dict,list], replaceDict: dict):
+    '''
+    替换指定key的值
+    :param source:
+    :param replaceDict:
+    :return:
+    '''
+    if not isinstance(replaceDict,dict):
+        raise TypeError("replaceDict 必需是dict类型")
+    if isinstance(source, list):
+        for item in source:
+            replace_key_value(item,replaceDict)
+    elif isinstance(source, dict):
+        for key, value in source.items():
+            if isinstance(value, dict) or isinstance(value, list):
+                replace_key_value(value, replaceDict)
+            else:
+                for checkKey, replaceValue in replaceDict.items():
+                    if str(key) == str(checkKey):
                         source[key] = replaceValue
     else:
         pass
@@ -624,3 +646,12 @@ if __name__ == "__main__":
     print(UnixToTime(unix=getUnix(date='2019-12-31 18:31:22', day=2)))
     print(file_absolute_path('E:/Automation/standard_polling/data/Quality_check_lib.xls'))
     print(file_is_exist(file_absolute_path('../data/Quality_check_lib.xls')))
+    a = {"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}
+    alist = [{"name":"mongnet","ex1":False,"age":37},{"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}]
+    rep = {37:38,False:True,"wgj":"mong"}
+    print(recursion_replace_dict_value(a,rep))
+    print(recursion_replace_dict_value(alist,rep))
+    print(a)
+    print(alist)
+
+

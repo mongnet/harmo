@@ -30,7 +30,7 @@ def get_fixture():
 
 def all_plugins():
     '''
-
+    获取全部插件
     :return:
     '''
     # 设置项目目录

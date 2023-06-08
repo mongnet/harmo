@@ -292,8 +292,8 @@ class Assertions:
     def assert_time(self, reality_time, expected_time):
         """
         校验时间小于预期
-        :param reality_time: 响应的data
-        :param expected_time: 预期值为
+        :param reality_time: 实际时间
+        :param expected_time: 预期时间
         :return:
         """
         if reality_time <= expected_time:
@@ -358,8 +358,8 @@ if __name__ == "__main__":
     dict8 = {"hu":["胡彪"]}
     dict9 = {"hu":50}
     dict10 = {"hu":1.32}
-    list1 = [1111,"adfaf","胡彪",False,None]
-    list2 = [1111,"胡彪","adfaf"]
+    list1 = [1111,"adfaf","公众号：彪哥的测试之路",False,None]
+    list2 = [1111,"公众号：彪哥的测试之路","adfaf"]
     list3 = ["89010001#89","89010001#89","89010001#89", "96003010#96"]
     list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}]
     list5 = [["89010001#89","89010001#89","89010001#89", "96003010#96"],{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}]
@@ -368,7 +368,7 @@ if __name__ == "__main__":
     str2 = "大佬"
     data = ['WBS数据-质检','WEB质检-标段基本信息', 'w' ]
     expected_value = ['WEB质检-标段基本信息', 'WBS数据-质检']
-    Assertions.assert_dictOrList_eq(dict1,dict2)
+    # Assertions.assert_dictOrList_eq(dict1,dict2)
     # Assertions.assert_dictOrList_eq(list1,list2)
     # Assertions.assert_assign_attribute_value(dict3, "hu", ["adf",1111, "胡彪"])
     # Assertions.assert_assign_attribute_value(dict5, "hu", ["adf",1111, "胡彪"])
@@ -387,6 +387,7 @@ if __name__ == "__main__":
     # Assertions.assert_in_key(list4, "hu")
     # Assertions.assert_not_in_key(list4, "hdu")
     # Assertions.assert_not_in_value(list1, "null")
+    Assertions.assert_time("1494325882000", "1662432740000")
     # None、False、空字符串""、0、空列表[]、空字典{}、空元组()
 
 

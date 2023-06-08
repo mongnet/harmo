@@ -43,6 +43,9 @@ def pytest_addoption(parser):
     group.addoption('--lb-robot',
                     default=os.getenv('lb_robot', None),
                     help='set robot')
+    group.addoption('--lb-msg-name',
+                    default=os.getenv('lb_msg_name', None),
+                    help='set robot msg name')
 
 def pytest_configure(config):
     '''
@@ -54,6 +57,7 @@ def pytest_configure(config):
     _browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
     _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
     _robot = os.getenv("lb_robot", None) if os.getenv("lb_robot", None) else config.getoption("--lb-robot")
+    _msg_name = os.getenv("lb_msg_name", None) if os.getenv("lb_msg_name", None) else config.getoption("--lb-msg-name")
     _message_switch = True if config.getini("message_switch") == "True" else False
     _success_message = True if config.getini("success_message") == "True" else False
     _case_message = True if config.getini("case_message") == "True" else False
@@ -64,6 +68,7 @@ def pytest_configure(config):
         "lb_driver": _browser,
         "lb_base_url": _base_url,
         "lb_robot": _robot,
+        "lb_msg_name": _msg_name,
         "message_switch": _message_switch,
         "success_message": _success_message,
         "case_message": _case_message,
@@ -126,6 +131,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     weixin_robot = Global_Map.get("weixin_robot")
     message_switch = Global_Map.get("message_switch")
     success_message = Global_Map.get("success_message")
+    lb_msg_name = Global_Map.get("lb_msg_name")
     # 定义测试结果
     total = terminalreporter._numcollected
     passed = len([i for i in terminalreporter.stats.get("passed", []) if i.when != "teardown"])
@@ -138,7 +144,10 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     if message_switch or Global_Map.get("lb_robot"):
         if weixin_robot:
             # 通过jenkins构件时，可以获取到JOB_NAME
-            JOB_NAME = "通用" if config._metadata.get("JOB_NAME") is None else config._metadata.get("JOB_NAME")
+            if lb_msg_name:
+                JOB_NAME = lb_msg_name
+            else:
+                JOB_NAME = "通用" if config._metadata.get("JOB_NAME") is None else config._metadata.get("JOB_NAME")
             if failed + error != 0:
                 markdown_content = f'''
                                     # 警告！`{JOB_NAME}` 巡检出现异常

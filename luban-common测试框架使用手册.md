@@ -841,6 +841,59 @@ Assertions.assert_isNotEmpty(reality_value)
 
 
 
+#### 3.4.17 校验字典或列表是否相等
+
+调用格式如下：
+
+```python
+Assertions.assert_dictOrList_eq(reality, expected)
+```
+
+> **reality**：实际字典或列表
+
+> **expected**：预期字典或列表
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+list1 = [100,"abcd","公众号：彪哥的测试之路",False,None]
+list2 = [100,"公众号：彪哥的测试之路","abcd"]
+
+Assertions.assert_dictOrList_eq(list1, list2)
+
+# 输出
+AssertionError: 二个列表不相等,第一个列表比第二个列表多了：[False, None]
+```
+
+
+
+#### 3.4.18 校验列表中是否有重复项
+
+调用格式如下：
+
+```python
+Assertions.assert_list_repetition(lists)
+```
+
+> **lists**：实际值
+
+例：
+
+```python
+from luban_common.base_assert import Assertions
+
+list3 = ["89010001#89","89010001#89","89010001#89", "96003010#96"]
+
+Assertions.assert_list_repetition(list3)
+
+# 输出
+AssertionError: 列表中有重复项,重复项为：{'89010001#89': 3}
+```
+
+
+
 ------
 
 ### 3.5 base_utils.py
@@ -1383,7 +1436,35 @@ file_absolute_path(rel_path)
 ```python
 from luban_common import base_utils
 
-base_utils.file_absolute_path('../data/Quality_check_lib.xls')
+base_utils.file_absolute_path('data/Quality_check_lib.xls')
+```
+
+
+
+#### 3.5.27 递归替换字典值
+
+调用格式如下：
+
+```python
+recursion_replace_dict_value(source,replaceDict)
+```
+
+> **source**：需要替换的字典或字典组成的列表
+
+> **replaceDict**：要检查并替换的字段，key为要检查的值，value为需要替换的值
+
+例：
+
+```python
+from luban_common import base_utils
+
+source = {"ex": null,"state": false,"age": 38}
+replaceDict = {"null": None,"false": False}
+
+base_utils.recursion_replace_dict_value(source,replaceDict)
+
+# 输出
+{"ex": None,"state": False,"age": 38}
 ```
 
 
@@ -1426,7 +1507,7 @@ Global_Map.sets(dict_kwargs)
 ```python
 from luban_common.global_map import Global_Map
 
-Global_Map.sets({"公众号":"彪哥的测试之路"})
+Global_Map.sets({"公众号":"彪哥的测试之路","projId":113692})
 ```
 
 
