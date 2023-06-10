@@ -9,7 +9,6 @@ import inspect
 import os
 import time
 import pytest
-import copy
 from luban_common.global_map import Global_Map
 from luban_common.msg.robot import WeiXin
 from luban_common.operation import yaml_file
@@ -200,26 +199,6 @@ def pytest_unconfigure(config):
     yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_map.yaml"), data=Global_Map.get())
     # unregister plugin
 
-@pytest.fixture(scope="session")
-def env_conf(pytestconfig):
-    '''
-    获取lb-env和global环境配置文件
-    :return:
-    '''
-    return copy.deepcopy(Global_Map.get())
-
-@pytest.fixture(scope="session")
-def base_url(pytestconfig):
-    '''
-    base URL
-    :return:
-    '''
-    _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else pytestconfig.getoption("--lb-base-url")
-    if _base_url:
-        return _base_url
-    else:
-        raise RuntimeError("--lb-base-url not found")
-
 def pytest_collection_modifyitems(items):
     # item表示每个测试用例，解决用例名称中文显示问题
     for item in items:
@@ -252,10 +231,6 @@ def pytest_runtest_makereport(item, call):
                     print("最长不能超过4096个字节")
                 else:
                     WeiXin().send_message_markdown(hookkey=weixin_robot, content=md)
-
-
-
-
 
 # def pytest_html_results_table_header(cells):
 #     cells.insert(2, html.th("Description"))
