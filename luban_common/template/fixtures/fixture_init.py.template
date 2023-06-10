@@ -111,7 +111,7 @@ def Center_initialize(CenterToken,env_conf):
     packages_3 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3) else []
     packages_11 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11) else []
     packages_12 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12) else []
-    productIds = base_utils.jpath(response.get("source_response"), check_key="productId", sub_key="productId")
+    productIds = jsonpath.jsonpath(response.get("source_response"), f"$..productId")
     packageInfos = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=31, sub_key="packageInfos")[0]
     # 获取已购买的产品名称，用来过滤哪些产品需要运行
     for markname,productId in env_conf.get("productId").items():

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "luban_common"
-version = "3.0.102"
+version = "3.0.106"
 description = "鲁班API基础库"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
@@ -42,7 +42,8 @@ url = "http://mirrors.aliyun.com/pypi/simple/"
 default = true
 
 [tool.poetry.plugins."pytest11"]
-"luban_common" = "luban_common"
+"plugin" = "luban_common.plugin"
+"fixture" = "luban_common.fixture"
 
 [build-system]
 requires = ["poetry>=1.3"]

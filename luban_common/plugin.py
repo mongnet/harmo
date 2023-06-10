@@ -360,7 +360,7 @@ def get_fixture():
                 import_path = full_path.replace(_fixtures_dir, "").replace("\\", ".").replace("/", ".").replace(".py", "")
                 _fixtures.append("fixtures" + import_path)
     # luban-common框架自带的fixture
-    _fixtures.append("luban_common.fixture")
+    # _fixtures.append("luban_common.fixture")
     return _fixtures
 
 def all_plugins():

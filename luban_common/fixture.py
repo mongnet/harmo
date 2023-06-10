@@ -8,8 +8,8 @@
 
 import copy
 import os
-from luban_common.global_map import Global_Map
 import pytest
+from luban_common.global_map import Global_Map
 
 @pytest.fixture(scope="session")
 def env_conf(pytestconfig):

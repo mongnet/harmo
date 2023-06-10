@@ -5,3 +5,6 @@
 # @Email : 250021520@qq.com
 # @File : fixture.py
 # @Project : luban-common
+
+def pytest_luban_common_title(report):
+    """Called before adding the title to the report"""
