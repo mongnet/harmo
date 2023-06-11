@@ -4,7 +4,6 @@
 # @Author : hubiao
 # @Email : 250021520@qq.com
 # @File : fixture.py
-# @Project : luban-common
 
 import copy
 import os

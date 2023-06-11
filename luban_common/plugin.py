@@ -154,7 +154,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     total_times = time.time() - terminalreporter._sessionstarttime
     html_report = config.getoption("--html")
     # 判断是否要发送消息
-    if message_switch or Global_Map.get("lb_robot"):
+    if message_switch or weixin_robot:
         if weixin_robot:
             # 通过jenkins构件时，可以获取到JOB_NAME
             if lb_msg_name:
@@ -218,7 +218,7 @@ def pytest_runtest_makereport(item, call):
         weixin_robot = Global_Map.get("weixin_robot")
         message_switch = Global_Map.get("message_switch")
         # 判断是否要发送消息
-        if message_switch or Global_Map.get("lb_robot"):
+        if message_switch or weixin_robot:
             if weixin_robot and Global_Map.get("case_message"):
                 ds = str.strip(item.function.__doc__) if item.function.__doc__ else item.function.__name__
                 md = f'''
