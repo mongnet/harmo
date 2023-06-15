@@ -72,7 +72,7 @@ def file_is_exist(file_path):
     :return:
     '''
     if not Path(file_path).exists():
-        raise FileNotFoundError("请确认路径或文件是否正确！")
+        raise FileNotFoundError(f"请确认 {file_path} 文件路径是否正确！")
     return file_path
 
 

@@ -124,8 +124,6 @@ def pytest_configure(config):
             _global["weixin_robot"] = _robot
         Global_Map.sets(_global)
         Global_Map.sets(pytestini)
-    else:
-        raise RuntimeError("Configuration --lb-env not found")
 
 def pytest_report_header(config):
     '''

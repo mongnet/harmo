@@ -1717,8 +1717,18 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之
   pytest --lb-robot ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42
   ```
 
-  **注意**：
+- `--lb-msg-name`： 指定机器人消息标题
 
+  ```
+  pytest --lb-msg-name "彪哥有情提醒"
+  ```
+
+  ![image-20230613143927218](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20230613143927218.png)
+
+  
+  
+  **注意**：
+  
   ​	`--lb-env` 参数是必须指定的参数
   
   ​	`--lb-robot` 参数指定后会替换 `--lb-env` 配置文件中的 robot ，且会忽略 `message_switch` 配置
@@ -1799,7 +1809,7 @@ web框架时使用，暂未使用到
 
 ### 4.5 自定义fixture
 
-项目目录下的fixtures文件夹用来存放自定义fixture，测试启动时会自动匹配和加载fixtures文件夹下以 fixture 开头，且以 .py 结尾的文件，前提是这些文件中的函数要指定了 `@pytest.fixture` 。
+项目目录下的fixtures文件夹用来存放自定义fixture，测试启动时会自动匹配和加载fixtures文件夹下以 fixture 开头，且以 .py 结尾的文件，前提是这些文件中的函数要指定了 `@pytest.fixture`  ，或者他是 pytest 内置的 fixtrue 或插件。
 
 > **规范**：conftest中不要出现自定义的fixture，conftest中只要引入 pytest_plugins = all_plugins() 即可
 
@@ -1835,7 +1845,56 @@ def token(env_conf):
     resule.logout()
 ```
 
-这样一个自定义的 fixture 就定义完成了
+这样一个自定义的 登录功能的fixture 就定义完成了
+
+#### 4.5.2 内置fixture 扩展应用
+
+在 fixtures 文件夹下，新建fixture_platform.py
+
+如下代码实现了通过 `pytest` 内置的 `pytest_terminal_summary` 函数实现了在测试执行完成后，请求 `addcddata` 接口发送请求结果信息的功能：
+
+```python
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# @Time : 2023-6-12 18:18
+# @Author : hubiao
+# @Email : xxx@gmail.com
+# @File : fixture_platform.py.template
+
+import time
+from luban_common import base_utils
+from luban_common import base_requests
+from luban_common.global_map import Global_Map
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    '''
+    收集测试结果并发送到测试平台
+    '''
+    # 当没有获取到平台配置信息时，不执行
+    if Global_Map.get("testplatform") and Global_Map.get("testplatform").get("host"):
+        owner = base_requests.Send(Global_Map.get("testplatform").get("host"))
+        # 定义测试结果
+        total = terminalreporter._numcollected
+        passed = len([i for i in terminalreporter.stats.get("passed", []) if i.when != "teardown"])
+        failed = len([i for i in terminalreporter.stats.get("failed", []) if i.when != "teardown"])
+        error = len([i for i in terminalreporter.stats.get("error", []) if i.when != "teardown"])
+        skipped = len([i for i in terminalreporter.stats.get("skipped", []) if i.when != "teardown"])
+        total_times = round(time.time() - terminalreporter._sessionstarttime,2)
+        current_time = base_utils.getUnix(scope="ms")
+        # 增加cd数据
+        body = {
+            "projectName": Global_Map.get("testplatform").get("projectName"),
+            "total": total,
+            "pass" : passed,
+            "failed": failed,
+            "error": error,
+            "skip": skipped,
+            "createDate": current_time,
+            "duration": total_times
+        }
+        resource = "/addcddata"
+        owner.request("post",resource,body)
+```
 
 
 
