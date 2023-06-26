@@ -193,8 +193,10 @@ def pytest_unconfigure(config):
     :param config:
     :return:
     '''
-    # 把全局变量写入到 _global_map.yaml 文件
-    yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_map.yaml"), data=Global_Map.get())
+
+    # 有lb_env表示使用到了luban-common，然后把全局变量写入到 _global_map.yaml 文件
+    if Global_Map.get("lb_env"):
+        yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_map.yaml"), data=Global_Map.get())
     # unregister plugin
 
 def pytest_collection_modifyitems(items):
