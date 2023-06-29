@@ -8,9 +8,9 @@ __pycache__
 .pypirc
 .venv
 .tox
-*/tmp/*
-*.egg-info
 *.pyc
-build
+*.egg-info
+dist
+tmp
 logs
 reports

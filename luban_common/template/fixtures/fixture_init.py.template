@@ -3,7 +3,7 @@
 # @Time : 2023-2-1 10:14
 # @Author : hubiao
 # @Email : xxx@gmail.com
-# @File : fixture_init.py.template
+# @File : fixture_init.py
 
 import jsonpath
 import pytest
@@ -21,23 +21,15 @@ from swagger.builder.rsBimrest import RsBimrest
 from swagger.builder.org import Org
 from swagger.builder.userrest import Userrest
 from swagger.center.post_controller import Post
-from swagger.center.process_controller import Process
 from swagger.center.role_rest import RoleRest
 from swagger.infrastructure.lubanInfrastructureCenterWbs import LubanInfrastructureCenterWbs
 from swagger.infrastructure.lubanInfrastructureCenterWbsTemplate import LubanInfrastructureCenterWbsTemplate
-from swagger.meter.lubanMeterCenterMeterRule import LubanMeterCenterMeterRule
-from swagger.meter.lubanMeterDatatemplate import LubanMeterDatatemplate
-from swagger.meterHighway.lubanMeterHighwayCenterMeterRule import LubanMeterHighwayCenterMeterRule
-from swagger.meterHighway.lubanMeterHighwayDatatemplate import LubanMeterHighwayDatatemplate
-from swagger.misc.lubanMiscData import LubanMiscData
-from swagger.misc.lubanMiscProject import LubanMiscProject
-from swagger.misc.lubanMiscReport import LubanMiscReport
 
 
-# 购买的产品套餐列表
-Package = []
+# 购买的产品套餐列表，"center" 是基础服务，所以默认认为是有购买的
+Package = ["center"]
 # 需要排除的 mark 列表，比如mark关键字、环境相关mark等一些必须要运行的mark
-excludeMark = ["parametrize","usefixtures","cloud","enterprise","center","allure_label","allure_display_name","skipif","configCheck"]
+excludeMark = ["parametrize","usefixtures","allure_label","allure_display_name","skipif","cloud","enterprise","configCheck"]
 # 已购，但无可用授权的产品套餐
 noPackage = []
 # 数字平台授权，合并产品成菜单后的处理方式，根据菜单名来判断企业是否有对应产品，从而判断是否执行对应用例，key为center后台菜单名，value为定义的mark名称
@@ -70,10 +62,14 @@ def pytest_runtest_call(item):
     '''
     # 获取当前用例全部mark
     markers = [marker.name for marker in item.iter_markers()]
+    print("markers:",markers)
     # 过滤掉必须排除的mark后，当前用例剩余的mark
     mark = list(set(markers).difference(set(excludeMark)))
+    print("mark:",mark)
     isPackage = list(set(Package).intersection(mark))
+    print("isPackage:",isPackage)
     if not isPackage and mark:
+        print("测试")
         pytest.skip(f"未购买 {mark} 产品套餐 {item.name} 用例不用执行")
     elif list(set(noPackage).intersection(mark)):
         pytest.fail(f"{mark} 产品套餐已无可用授权数量 {item.name} 用例无法执行，请释放 {mark} 套餐授权后重试")
@@ -88,6 +84,7 @@ def Center_initialize(CenterToken,env_conf):
     数据初始化
     :return:
     '''
+
     # 处理数字平台套餐
     roleResponse = Rolerest().findClientAuthInfosUsingGET(CenterToken)
     Assertions.assert_code(roleResponse, roleResponse.get("status_code"), 200)
@@ -223,7 +220,7 @@ def Center_initialize(CenterToken,env_conf):
             if response.get("result_totalElements")[0] >= 1:
                 infraDeptId = response.get("result_content_deptId")[0]
             else:
-                response = InfraDept().saveOrUpdateInfraDeptUsingPOST(CenterToken,name=infraDeptName,parentId=orgid,projectCode="P1000",shortName="系统校验项目简称",projectMilestone="10000",status=0,deptType=0,projectMajor=0)
+                response = InfraDept().saveOrUpdateInfraDeptUsingPOST(CenterToken,name=infraDeptName,parentId=orgid,projectCode="P1000",shortName="系统校验项目简称",projectMilestone="10000",status=0,deptType=0,projectMajor=0,contractMode="Parallel")
                 Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)
                 response = InfraDept().infraDeptListUsingPOST(CenterToken,keyword=infraDeptName,parentId=orgid)
@@ -365,12 +362,14 @@ def Center_initialize(CenterToken,env_conf):
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
             Global_Map.set("is_adduser", True)
+            ownerId = rootid
         else:
             userinfo = Userrest().findUserUsingGET(CenterToken,userName=userName)
             Assertions.assert_code(userinfo, userinfo.get("status_code"), 200)
             Assertions.assert_code(userinfo, userinfo.get("code")[0], 200)
-            response = Userrest().updateUserUsingPOST(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
-                           realName="系统校验用户", postIdList=[postid], userId=userinfo.get("result_userId")[0])
+            ownerId = userinfo.get("result_orgId")[0]
+            response = Userrest().updateUserUsingPOST(CenterToken, orgId=ownerId, userName=userinfo.get("result_userName")[0], roleId=roleid, email=userinfo.get("result_email")[0], mobile=userinfo.get("result_mobile")[0],
+                           realName=userinfo.get("result_realName")[0], postIdList=[postid], userId=userinfo.get("result_userId")[0])
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
         Global_Map.set("username", userName)
@@ -400,26 +399,30 @@ def Center_initialize(CenterToken,env_conf):
         response = Authrest().saveUserOrgLevelUsingPOST(CenterToken,username=userName,deptAuth=1,epAuth=1,orgAuth=1)
         Assertions.assert_code(response, response.get("status_code"), 200)
         Assertions.assert_code(response, response.get("code")[0], 200)
+        # 获取用户已授权的packageType等于31的套餐
+        response = Appallocation().getUserAuthPackageUsingGET(CenterToken,userName=userName, packageType=31)
+        Assertions.assert_code(response, response.get("status_code"), 200)
+        Assertions.assert_code(response, response.get("code")[0], 200)
+        package_functionIds = jsonpath.jsonpath(response.get("source_response"), "$..functionId")
         # 循环授权数字平台套餐
         for packageInfo in packageInfos:
+            # 跳过已授权的套餐
+            if isinstance(package_functionIds,list) and packageInfo.get("packageId") in package_functionIds:
+                continue
             if deployType:
                 response = Appallocation().getOrderAndAllocationInfoByPackageUsingPOST(CenterToken,packageId=packageInfo.get("packageId"),packageType=31)
                 Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)
             heldId = response.get("result_orderAndAllocations_heldId")[0] if deployType else 0
-            response = Appallocation().updateUserPlatFormPackageAuthUsingPOST(CenterToken,packageId=packageInfo.get("packageId"),userNames=[userName],orgId=rootid,operType=1,heldId=heldId)
-            # 跳过已授权的套餐
+            response = Appallocation().updateUserPlatFormPackageAuthUsingPOST(CenterToken,packageId=packageInfo.get("packageId"),userNames=[userName],orgId=ownerId,operType=1,heldId=heldId)
             Assertions.assert_code(response, response.get("status_code"), 200)
+            # 处理授权异常
             if response.get("code")[0] == 1035:
                 if response.get("msg")[0] in ["授权人数大于可授权数量","组织当前剩余授权数为0，请注意分配人数!"]:
                     # 授权不够的添加到noPackage
                     for markname, productId in env_conf.get("productId").items():
                         if productId in packageInfo.get("productIds"):
                             noPackage.append(markname)
-                elif response.get("msg")[0] == "服务内部错误,请联系管理员!":
-                    assert False,f"{packageInfo.get('packageName')} 套餐授权出错，服务器返回：{response.get('msg')[0]}"
-                elif "不能重复授权" in response.get("msg")[0]:
-                    continue
                 else:
                     assert False,f"{packageInfo.get('packageName')} 套餐授权出错，服务器返回：{response.get('msg')[0]}"
                 continue
@@ -428,15 +431,23 @@ def Center_initialize(CenterToken,env_conf):
         # 循环授权非平台套餐packageType不等于31的套餐
         packagesList = [{"package":packages_2,"packageType":2},{"package":packages_3,"packageType":3},{"package":packages_11,"packageType":11},{"package":packages_12,"packageType":12}]
         for packages in packagesList:
+            # 获取用户已授权的packageType不等于31的套餐
+            response = Appallocation().getUserAuthPackageUsingGET(CenterToken,userName=userName, packageType=packages.get("packageType"))
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
+            package_functionIds = jsonpath.jsonpath(response.get("source_response"), "$..functionId")
             for package in packages.get("package"):
+                # 跳过已授权的套餐
+                if isinstance(package_functionIds,list) and package.get("packageId") in package_functionIds:
+                    continue
                 if deployType:
                     response = Appallocation().getOrderAndAllocationInfoByPackageUsingPOST(CenterToken,packageId=package.get("packageId"),packageType=packages.get("packageType"))
                     Assertions.assert_code(response, response.get("status_code"), 200)
                     Assertions.assert_code(response, response.get("code")[0], 200)
                 heldId = response.get("result_orderAndAllocations_heldId")[0] if deployType else 0
-                response = Appallocation().updateUserPackageAuthUsingPOST(CenterToken,userNames=[userName],orgId=rootid,operType=1,heldId=heldId,packageType=packages.get("packageType"),functionId=package.get("packageId"),productId=package.get("productIds")[0])
-                # 跳过已授权的套餐
+                response = Appallocation().updateUserPackageAuthUsingPOST(CenterToken,userNames=[userName],orgId=ownerId,operType=1,heldId=heldId,packageType=packages.get("packageType"),functionId=package.get("packageId"),productId=package.get("productIds")[0])
                 Assertions.assert_code(response, response.get("status_code"), 200)
+                # 跳过已授权的套餐
                 if response.get("code")[0] == 1035:
                     if response.get("msg")[0] in ["授权人数大于可授权数量","组织当前剩余授权数为0，请注意分配人数!"]:
                         # 授权不够的添加到noPackage
@@ -529,701 +540,3 @@ def Center_initialize(CenterToken,env_conf):
         RoleRest().deleteRole(CenterToken,roleIds=roleid)
         # 删除项岗位
         Post().post_del(CenterToken, postId=postid)
-
-@pytest.fixture(scope="session")
-def initialize(token):
-    '''
-    inspection数据初始化
-    '''
-    # 项目列表
-    response = LubanMiscProject().listProjectUsingGET(token)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    assert response.get("data_id") is not None,"未找到基础数据，请确认数据初始化是否正常"
-    Global_Map.set("projectId",response["data_id"][0])
-    # 标段列表
-    response = LubanMiscProject().listSectionUsingGET(token,projectId=response["data_id"][0])
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    assert response.get("data_id") is not None,"未找到基础数据，请确认数据初始化是否正常"
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    Global_Map.set("sectionId",response["data_id"][0])
-
-@pytest.fixture(scope="session")
-def meter_ruleId_init(CenterToken):
-    '''
-    计量支付 市政 规则库初始化
-    '''
-    # 搜索 市政 规则库是否存在，如存在获取规则id，不存在新建规则并获取id
-    response = LubanMeterCenterMeterRule().pageMeterRuleUsingGET(CenterToken,keyword="系统校验规则_市政")
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    if response.get("data_totalCount")[0] >= 1:
-        ruleId = response.get("data_result_id")[0]
-    else:
-        response = LubanMeterCenterMeterRule().saveMeterRuleUsingPOST(CenterToken,name="系统校验规则_市政",major="市政",region="北京市")
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        Assertions.assert_equal_value(response.get("data_resultState")[0],True)
-        response = LubanMeterCenterMeterRule().pageMeterRuleUsingGET(CenterToken, keyword="系统校验规则_市政")
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        ruleId = response.get("data_result_id")[0]
-    Global_Map.set("ruleId", ruleId)
-    # 添加计量支付表
-    meterName = "计量支付表"+base_utils.generate_random_str()
-    response = LubanMeterDatatemplate().saveDataTemplateUsingPOST(CenterToken, templateType=3, ruleId=ruleId,sectionType=1,name=meterName,isSelectInstance=0,isMultiInstance=0,code="")
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    # 获取计量支付表，验证表单项目是否可访问
-    response = LubanMeterDatatemplate().dataTemplateListUsingPOST(CenterToken,templateType=3,ruleId=ruleId,sectionType=1)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    assert response.get("data_formTemplateId") != None,"表单模板为空"
-    formTemplateId = response.get("data_formTemplateId")[0]
-    assert formTemplateId != None,"高级表单未保存，表单ID未生成"
-    reportUrl = response.get("data_formTemplateUrl")[0]
-    # 获取reportToken
-    for i in reportUrl.split("?")[1].split("&"):
-        if i.startswith("token"):
-            Global_Map.set("reportToken",i.split("=")[1])
-            break
-    # 提交规则数据，验证表格项目是否正常
-    payload = {
-       "data" : {
-          "_version" : 10,
-          "borderSetting" : {
-             "edgeColor" : "#000000",
-             "edgeType" : "thin"
-          },
-          "cell" : {
-             "1" : {
-                "cell_5" : {
-                   "id" : "cell_5",
-                   "outline" : {
-                      "bottom" : "outline_7",
-                      "left" : "outline_7",
-                      "right" : "outline_7",
-                      "top" : "outline_7"
-                   },
-                   "permission" : {},
-                   "pos" : {
-                      "bottom" : "tableY_4",
-                      "left" : "tableX_1",
-                      "right" : "tableX_2",
-                      "top" : "tableY_3"
-                   },
-                   "segs" : [
-                      {
-                         "style" : {
-                            "alignH" : "left",
-                            "alignV" : "top",
-                            "bold" : False,
-                            "color" : "#000000",
-                            "family" : "宋体",
-                            "italic" : False,
-                            "size" : 12,
-                            "underline" : False
-                         },
-                         "text" : ""
-                      }
-                   ],
-                   "style" : {
-                      "alignH" : "left",
-                      "alignV" : "top",
-                      "bold" : False,
-                      "color" : "#000000",
-                      "family" : "宋体",
-                      "italic" : False,
-                      "size" : 12,
-                      "underline" : False
-                   },
-                   "tableId" : "table_8",
-                   "type" : "static",
-                   "typeInfo" : ""
-                }
-             }
-          },
-          "cellExtendState" : {},
-          "cellTypeSetting" : {
-             "_version" : 10,
-             "borderSetting" : {
-                "edgeColor" : "#000000",
-                "edgeType" : "thin"
-             },
-             "cell" : {
-                "1" : {
-                   "cell_5" : {
-                      "id" : "cell_5",
-                      "outline" : {
-                         "bottom" : "outline_7",
-                         "left" : "outline_7",
-                         "right" : "outline_7",
-                         "top" : "outline_7"
-                      },
-                      "permission" : {},
-                      "pos" : {
-                         "bottom" : "tableY_4",
-                         "left" : "tableX_1",
-                         "right" : "tableX_2",
-                         "top" : "tableY_3"
-                      },
-                      "segs" : [
-                         {
-                            "style" : {
-                               "alignH" : "left",
-                               "alignV" : "top",
-                               "bold" : False,
-                               "color" : "#000000",
-                               "family" : "宋体",
-                               "italic" : False,
-                               "size" : 12,
-                               "underline" : False
-                            },
-                            "text" : ""
-                         }
-                      ],
-                      "style" : {
-                         "alignH" : "left",
-                         "alignV" : "top",
-                         "bold" : False,
-                         "color" : "#000000",
-                         "family" : "宋体",
-                         "italic" : False,
-                         "size" : 12,
-                         "underline" : False
-                      },
-                      "tableId" : "table_8",
-                      "type" : "static",
-                      "typeInfo" : ""
-                   }
-                }
-             },
-             "cellExtendState" : {
-                "1" : {}
-             },
-             "cellTypeSetting" : {},
-             "currentRole" : {
-                "role" : ""
-             },
-             "guaranteeState" : {
-                "level" : "",
-                "type" : ""
-             },
-             "outline" : {
-                "outline_7" : {
-                   "id" : "outline_7"
-                }
-             },
-             "paper" : {
-                "direction" : "portrait",
-                "margin" : {
-                   "bottom" : "2.54cm",
-                   "left" : "1.91cm",
-                   "right" : "1.91cm",
-                   "top" : "2.54cm"
-                },
-                "size" : "A4"
-             },
-             "role" : {
-                "nameAry" : [ "默认角色" ]
-             },
-             "tableX" : {
-                "table_8" : {
-                   "tableX_1" : 0,
-                   "tableX_2" : 650
-                }
-             },
-             "tableY" : {
-                "table_8" : {
-                   "tableY_3" : 122,
-                   "tableY_4" : 143
-                }
-             },
-             "tags" : [],
-             "text" : {},
-             "totalPage" : {
-                "currentPage" : 1,
-                "expr" : "1"
-             },
-             "variable" : {},
-             "variableGraph" : {
-                "exprNodeList" : []
-             },
-             "zoom" : {
-                "scale" : 1
-             }
-          },
-          "currentRole" : {
-             "role" : ""
-          },
-          "guaranteeState" : {
-             "evel" : "",
-             "type" : ""
-          },
-          "messageBox" : {},
-          "outline" : {
-             "outline_7" : {
-                "id" : "outline_7"
-             }
-          },
-          "paper" : {
-             "direction" : "portrait",
-             "margin" : {
-                "bottom" : "2.54cm",
-                "left" : "1.91cm",
-                "right" : "1.91cm",
-                "top" : "2.54cm"
-             },
-             "size" : "A4"
-          },
-          "role" : {
-             "nameAry" : [ "默认角色" ]
-          },
-          "seed" : 8,
-          "tableX" : {
-             "table_8" : {
-                "tableX_1" : 0,
-                "tableX_2" : 650
-             }
-          },
-          "tableY" : {
-             "table_8" : {
-                "tableY_3" : 122,
-                "tableY_4" : 143
-             }
-          },
-          "tags" : [],
-          "text" : {},
-          "totalPage" : {
-             "currentPage" : 1,
-             "expr" : "1"
-          },
-          "variable" : {},
-          "variableGraph" : {},
-          "zoom" : {
-             "scale" : 1
-          }
-       },
-       "version" : 1
-    }
-    # 验证表单是否可访问，并获取report FORMHOST
-    response = CenterToken.request("get", reportUrl)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    for line in response.get("Response_text").splitlines():
-        text = line.strip()
-        if text.startswith("window.__FORMHOST__"):
-            Global_Map.set("report",text.split('"')[1])
-            break
-    # 获取表单模板数据，验证模板数据是否存在
-    response = CenterToken.request('post',  f"{Global_Map.get('report')}/rb/template/", payload=payload, header={"access-token": Global_Map.get("reportToken")})
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    # 规则库与项目绑定
-    response = LubanMeterHighwayCenterMeterRule().saveOrUpdateUsingPOST(CenterToken,ruleId=ruleId,projectId=Global_Map.get("deptid"),projectType=1)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    yield
-    # 是否清理生成的数据
-    if Global_Map.get("is_clear"):
-        response = LubanMeterCenterMeterRule().deleteCardUsingPOST(CenterToken,ids=ruleId)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-
-@pytest.fixture(scope="session")
-def meterHighway_ruleId_init(CenterToken):
-    '''
-    计量支付 公路 规则库初始化
-    '''
-    # 搜索 公路 规则库是否存在，如存在获取规则id，不存在新建规则并获取id
-    response = LubanMeterHighwayCenterMeterRule().pageMeterRuleUsingGET(CenterToken,keyword="系统校验规则_公路")
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    if response.get("data_totalCount")[0] >= 1:
-        highwayRuleId = response.get("data_result_id")[0]
-    else:
-        response = LubanMeterHighwayCenterMeterRule().saveMeterRuleUsingPOST(CenterToken,name="系统校验规则_公路",major="公路",region="北京市")
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        Assertions.assert_equal_value(response.get("data_resultState")[0],True)
-        response = LubanMeterHighwayCenterMeterRule().pageMeterRuleUsingGET(CenterToken, keyword="系统校验规则_公路")
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        highwayRuleId = response.get("data_result_id")[0]
-    Global_Map.set("highwayRuleId", highwayRuleId)
-    # 初始化 盐城 的 动员预付款 表单
-    response = LubanMeterHighwayCenterMeterRule().listMeterRuleUsingGET(CenterToken)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    ruleId_list = base_utils.jpath(response,check_key="name",check_value="盐城",sub_key="id")
-    assert ruleId_list != None
-    response = LubanMeterHighwayDatatemplate().templateListUsingPOST(CenterToken,ruleId=ruleId_list[0])
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    dataTemplateId = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.name=='动员预付款')].dataTemplateId")
-    response = LubanMeterHighwayDatatemplate().copyDataTemplateUsingPOST(CenterToken,ruleId=highwayRuleId,dataTemplateIds=dataTemplateId)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    # 项目绑定计量表单库
-    response = InfraDept().saveOrUpdateInfraDeptUsingPOST(CenterToken, name='系统校验创建基建项目', parentId=Global_Map.get("orgid"),
-                                                          projectCode="P1000", shortName="系统校验项目简称",
-                                                          projectMilestone="10000", status=0, deptType=0,
-                                                          projectMajor=0,deptId=Global_Map.get("infraDeptId"),meterRuleId=highwayRuleId)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    response = LubanMeterHighwayCenterMeterRule().saveOrUpdateUsingPOST(CenterToken, ruleId=highwayRuleId,
-                                                                        projectId=Global_Map.get("infraDeptId"),
-                                                                        projectType=2)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    yield
-    # 是否清理生成的数据
-    if Global_Map.get("is_clear"):
-        # 标记删除工程到回收站
-        response = LubanMeterHighwayCenterMeterRule().deleteCardUsingPOST(CenterToken,ids=highwayRuleId)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-
-@pytest.fixture(scope='session')
-def processInspection_init(CenterToken):
-    '''
-    工序报验 库模板、高级表单配置、工序、工序表单配置
-    '''
-    # 新建质检流程模板
-    processName = "工序报验测试流程" + base_utils.generate_random_str()
-    template_ins_id = Process().process_template_AddOrEdit(CenterToken, typeName=processName, remark="工序报验接口测试生成的备注_新建",
-                                                           busiModule="PROINSPAPP", isbranch="no_branch_common",
-                                                           userName=Global_Map.get("username"),
-                                                           postId=Global_Map.get("postId"),
-                                                           roleId=Global_Map.get("roleId"), sponsorType=0,
-                                                           viewerType=1)
-
-    Global_Map.set("processInspectionProcessId", template_ins_id["result"][0])
-    # 新建模板库
-    mName = "系统校验模板库-工序报验"
-    response = LubanMiscData().pageDataTemplateUsingGET(CenterToken, pageIndex=1, keyword=mName)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    tempIds = base_utils.jpath(response["source_response"], check_key="name", check_value=mName, sub_key="id")
-    if tempIds:
-        processInspection_tempId = tempIds[0]
-    else:
-        response = LubanMiscData().saveDataTemplateUsingPOST(CenterToken, catalog=mName, major=0, name=mName,
-                                                             region="四川省", type=4)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        response = LubanMiscData().pageDataTemplateUsingGET(CenterToken, pageIndex=1, keyword=mName)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        processInspection_tempId = base_utils.jpath(response["source_response"], check_key="name", check_value=mName, sub_key="id")[0]
-    # 设置模板库id
-    Global_Map.set("processInspection_tempId", processInspection_tempId)
-    # 新建表单模板
-    reName = "系统校验表单模板"
-    response = LubanMiscData().pageDataTemplateItemUsingGET(CenterToken, templateId=processInspection_tempId, pageIndex=1)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    reportIds = base_utils.jpath(response["source_response"], check_key="name", check_value=reName, sub_key="id")
-    if reportIds:
-        reportId = reportIds[0]
-    else:
-        response = LubanMiscData().saveDataTemplateItemUsingPOST(CenterToken, isMultiInstance=0, isSelectInstance=0,
-                                                                 name=reName, nodeCode="M001", nodeType=1, refType=0,
-                                                                 type=13, parentId=processInspection_tempId, templateId=processInspection_tempId)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        response = LubanMiscData().pageDataTemplateItemUsingGET(CenterToken, templateId=processInspection_tempId, pageIndex=1)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        reportId = base_utils.jpath(response["source_response"], check_key="name", check_value=reName,
-                                    sub_key="id")[0]
-    # 设置模板条目id
-    Global_Map.set("dataTemplateItemId", reportId)
-    # 获取report url
-    response = LubanMiscReport().getReportPageUrlUsingGET(CenterToken, bid=reportId, btype=0)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    reportUrl = response.get("data_url")[0]
-    Assertions.assert_not_contains(reportUrl, "127.0.0.1")
-    Assertions.assert_contains(reportUrl, "accessToken")
-    # 获取reportToken
-    for i in reportUrl.split("?")[1].split("&"):
-        if i.startswith("token"):
-            Global_Map.set("reportToken", i.split("=")[1])
-            break
-    # 获取tags
-    for i in reportUrl.split("?")[1].split("&"):
-        if i.startswith("tags"):
-            Global_Map.set("tags", i.split("=")[1])
-            break
-    # 验证表单是否可访问，并获取report FORMHOST
-    response = CenterToken.request("get", reportUrl)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    for line in response.get("Response_text").splitlines():
-        text = line.strip()
-        if text.startswith("window.__FORMHOST__"):
-            Global_Map.set("report", text.split('"')[1])
-            break
-    Assertions.assert_not_equal_value(Global_Map.get('report'), "Null_")
-    # 保存模板获取reportId
-    resource = f"{Global_Map.get('report')}/rb/template/"
-    payload = {
-        "data": {
-                "_version": 10,
-                "borderSetting": {
-                    "edgeColor": "#000000",
-                    "edgeType": "thin"
-                },
-                "cell": {
-                    "1": {
-                        "cell_5": {
-                            "id": "cell_5",
-                            "outline": {
-                                "bottom": "outline_7",
-                                "left": "outline_7",
-                                "right": "outline_7",
-                                "top": "outline_7"
-                            },
-                            "permission": {},
-                            "pos": {
-                                "bottom": "tableY_4",
-                                "left": "tableX_1",
-                                "right": "tableX_2",
-                                "top": "tableY_3"
-                            },
-                            "segs": [
-                                {
-                                    "style": {
-                                        "alignH": "left",
-                                        "alignV": "top",
-                                        "bold": False,
-                                        "color": "#000000",
-                                        "family": "宋体",
-                                        "italic": False,
-                                        "size": 12,
-                                        "underline": False
-                                    },
-                                    "text": ""
-                                }
-                            ],
-                            "style": {
-                                "alignH": "left",
-                                "alignV": "top",
-                                "bold": False,
-                                "color": "#000000",
-                                "family": "宋体",
-                                "italic": False,
-                                "size": 12,
-                                "underline": False
-                            },
-                            "tableId": "table_8",
-                            "type": "static",
-                            "typeInfo": ""
-                        }
-                    }
-                },
-                "cellExtendState": {},
-                "cellTypeSetting": {
-                    "_version": 10,
-                    "borderSetting": {
-                        "edgeColor": "#000000",
-                        "edgeType": "thin"
-                    },
-                    "cell": {
-                        "1": {
-                            "cell_5": {
-                                "id": "cell_5",
-                                "outline": {
-                                    "bottom": "outline_7",
-                                    "left": "outline_7",
-                                    "right": "outline_7",
-                                    "top": "outline_7"
-                                },
-                                "permission": {},
-                                "pos": {
-                                    "bottom": "tableY_4",
-                                    "left": "tableX_1",
-                                    "right": "tableX_2",
-                                    "top": "tableY_3"
-                                },
-                                "segs": [
-                                    {
-                                        "style": {
-                                            "alignH": "left",
-                                            "alignV": "top",
-                                            "bold": False,
-                                            "color": "#000000",
-                                            "family": "宋体",
-                                            "italic": False,
-                                            "size": 12,
-                                            "underline": False
-                                        },
-                                        "text": ""
-                                    }
-                                ],
-                                "style": {
-                                    "alignH": "left",
-                                    "alignV": "top",
-                                    "bold": False,
-                                    "color": "#000000",
-                                    "family": "宋体",
-                                    "italic": False,
-                                    "size": 12,
-                                    "underline": False
-                                },
-                                "tableId": "table_8",
-                                "type": "static",
-                                "typeInfo": ""
-                            }
-                        }
-                    },
-                    "cellExtendState": {
-                        "1": {}
-                    },
-                    "cellTypeSetting": {},
-                    "currentRole": {
-                        "role": ""
-                    },
-                    "guaranteeState": {
-                        "level": "",
-                        "type": ""
-                    },
-                    "outline": {
-                        "outline_7": {
-                            "id": "outline_7"
-                        }
-                    },
-                    "paper": {
-                        "direction": "portrait",
-                        "margin": {
-                            "bottom": "2.54cm",
-                            "left": "1.91cm",
-                            "right": "1.91cm",
-                            "top": "2.54cm"
-                        },
-                        "size": "A4"
-                    },
-                    "role": {
-                        "nameAry": ["默认角色"]
-                    },
-                    "tableX": {
-                        "table_8": {
-                            "tableX_1": 0,
-                            "tableX_2": 650
-                        }
-                    },
-                    "tableY": {
-                        "table_8": {
-                            "tableY_3": 29,
-                            "tableY_4": 50
-                        }
-                    },
-                    "tags": [],
-                    "text": {},
-                    "totalPage": {
-                        "currentPage": 1,
-                        "expr": "1"
-                    },
-                    "variable": {},
-                    "variableGraph": {
-                        "exprNodeList": []
-                    },
-                    "zoom": {
-                        "scale": 1
-                    }
-                },
-                "currentRole": {
-                    "role": ""
-                },
-                "guaranteeState": {
-                    "evel": "",
-                    "type": ""
-                },
-                "messageBox": {},
-                "outline": {
-                    "outline_7": {
-                        "id": "outline_7"
-                    }
-                },
-                "paper": {
-                    "direction": "portrait",
-                    "margin": {
-                        "bottom": "2.54cm",
-                        "left": "1.91cm",
-                        "right": "1.91cm",
-                        "top": "2.54cm"
-                    },
-                    "size": "A4"
-                },
-                "role": {
-                    "nameAry": ["默认角色"]
-                },
-                "seed": 8,
-                "tableX": {
-                    "table_8": {
-                        "tableX_1": 0,
-                        "tableX_2": 650
-                    }
-                },
-                "tableY": {
-                    "table_8": {
-                        "tableY_3": 29,
-                        "tableY_4": 50
-                    }
-                },
-                "tags": [],
-                "text": {},
-                "totalPage": {
-                    "currentPage": 1,
-                    "expr": "1"
-                },
-                "variable": {},
-                "variableGraph": {},
-                "zoom": {
-                    "scale": 1
-                }
-            },
-        "version": 1
-    }
-    response = CenterToken.request('post', resource, payload=payload,
-                                   header={"access-token": Global_Map.get('reportToken')})
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    formTemplateId = response.get("data_id")[0]
-    # 高级表单模板id
-    Global_Map.set("formTemplateId", formTemplateId)
-    # 验证表单和模板是否绑定
-    response = LubanMiscData().pageDataTemplateItemUsingGET(CenterToken, templateId=processInspection_tempId, pageIndex=1)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    formTemplateIds = base_utils.jpath(response["source_response"], check_key="id", check_value=reportId,
-                                       sub_key="formTemplateId")
-    Assertions.assert_in_value(formTemplateIds, formTemplateId)
-    if Global_Map.get("infraDeptId"):
-        # 表单库关联基建项目
-        body = {'itemList': [{'dataTemplateId': Global_Map.get("processInspection_tempId"), 'dataTemplateType': 2}], 'projectId': Global_Map.get("infraDeptId"), 'projectType': 1}
-        response = LubanMiscData().saveOrUpdateDataTemplateRefUsingPOST_2(CenterToken, bodyKwargs=body)
-        Assertions.assert_code(response,response.get("status_code"),200)
-        Assertions.assert_code(response, response.get("code")[0],200)
-    if Global_Map.get("deptid"):
-        # 表单库关联房建项目
-        body = {'itemList': [{'dataTemplateId': Global_Map.get("processInspection_tempId"), 'dataTemplateType': 2}], 'projectId': Global_Map.get("deptid"), 'projectType': 2}
-        response = LubanMiscData().saveOrUpdateDataTemplateRefUsingPOST_2(CenterToken, bodyKwargs=body)
-        Assertions.assert_code(response,response.get("status_code"),200)
-        Assertions.assert_code(response, response.get("code")[0],200)
-    # 表单关联审批流程
-    body = {'itemList': [{'itemId': Global_Map.get("dataTemplateItemId"), 'processTemplateId': Global_Map.get("processInspectionProcessId")}]}
-    response = LubanMiscData().updateProjectTemplateProcessTemplateIdUsingPOST(CenterToken, bodyKwargs=body)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    Assertions.assert_equal_value(response.get("msg")[0], "Success")
-    yield
-    # 是否清理生成的数据
-    if Global_Map.get("is_clear"):
-        response = LubanMiscData().deleteDataTemplateItemUsingPOST(CenterToken, templateId=processInspection_tempId, ids=[reportId])
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        response = Process().process_template_del(CenterToken, templateId =Global_Map.get("processInspectionProcessId"))
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)

@@ -322,7 +322,7 @@ def pytest_runtest_makereport(item, call):
 #     return driver.get_screenshot_as_base64()
 def get_fixture():
     """
-    获取luban-common和fixtures目录下的fixture
+    获取fixtures目录下以fixture开头的py文件
     :return: fixture路径列表
     """
     _fixtures_dir = os.path.join(Config.project_root_dir,"fixtures")
@@ -334,8 +334,6 @@ def get_fixture():
                 full_path = os.path.join(root, file)
                 import_path = full_path.replace(_fixtures_dir, "").replace("\\", ".").replace("/", ".").replace(".py", "")
                 _fixtures.append("fixtures" + import_path)
-    # luban-common框架自带的fixture
-    # _fixtures.append("luban_common.fixture")
     return _fixtures
 
 def all_plugins():

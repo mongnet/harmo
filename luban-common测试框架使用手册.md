@@ -1859,7 +1859,7 @@ def token(env_conf):
 # @Time : 2023-6-12 18:18
 # @Author : hubiao
 # @Email : xxx@gmail.com
-# @File : fixture_platform.py.template
+# @File : fixture_platform.py.template.template
 
 import time
 from luban_common import base_utils
