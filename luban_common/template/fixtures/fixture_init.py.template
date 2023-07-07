@@ -62,14 +62,10 @@ def pytest_runtest_call(item):
     '''
     # 获取当前用例全部mark
     markers = [marker.name for marker in item.iter_markers()]
-    print("markers:",markers)
     # 过滤掉必须排除的mark后，当前用例剩余的mark
     mark = list(set(markers).difference(set(excludeMark)))
-    print("mark:",mark)
     isPackage = list(set(Package).intersection(mark))
-    print("isPackage:",isPackage)
     if not isPackage and mark:
-        print("测试")
         pytest.skip(f"未购买 {mark} 产品套餐 {item.name} 用例不用执行")
     elif list(set(noPackage).intersection(mark)):
         pytest.fail(f"{mark} 产品套餐已无可用授权数量 {item.name} 用例无法执行，请释放 {mark} 套餐授权后重试")

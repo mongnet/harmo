@@ -77,12 +77,9 @@ class AnalysisSwaggerJson():
         http_interface_group["config"]["host"] = host
         http_interface_group["config"]["base_url"] = self.basePath
         self.definitions = res.get("definitions")  # body参数
-        tags_list = []  # 接口分组标签
-        for tag_dict in res.get("tags"):
-            tags_list.append(tag_dict)
         if isinstance(pathsData, dict):  # 判断接口返回的paths数据类型是否dict类型
-            # 前面已经把接口返回的结果tags分别写入了tags_list空列表,再从json对应的tag往里面插入数据
-            for tag in tags_list:
+            # 前面已经把接口返回的结果tags分别写入了tag_list空列表,再从json对应的tag往里面插入数据
+            for tag in res.get("tags"):
                 group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
                 self.repetition_operationId = []
                 for uri, value in list(pathsData.items()):
@@ -122,7 +119,7 @@ class AnalysisSwaggerJson():
                         continue
                 http_interface_group["groups"].append(group)
         else:
-            return "error"
+            return f"error:paths不是一个dict类型，现在的类型为：{type(pathsData)}，paths的内容为:{pathsData}"
         return http_interface_group
 
     def wash_params(self, params, api, method, group):
@@ -507,6 +504,8 @@ if __name__ == "__main__":
     url31 = "http://192.168.13.157:8022/luban-bi/v2/api-docs?group=%E6%95%B0%E6%8D%AE%E6%BA%90"
     url32 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url33 = "http://192.168.13.157:8022/luban-bi/swagger-resources"
+    url34 = "http://192.168.13.246:8182/gateway/lbbe/rs/swagger/swagger.json"
+
 
 
     # print(AnalysisSwaggerJson(url).analysis_json_data())
@@ -534,5 +533,6 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url30).analysis_json_data())
     # print(AnalysisSwaggerJson(url31).analysis_json_data())
     # print(AnalysisSwaggerJson(url32).analysis_json_data())
-    print(AnalysisSwaggerJson(url33).analysis_json_data())
+    # print(AnalysisSwaggerJson(url33).analysis_json_data())
+    print(AnalysisSwaggerJson(url34).analysis_json_data())
 

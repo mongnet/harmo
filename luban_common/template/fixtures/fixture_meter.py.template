@@ -1,6 +1,5 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
-# @Time : 2023-6-15 15:35
+# @Time : 2023-6-12 18:18
 # @Author : hubiao
 # @Email : xxx@gmail.com
 # @File : fixture_meter.py
@@ -15,6 +14,7 @@ from swagger.meter.lubanMeterCenterMeterRule import LubanMeterCenterMeterRule
 from swagger.meter.lubanMeterDatatemplate import LubanMeterDatatemplate
 from swagger.meterHighway.lubanMeterHighwayCenterMeterRule import LubanMeterHighwayCenterMeterRule
 from swagger.meterHighway.lubanMeterHighwayDatatemplate import LubanMeterHighwayDatatemplate
+
 
 @pytest.fixture(scope="session")
 def meter_ruleId_init(CenterToken):
@@ -318,17 +318,267 @@ def meterHighway_ruleId_init(CenterToken):
         Assertions.assert_code(response, response.get("code")[0], 200)
         highwayRuleId = response.get("data_result_id")[0]
     Global_Map.set("highwayRuleId", highwayRuleId)
-    # 初始化 盐城 的 动员预付款 表单
+    # 初始化 已有计量表单
     response = LubanMeterHighwayCenterMeterRule().listMeterRuleUsingGET(CenterToken)
     Assertions.assert_code(response, response.get("status_code"), 200)
     Assertions.assert_code(response, response.get("code")[0], 200)
-    ruleId_list = base_utils.jpath(response,check_key="name",check_value="盐城",sub_key="id")
-    assert ruleId_list
+    ruleId_list = jsonpath.jsonpath(response.get("source_response"), "$..id")
+    assert ruleId_list != None,"表单类别为空，请检查初始化脚本"
     response = LubanMeterHighwayDatatemplate().templateListUsingPOST(CenterToken,ruleId=ruleId_list[0])
     Assertions.assert_code(response, response.get("status_code"), 200)
     Assertions.assert_code(response, response.get("code")[0], 200)
-    dataTemplateId = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.name=='动员预付款')].dataTemplateId")
+    dataTemplateId = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.dataTemplateGroupName=='施工计量')]..dataTemplateId")
     response = LubanMeterHighwayDatatemplate().copyDataTemplateUsingPOST(CenterToken,ruleId=highwayRuleId,dataTemplateIds=dataTemplateId)
+    Assertions.assert_code(response, response.get("status_code"), 200)
+    Assertions.assert_code(response, response.get("code")[0], 200)
+    # 添加计量支付表
+    meterHighwayName = "highway计量支付表"+base_utils.generate_random_str()
+    response = LubanMeterHighwayDatatemplate().saveDataTemplateUsingPOST(CenterToken, templateType=3, ruleId=highwayRuleId,sectionType=1,name=meterHighwayName,isSelectInstance=0,isMultiInstance=0,code="")
+    Assertions.assert_code(response, response.get("status_code"), 200)
+    Assertions.assert_code(response, response.get("code")[0], 200)
+    # 获取计量支付表，验证表单项目是否可访问
+    response = LubanMeterHighwayDatatemplate().dataTemplateListUsingPOST(CenterToken,templateType=3,ruleId=highwayRuleId,sectionType=1)
+    Assertions.assert_code(response, response.get("status_code"), 200)
+    Assertions.assert_code(response, response.get("code")[0], 200)
+    formId = response.get("data_id")[-1]
+    response = LubanMeterHighwayDatatemplate().getFormUrlUsingGET(CenterToken, id=formId)
+    Assertions.assert_code(response, response.get("status_code"), 200)
+    Assertions.assert_code(response, response.get("code")[0], 200)
+    reportUrl = response.get("data")[0]
+    # 获取reportToken
+    for i in reportUrl.split("?")[1].split("&"):
+        if i.startswith("token"):
+            Global_Map.set("reportToken",i.split("=")[1])
+            break
+    # 提交规则数据，验证表格项目是否正常
+    payload = {
+       "data" : {
+          "_version" : 10,
+          "borderSetting" : {
+             "edgeColor" : "#000000",
+             "edgeType" : "thin"
+          },
+          "cell" : {
+             "1" : {
+                "cell_5" : {
+                   "id" : "cell_5",
+                   "outline" : {
+                      "bottom" : "outline_7",
+                      "left" : "outline_7",
+                      "right" : "outline_7",
+                      "top" : "outline_7"
+                   },
+                   "permission" : {},
+                   "pos" : {
+                      "bottom" : "tableY_4",
+                      "left" : "tableX_1",
+                      "right" : "tableX_2",
+                      "top" : "tableY_3"
+                   },
+                   "segs" : [
+                      {
+                         "style" : {
+                            "alignH" : "left",
+                            "alignV" : "top",
+                            "bold" : False,
+                            "color" : "#000000",
+                            "family" : "宋体",
+                            "italic" : False,
+                            "size" : 12,
+                            "underline" : False
+                         },
+                         "text" : ""
+                      }
+                   ],
+                   "style" : {
+                      "alignH" : "left",
+                      "alignV" : "top",
+                      "bold" : False,
+                      "color" : "#000000",
+                      "family" : "宋体",
+                      "italic" : False,
+                      "size" : 12,
+                      "underline" : False
+                   },
+                   "tableId" : "table_8",
+                   "type" : "static",
+                   "typeInfo" : ""
+                }
+             }
+          },
+          "cellExtendState" : {},
+          "cellTypeSetting" : {
+             "_version" : 10,
+             "borderSetting" : {
+                "edgeColor" : "#000000",
+                "edgeType" : "thin"
+             },
+             "cell" : {
+                "1" : {
+                   "cell_5" : {
+                      "id" : "cell_5",
+                      "outline" : {
+                         "bottom" : "outline_7",
+                         "left" : "outline_7",
+                         "right" : "outline_7",
+                         "top" : "outline_7"
+                      },
+                      "permission" : {},
+                      "pos" : {
+                         "bottom" : "tableY_4",
+                         "left" : "tableX_1",
+                         "right" : "tableX_2",
+                         "top" : "tableY_3"
+                      },
+                      "segs" : [
+                         {
+                            "style" : {
+                               "alignH" : "left",
+                               "alignV" : "top",
+                               "bold" : False,
+                               "color" : "#000000",
+                               "family" : "宋体",
+                               "italic" : False,
+                               "size" : 12,
+                               "underline" : False
+                            },
+                            "text" : ""
+                         }
+                      ],
+                      "style" : {
+                         "alignH" : "left",
+                         "alignV" : "top",
+                         "bold" : False,
+                         "color" : "#000000",
+                         "family" : "宋体",
+                         "italic" : False,
+                         "size" : 12,
+                         "underline" : False
+                      },
+                      "tableId" : "table_8",
+                      "type" : "static",
+                      "typeInfo" : ""
+                   }
+                }
+             },
+             "cellExtendState" : {
+                "1" : {}
+             },
+             "cellTypeSetting" : {},
+             "currentRole" : {
+                "role" : ""
+             },
+             "guaranteeState" : {
+                "level" : "",
+                "type" : ""
+             },
+             "outline" : {
+                "outline_7" : {
+                   "id" : "outline_7"
+                }
+             },
+             "paper" : {
+                "direction" : "portrait",
+                "margin" : {
+                   "bottom" : "2.54cm",
+                   "left" : "1.91cm",
+                   "right" : "1.91cm",
+                   "top" : "2.54cm"
+                },
+                "size" : "A4"
+             },
+             "role" : {
+                "nameAry" : [ "默认角色" ]
+             },
+             "tableX" : {
+                "table_8" : {
+                   "tableX_1" : 0,
+                   "tableX_2" : 650
+                }
+             },
+             "tableY" : {
+                "table_8" : {
+                   "tableY_3" : 122,
+                   "tableY_4" : 143
+                }
+             },
+             "tags" : [],
+             "text" : {},
+             "totalPage" : {
+                "currentPage" : 1,
+                "expr" : "1"
+             },
+             "variable" : {},
+             "variableGraph" : {
+                "exprNodeList" : []
+             },
+             "zoom" : {
+                "scale" : 1
+             }
+          },
+          "currentRole" : {
+             "role" : ""
+          },
+          "guaranteeState" : {
+             "evel" : "",
+             "type" : ""
+          },
+          "messageBox" : {},
+          "outline" : {
+             "outline_7" : {
+                "id" : "outline_7"
+             }
+          },
+          "paper" : {
+             "direction" : "portrait",
+             "margin" : {
+                "bottom" : "2.54cm",
+                "left" : "1.91cm",
+                "right" : "1.91cm",
+                "top" : "2.54cm"
+             },
+             "size" : "A4"
+          },
+          "role" : {
+             "nameAry" : [ "默认角色" ]
+          },
+          "seed" : 8,
+          "tableX" : {
+             "table_8" : {
+                "tableX_1" : 0,
+                "tableX_2" : 650
+             }
+          },
+          "tableY" : {
+             "table_8" : {
+                "tableY_3" : 122,
+                "tableY_4" : 143
+             }
+          },
+          "tags" : [],
+          "text" : {},
+          "totalPage" : {
+             "currentPage" : 1,
+             "expr" : "1"
+          },
+          "variable" : {},
+          "variableGraph" : {},
+          "zoom" : {
+             "scale" : 1
+          }
+       },
+       "version" : 1
+    }
+    # 验证表单是否可访问，并获取report FORMHOST
+    response = CenterToken.request("get", reportUrl)
+    Assertions.assert_code(response, response.get("status_code"), 200)
+    for line in response.get("Response_text").splitlines():
+        text = line.strip()
+        if text.startswith("window.__FORMHOST__"):
+            Global_Map.set("report",text.split('"')[1])
+            break
+    # 获取表单模板数据，验证模板数据是否存在
+    response = CenterToken.request('post',  f"{Global_Map.get('report')}/rb/template/", payload=payload, header={"access-token": Global_Map.get("reportToken")})
     Assertions.assert_code(response, response.get("status_code"), 200)
     Assertions.assert_code(response, response.get("code")[0], 200)
     # 项目绑定计量表单库
