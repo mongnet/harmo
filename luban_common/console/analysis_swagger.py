@@ -288,7 +288,7 @@ class AnalysisSwaggerJson():
             if schema:
                 ref = schema.get("$ref")
                 if ref:
-                    param_key = ref.split("/")[-1]
+                    param_key = schema.get("originalRef") if schema.get("originalRef") else ref.split("/")[-1]
                     res = self.definitions.get(param_key).get("properties")
                     i = 0
                     for k, v in res.items():
@@ -505,6 +505,7 @@ if __name__ == "__main__":
     url32 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url33 = "http://192.168.13.157:8022/luban-bi/swagger-resources"
     url34 = "http://192.168.13.246:8182/gateway/lbbe/rs/swagger/swagger.json"
+    url35 = "http://192.168.13.161:8864/sphere/v2/api-docs?group=%E5%AE%89%E5%85%A8%E6%A8%A1%E5%9D%97--%E5%AE%89%E5%85%A8%E6%8A%A5%E5%91%8A"
 
 
 
@@ -534,5 +535,6 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url31).analysis_json_data())
     # print(AnalysisSwaggerJson(url32).analysis_json_data())
     # print(AnalysisSwaggerJson(url33).analysis_json_data())
-    print(AnalysisSwaggerJson(url34).analysis_json_data())
+    # print(AnalysisSwaggerJson(url34).analysis_json_data())
+    print(AnalysisSwaggerJson(url35).analysis_json_data())
 
