@@ -9,6 +9,7 @@ import inspect
 import os
 import time
 import pytest
+from pytest_metadata.plugin import metadata_key
 from luban_common.global_map import Global_Map
 from luban_common.msg.robot import WeiXin
 from luban_common.operation import yaml_file
@@ -92,7 +93,6 @@ def pytest_configure(config):
     if _env_config:
         metadata = config.pluginmanager.getplugin("metadata")
         if metadata:
-            from pytest_metadata.plugin import metadata_key
             if _env_config is not None:
                 config.stash[metadata_key]["运行配置"] = _env_config
             if _browser is not None:
@@ -160,7 +160,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
             if lb_msg_name:
                 JOB_NAME = lb_msg_name
             else:
-                JOB_NAME = "通用" if config._metadata.get("JOB_NAME") is None else config._metadata.get("JOB_NAME")
+                JOB_NAME = "通用" if config.stash[metadata_key].get("JOB_NAME") is None else config.stash[metadata_key].get("JOB_NAME")
             if failed + error != 0:
                 markdown_content = f'''
                                     # 警告！`{JOB_NAME}` 巡检出现异常
