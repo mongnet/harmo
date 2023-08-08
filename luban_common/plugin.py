@@ -90,25 +90,27 @@ def pytest_configure(config):
         "is_clear": _is_clear
     }
     if _env_config:
-        if hasattr(config, "_metadata"):
+        metadata = config.pluginmanager.getplugin("metadata")
+        if metadata:
+            from pytest_metadata.plugin import metadata_key
             if _env_config is not None:
-                config._metadata["运行配置"] = _env_config
+                config.stash[metadata_key]["运行配置"] = _env_config
             if _browser is not None:
-                config._metadata["浏览器"] = _browser
+                config.stash[metadata_key]["浏览器"] = _browser
             if _base_url is not None:
-                config._metadata["基础URL"] = _base_url
+                config.stash[metadata_key]["基础URL"] = _base_url
             if _is_local is not None:
-                config._metadata["本地载入初始化"] = _is_local
+                config.stash[metadata_key]["本地载入初始化"] = _is_local
             if _message_switch is not None:
-                config._metadata["消息开关"] = _message_switch
+                config.stash[metadata_key]["消息开关"] = _message_switch
             if _success_message is not None:
-                config._metadata["成功是否发送消息"] = _success_message
+                config.stash[metadata_key]["成功是否发送消息"] = _success_message
             if _case_message is not None:
-                config._metadata["单用例失败提醒"] = _case_message
+                config.stash[metadata_key]["单用例失败提醒"] = _case_message
             if _robot is not None:
-                config._metadata["机器人"] = _robot
+                config.stash[metadata_key]["机器人"] = _robot
             if _is_clear is not None:
-                config._metadata["是否清理数据"] = _is_clear
+                config.stash[metadata_key]["是否清理数据"] = _is_clear
         if _is_local:
             _tmp_data = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
             if _tmp_data.get("lb_env") in _env_config or not _tmp_data.get("lb_env"):
@@ -200,8 +202,13 @@ def pytest_unconfigure(config):
     # unregister plugin
 
 def pytest_collection_modifyitems(items):
-    # item表示每个测试用例，解决用例名称中文显示问题
+    marker_all = []
     for item in items:
+        # 获取全部 marker 名称
+        for marker in item.iter_markers():
+            marker_all.append(marker.name)
+        Global_Map.set("marker_all",list(set(marker_all)))
+        # item表示每个测试用例，解决用例名称中文显示问题
         item.name = item.name.encode("utf-8").decode("unicode-escape")
         item._nodeid = item._nodeid.encode("utf-8").decode("unicode-escape")
 

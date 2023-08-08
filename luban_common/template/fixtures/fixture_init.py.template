@@ -53,6 +53,13 @@ product_dict = {"质检":"inspection",
                 "个人设置":"basicConfiguration"}
 Global_Map.set("product_dict",product_dict)
 
+def pytest_collection_finish():
+    '''
+    获取 marker_all 中有，但 excludeMark 中没有的 marker
+    '''
+    difference_marker = list(set(Global_Map.get("marker_all")).difference(excludeMark))
+    Global_Map.set("difference_marker", difference_marker)
+
 def pytest_runtest_call(item):
     '''
     1.过滤未购买、已无可用授权数量的用例
@@ -80,459 +87,461 @@ def Center_initialize(CenterToken,env_conf):
     数据初始化
     :return:
     '''
-
-    # 处理数字平台套餐
-    roleResponse = Rolerest().findClientAuthInfosUsingGET(CenterToken)
-    Assertions.assert_code(roleResponse, roleResponse.get("status_code"), 200)
-    Assertions.assert_code(roleResponse, roleResponse.get("code")[0], 200)
-    authCodes = jsonpath.jsonpath(roleResponse.get("source_response"), "$..[?(@.authCode)].authCode")
-    products = jsonpath.jsonpath(roleResponse.get("source_response"), "$..[?(@.productId)].productId")
-    if 192 in products:
-        menuResponse = Rolerest().getMenuListUsingGET(CenterToken)
-        Assertions.assert_code(menuResponse, menuResponse.get("status_code"), 200)
-        Assertions.assert_code(menuResponse, menuResponse.get("code")[0], 200)
-        nameList = jsonpath.jsonpath(menuResponse.get("source_response"), "$..[?(@.name)]..name")
-        for k,v in product_dict.items():
-            if k in nameList:
-                Package.append(v)
-    # 获取套餐_产品信息
-    response = Appallocation().getAppAllocationPackageInfoUsingGET(CenterToken)
-    Assertions.assert_code(response, response.get("status_code"), 200)
-    Assertions.assert_code(response, response.get("code")[0], 200)
-    # 分配工程管理数字化平台套餐packageType=31
-    packages_2 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=2)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=2) else []
-    packages_3 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3) else []
-    packages_11 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11) else []
-    packages_12 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12) else []
-    productIds = jsonpath.jsonpath(response.get("source_response"), f"$..productId")
-    packageInfos = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=31, sub_key="packageInfos")[0]
-    # 获取已购买的产品名称，用来过滤哪些产品需要运行
-    for markname,productId in env_conf.get("productId").items():
-        if productId in productIds:
-            Package.append(markname)
-    # 本地载入时，不执行后续的脚本
-    if not Global_Map.get("is_local"):
-        # 获取部署类型
-        resource = '/pds/rs/centerLogin/deployType'
-        response = CenterToken.request('get', resource)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        deployType = True if response.get("Response_text") == "true" else False
-        Global_Map.set("deployType",deployType)
-        # 查询组织机构树
-        response = Org().treeNodesUsingGET(CenterToken)
-        rootid = response["result_id"][response["result_root"].index(True)]
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        Global_Map.set("rootid",rootid)
-        # 判断组织是否存在，不存在时创建新组织机构
-        orgName = '系统校验创建组织'
-        id = base_utils.jpath(response.get("source_response"),check_key="name",check_value=orgName,sub_key="id")
-        if id:
-            orgid = id[0]
-        else:
-            response = Org().createOrgUsingPOST(CenterToken, orgId=rootid, name=orgName,type=0,dataType=1,latitude="121.517675",longitude="31.312552",labels=[])
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            response = Org().treeNodesUsingGET(CenterToken)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            orgid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=orgName,sub_key="id")[0]
-        Global_Map.set("orgid",orgid)
-        # 判断岗位是否存在，不存在创建岗位
-        postName = '系统校验创建岗位'
-        response = Post().post_list(CenterToken, postName=postName)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        if response.get("result_totalElements")[0] >= 1:
-            postid = response.get("result_content_id")[0]
-        else:
-            response = Post().post_add(CenterToken, postName)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            response = Post().post_list(CenterToken, postName=postName)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            postid = response.get("result_content_id")[0]
-        Global_Map.set("postId",postid)
-        # 判断角色是否存在，不存在创建角色
-        RoleName = "系统校验创建角色"
-        response = RoleRest().find_Page_Roles(CenterToken, searchStr=RoleName)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        if response.get("result_pageInfo_totalNumber")[0] >= 1:
-            roleid = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.roleId)].roleId")[0]
-        else:
-            RoleRest().saveOrUpdateRoleAuth(CenterToken, roleName=RoleName, authCodes=authCodes)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            response = RoleRest().find_Page_Roles(CenterToken, searchStr=RoleName)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            roleid= jsonpath.jsonpath(response.get("source_response"), "$..[?(@.roleId)].roleId")[0]
-        # 如果有192权限，192角色权限与老角色权限授权方式不一样
+    # 如 difference_marker 为空就不执行初始化
+    if Global_Map.get("difference_marker"):
+        # 处理数字平台套餐
+        roleResponse = Rolerest().findClientAuthInfosUsingGET(CenterToken)
+        Assertions.assert_code(roleResponse, roleResponse.get("status_code"), 200)
+        Assertions.assert_code(roleResponse, roleResponse.get("code")[0], 200)
+        authCodes = jsonpath.jsonpath(roleResponse.get("source_response"), "$..[?(@.authCode)].authCode")
+        products = jsonpath.jsonpath(roleResponse.get("source_response"), "$..[?(@.productId)].productId")
         if 192 in products:
             menuResponse = Rolerest().getMenuListUsingGET(CenterToken)
             Assertions.assert_code(menuResponse, menuResponse.get("status_code"), 200)
             Assertions.assert_code(menuResponse, menuResponse.get("code")[0], 200)
-            menuList = jsonpath.jsonpath(menuResponse.get("source_response"), "$..[?(@.menuType!='S')]..id")
-            moduleList = jsonpath.jsonpath(menuResponse.get("source_response"), "$..[?(@.menuType=='S')]..id")
-            response = Rolerest().getAuthMenuCodeListUsingPOST(CenterToken,menuIdList=menuList,productId="192",roleId=roleid)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            authCodeList = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.authCode)].authCode")
-            response = Rolerest().saveAuthMenuUsingPOST(CenterToken,authCodes=authCodeList,productId="192",productModuleIds=moduleList,roleId=roleid)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-        Global_Map.set("roleId",roleid)
-        # 判断工程是否在回收站，如果在回收站就删除工程
-        projPath = base_utils.file_absolute_path(env_conf.get("project").get("projPath"))
-        projName = base_utils.getFileName(projPath).split(".")[0]
-        response = RsBimrest().getProjectsUsingPOST(CenterToken, searchKey=projName,packageType=[1,2],delete=True,projType=0)
+            nameList = jsonpath.jsonpath(menuResponse.get("source_response"), "$..[?(@.name)]..name")
+            for k,v in product_dict.items():
+                if k in nameList:
+                    Package.append(v)
+        # 获取套餐_产品信息
+        response = Appallocation().getAppAllocationPackageInfoUsingGET(CenterToken)
         Assertions.assert_code(response, response.get("status_code"), 200)
         Assertions.assert_code(response, response.get("code")[0], 200)
-        if response.get("result_content_projId"):
-            response = RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=response.get("result_content_projId"))
+        # 分配工程管理数字化平台套餐packageType=31
+        packages_2 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=2)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=2) else []
+        packages_3 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=3) else []
+        packages_11 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=11) else []
+        packages_12 = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12)[0]["packageInfos"] if base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=12) else []
+        productIds = jsonpath.jsonpath(response.get("source_response"), f"$..productId")
+        packageInfos = base_utils.jpath(response.get("source_response"), check_key="packageType", check_value=31, sub_key="packageInfos")[0]
+        # 获取已购买的产品名称，用来过滤哪些产品需要运行
+        for markname,productId in env_conf.get("productId").items():
+            if productId in productIds:
+                Package.append(markname)
+        # 本地载入时，不执行后续的脚本
+        if not Global_Map.get("is_local"):
+            # 获取部署类型
+            resource = '/pds/rs/centerLogin/deployType'
+            response = CenterToken.request('get', resource)
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            deployType = True if response.get("Response_text") == "true" else False
+            Global_Map.set("deployType",deployType)
+            # 查询组织机构树
+            response = Org().treeNodesUsingGET(CenterToken)
+            rootid = response["result_id"][response["result_root"].index(True)]
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
-        # 判断工程是否存在
-        response = RsBimrest().getProjectsUsingPOST(CenterToken, searchKey=projName,packageType=[1,2],projType=0)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        if response.get("result_totalElements")[0] >= 1:
-            projId = response.get("result_content_projId")
-            response = RsBimrest().deleteProjectsUsingPOST(CenterToken, array_integer_int32=projId)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            response = RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=projId)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-        # 有基建或数字平台产品，就新建基建项目
-        if "iworksWeb" in Package or "iworksj" in Package:
-            # 判断基建项目是否存在，不存在创建基建项目
-            infraDeptName = '系统校验创建基建项目'
-            response = InfraDept().infraDeptListUsingPOST(CenterToken,keyword=infraDeptName,parentId=orgid)
+            Global_Map.set("rootid",rootid)
+            # 判断组织是否存在，不存在时创建新组织机构
+            orgName = '系统校验创建组织'
+            id = base_utils.jpath(response.get("source_response"),check_key="name",check_value=orgName,sub_key="id")
+            if id:
+                orgid = id[0]
+            else:
+                response = Org().createOrgUsingPOST(CenterToken, orgId=rootid, name=orgName,type=0,dataType=1,latitude="121.517675",longitude="31.312552",labels=[])
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                response = Org().treeNodesUsingGET(CenterToken)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                orgid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=orgName,sub_key="id")[0]
+            Global_Map.set("orgid",orgid)
+            # 判断岗位是否存在，不存在创建岗位
+            postName = '系统校验创建岗位'
+            response = Post().post_list(CenterToken, postName=postName)
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
             if response.get("result_totalElements")[0] >= 1:
-                infraDeptId = response.get("result_content_deptId")[0]
+                postid = response.get("result_content_id")[0]
             else:
-                response = InfraDept().saveOrUpdateInfraDeptUsingPOST(CenterToken,name=infraDeptName,parentId=orgid,projectCode="P1000",shortName="系统校验项目简称",projectMilestone="10000",status=0,deptType=0,projectMajor=0,contractMode="Parallel")
+                response = Post().post_add(CenterToken, postName)
                 Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)
+                response = Post().post_list(CenterToken, postName=postName)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                postid = response.get("result_content_id")[0]
+            Global_Map.set("postId",postid)
+            # 判断角色是否存在，不存在创建角色
+            RoleName = "系统校验创建角色"
+            response = RoleRest().find_Page_Roles(CenterToken, searchStr=RoleName)
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
+            if response.get("result_pageInfo_totalNumber")[0] >= 1:
+                roleid = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.roleId)].roleId")[0]
+            else:
+                RoleRest().saveOrUpdateRoleAuth(CenterToken, roleName=RoleName, authCodes=authCodes)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                response = RoleRest().find_Page_Roles(CenterToken, searchStr=RoleName)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                roleid= jsonpath.jsonpath(response.get("source_response"), "$..[?(@.roleId)].roleId")[0]
+            # 如果有192权限，192角色权限与老角色权限授权方式不一样
+            if 192 in products:
+                menuResponse = Rolerest().getMenuListUsingGET(CenterToken)
+                Assertions.assert_code(menuResponse, menuResponse.get("status_code"), 200)
+                Assertions.assert_code(menuResponse, menuResponse.get("code")[0], 200)
+                menuList = jsonpath.jsonpath(menuResponse.get("source_response"), "$..[?(@.menuType!='S')]..id")
+                moduleList = jsonpath.jsonpath(menuResponse.get("source_response"), "$..[?(@.menuType=='S')]..id")
+                response = Rolerest().getAuthMenuCodeListUsingPOST(CenterToken,menuIdList=menuList,productId="192",roleId=roleid)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                authCodeList = jsonpath.jsonpath(response.get("source_response"), "$..[?(@.authCode)].authCode")
+                response = Rolerest().saveAuthMenuUsingPOST(CenterToken,authCodes=authCodeList,productId="192",productModuleIds=moduleList,roleId=roleid)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+            Global_Map.set("roleId",roleid)
+            # 判断工程是否在回收站，如果在回收站就删除工程
+            projPath = base_utils.file_absolute_path(env_conf.get("project").get("projPath"))
+            projName = base_utils.getFileName(projPath).split(".")[0]
+            response = RsBimrest().getProjectsUsingPOST(CenterToken, searchKey=projName,packageType=[1,2],delete=True,projType=0)
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
+            if response.get("result_content_projId"):
+                response = RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=response.get("result_content_projId"))
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+            # 判断工程是否存在
+            response = RsBimrest().getProjectsUsingPOST(CenterToken, searchKey=projName,packageType=[1,2],projType=0)
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
+            if response.get("result_totalElements")[0] >= 1:
+                projId = response.get("result_content_projId")
+                response = RsBimrest().deleteProjectsUsingPOST(CenterToken, array_integer_int32=projId)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                response = RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=projId)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+            # 有基建或数字平台产品，就新建基建项目
+            if "iworksWeb" in Package or "iworksj" in Package:
+                # 判断基建项目是否存在，不存在创建基建项目
+                infraDeptName = '系统校验创建基建项目'
                 response = InfraDept().infraDeptListUsingPOST(CenterToken,keyword=infraDeptName,parentId=orgid)
                 Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)
-                infraDeptId = response.get("result_content_deptId")[0]
-            Global_Map.set("infraDeptId", infraDeptId)
-            # 判断基建标段是否存在，不存在创建基建标段
-            infraBidName = '系统校验创建基建标段'
-            response = Orgnode().queryNodePageListUsingPOST(CenterToken,deptIds=[infraDeptId],keyword=infraBidName,nodeType=1,classification=0)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            if response.get("result_totalElements")[0] >= 1:
-                infraBidId = response.get("result_content_id")[0]
-            else:
-                response = Orgnode().saveNodeUsingPOST(CenterToken,deptId=infraDeptId,constructionOrg="系统校验施工单位",contractInvertment="1000",nodeCode=infraBidName,nodeName=infraBidName,nodeType=1,prevNodeId=-1,parentNodeId="",classification=0)
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
+                if response.get("result_totalElements")[0] >= 1:
+                    infraDeptId = response.get("result_content_deptId")[0]
+                else:
+                    response = InfraDept().saveOrUpdateInfraDeptUsingPOST(CenterToken,name=infraDeptName,parentId=orgid,projectCode="P1000",shortName="系统校验项目简称",projectMilestone="10000",status=0,deptType=0,projectMajor=0,contractMode="Parallel")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    response = InfraDept().infraDeptListUsingPOST(CenterToken,keyword=infraDeptName,parentId=orgid)
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    infraDeptId = response.get("result_content_deptId")[0]
+                Global_Map.set("infraDeptId", infraDeptId)
+                # 判断基建标段是否存在，不存在创建基建标段
+                infraBidName = '系统校验创建基建标段'
                 response = Orgnode().queryNodePageListUsingPOST(CenterToken,deptIds=[infraDeptId],keyword=infraBidName,nodeType=1,classification=0)
                 Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)
-                infraBidId = response.get("result_content_id")[0]
-            Global_Map.set("infraBidId", infraBidId)
-            # 为基建项目标段导入wbs实例
-            filepath = base_utils.file_absolute_path("data/WBS.xlsx")
-            response = LubanInfrastructureCenterWbs().getWbsTreeUsingGET_1(CenterToken,dept_id=infraDeptId,section_id=infraBidId)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            wbsTree = response.get("source_response").get("data")
-            if len(wbsTree) >= 1:
-                pass
-            else:
-                response = LubanInfrastructureCenterWbs().uploadWbsTreeUsingPOST(CenterToken,dept_id=infraDeptId,section_id=infraBidId,string_binary=filepath)
+                if response.get("result_totalElements")[0] >= 1:
+                    infraBidId = response.get("result_content_id")[0]
+                else:
+                    response = Orgnode().saveNodeUsingPOST(CenterToken,deptId=infraDeptId,constructionOrg="系统校验施工单位",contractInvertment="1000",nodeCode=infraBidName,nodeName=infraBidName,nodeType=1,prevNodeId=-1,parentNodeId="",classification=0)
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    response = Orgnode().queryNodePageListUsingPOST(CenterToken,deptIds=[infraDeptId],keyword=infraBidName,nodeType=1,classification=0)
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    infraBidId = response.get("result_content_id")[0]
+                Global_Map.set("infraBidId", infraBidId)
+                # 为基建项目标段导入wbs实例
+                filepath = base_utils.file_absolute_path("data/WBS.xlsx")
+                response = LubanInfrastructureCenterWbs().getWbsTreeUsingGET_1(CenterToken,dept_id=infraDeptId,section_id=infraBidId)
                 Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)
-                response = LubanInfrastructureCenterWbs().getWbsTreeUsingGET_1(CenterToken, dept_id=infraDeptId, section_id=infraBidId)
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-                assert len(response.get("source_response").get("data")) >= 1
-        # 有房建或数字平台产品，新建房建项目部
-        if "iworksWeb" in Package or "iworksf" in Package:
-            # 判断项目部是否存在，不存在时创建项目部
-            deptName = '系统校验创建项目部'
-            response = Org().treeNodesUsingPOST(CenterToken, orgId=orgid, type=1,direction=1,property="last_modified_date")
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            id = base_utils.jpath(response.get("source_response"),check_key="name",check_value=deptName,sub_key="id")
-            if id:
-                deptid = id[0]
-            else:
-                response = Org().createDepartmentUsingPOST(CenterToken, name=deptName,parentId=orgid,managerName="测试人",area="1000",startDate="2022-01-28",endDate="2022-01-28",mobile=base_utils.generate_random_mobile(),location=110101,totalInvestment=0,deptType=1,contractType=1,deptProperties=1,status=0,taxesChargeType=1)
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
+                wbsTree = response.get("source_response").get("data")
+                if len(wbsTree) >= 1:
+                    pass
+                else:
+                    response = LubanInfrastructureCenterWbs().uploadWbsTreeUsingPOST(CenterToken,dept_id=infraDeptId,section_id=infraBidId,string_binary=filepath)
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    response = LubanInfrastructureCenterWbs().getWbsTreeUsingGET_1(CenterToken, dept_id=infraDeptId, section_id=infraBidId)
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    assert len(response.get("source_response").get("data")) >= 1
+            # 有房建或数字平台产品，新建房建项目部
+            if "iworksWeb" in Package or "iworksf" in Package:
+                # 判断项目部是否存在，不存在时创建项目部
+                deptName = '系统校验创建项目部'
                 response = Org().treeNodesUsingPOST(CenterToken, orgId=orgid, type=1,direction=1,property="last_modified_date")
                 Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)
-                deptid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=deptName,sub_key="id")[0]
-            Global_Map.set("deptid",deptid)
-            # 判断标段是否存在，不存在时创建标段
-            bidNodeName = '系统校验创建标段'
-            response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            id = base_utils.jpath(response["source_response"],check_key="name",check_value=bidNodeName,sub_key="id")
-            if id:
-                bidid = id[0]
-            else:
-                response = Orgnode().saveNodeUsingPOST(CenterToken, deptId=deptid, nodeName=bidNodeName, nodeType=1, contractInvertment="10000")
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-                response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-                bidid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=bidNodeName,sub_key="id")[0]
-            Global_Map.set("bidid",bidid)
-            # 判断单项是否存在，不存在时创建单项
-            itemNodeName = '系统校验创建单项'
-            response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            id = base_utils.jpath(response.get("source_response"),check_key="name",check_value=itemNodeName,sub_key="id")
-            if id:
-                itemid = id[0]
-            else:
-                response = Orgnode().saveNodeUsingPOST(CenterToken, deptId=deptid, nodeName=itemNodeName, nodeType=2,prevNodeId=bidid, contractInvertment="10000")
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-                response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-                itemid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=itemNodeName,sub_key="id")[0]
-            Global_Map.set("itemid",itemid)
-            # 判断单位是否存在，不存在时创建单位
-            unitNodeName = '系统校验创建单位'
-            response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            id = base_utils.jpath(response.get("source_response"),check_key="name",check_value=unitNodeName,sub_key="id")
-            if id:
-                unitid = id[0]
-            else:
-                response = Orgnode().saveNodeUsingPOST(CenterToken, deptId=deptid, nodeName=unitNodeName, nodeType=3,prevNodeId=itemid, contractInvertment="10000")
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-                response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-                unitid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=unitNodeName,sub_key="id")[0]
-            Global_Map.set("unitid",unitid)
-            # 为房建项目部导入wbs实例
-            filepath = base_utils.file_absolute_path("data/WBS.xlsx")
-            response = LubanInfrastructureCenterWbs().getWbsTreeUsingGET_1(CenterToken,dept_id=deptid)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            wbsTree = response.get("source_response").get("data")
-            if len(wbsTree) >= 1:
-                pass
-            else:
-                response = LubanInfrastructureCenterWbs().uploadWbsTreeUsingPOST(CenterToken,dept_id=deptid,string_binary=filepath)
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-                response = LubanInfrastructureCenterWbs().getWbsTreeUsingGET_1(CenterToken, dept_id=deptid)
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-                assert len(response.get("source_response").get("data")) >= 1
-
-        # 添加用户
-        userName = env_conf.get('iworksApp').get('username')
-        # response = User().deleteUsers(CenterToken, userNames=userName)
-        # Assertions.assert_code(response, response.get("status_code"), 200)
-        # Assertions.assert_code(response, response.get("code")[0], 200)
-        email = base_utils.generate_random_mail()
-        mobile = base_utils.generate_random_mobile()
-        pwd =  env_conf.get('iworksApp').get('password') if not deployType else None
-        # 用户不存在添加用户，用户存在更新用户信息
-        if Userrest().checkPassCardUsingGET(CenterToken,userName)["code"][0] == 200:
-            response = Userrest().addUserUsingPOST_2(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
-                           realName="系统校验用户", postIdList=[postid])
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            Global_Map.set("is_adduser", True)
-            ownerId = rootid
-        else:
-            userinfo = Userrest().findUserUsingGET(CenterToken,userName=userName)
-            Assertions.assert_code(userinfo, userinfo.get("status_code"), 200)
-            Assertions.assert_code(userinfo, userinfo.get("code")[0], 200)
-            ownerId = userinfo.get("result_orgId")[0]
-            response = Userrest().updateUserUsingPOST(CenterToken, orgId=ownerId, userName=userinfo.get("result_userName")[0], roleId=roleid, email=userinfo.get("result_email")[0], mobile=userinfo.get("result_mobile")[0],
-                           realName=userinfo.get("result_realName")[0], postIdList=[postid], userId=userinfo.get("result_userId")[0])
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-        Global_Map.set("username", userName)
-        # 授权项目部
-        if "iworksWeb" in Package or "iworksj" in Package:
-            governProjectIds = {infraDeptId: [infraBidId]}
-        elif "iworksWeb" in Package or "iworksf" in Package:
-            governProjectIds = {deptid: [bidid]}
-        else:
-            governProjectIds = {}
-        response = Authrest().saveUserDeptInfoUsingPOST(CenterToken,governProjectIds=governProjectIds,userName=userName,isAll=False,orgIds=[rootid])
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        # 授权全部工程
-        response = Authrest().saveUserProjectInfoUsingPOST(CenterToken,userName=userName,isAll=True)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        # 授权场景工程
-        response = Authrest().saveUserSceneProjectInfoUsingPOST(CenterToken,userName=userName,isAll=True)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        # 授权工作集
-        response = Authrest().saveUserWorkSetInfoUsingPOST(CenterToken,userName=userName,isAll=True)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        # 授权luban go
-        response = Authrest().saveUserOrgLevelUsingPOST(CenterToken,username=userName,deptAuth=1,epAuth=1,orgAuth=1)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        # 获取用户已授权的packageType等于31的套餐
-        response = Appallocation().getUserAuthPackageUsingGET(CenterToken,userName=userName, packageType=31)
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        package_functionIds = jsonpath.jsonpath(response.get("source_response"), "$..functionId")
-        # 循环授权数字平台套餐
-        for packageInfo in packageInfos:
-            # 跳过已授权的套餐
-            if isinstance(package_functionIds,list) and packageInfo.get("packageId") in package_functionIds:
-                continue
-            if deployType:
-                response = Appallocation().getOrderAndAllocationInfoByPackageUsingPOST(CenterToken,packageId=packageInfo.get("packageId"),packageType=31)
-                Assertions.assert_code(response, response.get("status_code"), 200)
-                Assertions.assert_code(response, response.get("code")[0], 200)
-            heldId = response.get("result_orderAndAllocations_heldId")[0] if deployType else 0
-            response = Appallocation().updateUserPlatFormPackageAuthUsingPOST(CenterToken,packageId=packageInfo.get("packageId"),userNames=[userName],orgId=ownerId,operType=1,heldId=heldId)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            # 处理授权异常
-            if response.get("code")[0] == 1035:
-                if response.get("msg")[0] in ["授权人数大于可授权数量","组织当前剩余授权数为0，请注意分配人数!"]:
-                    # 授权不够的添加到noPackage
-                    for markname, productId in env_conf.get("productId").items():
-                        if productId in packageInfo.get("productIds"):
-                            noPackage.append(markname)
+                id = base_utils.jpath(response.get("source_response"),check_key="name",check_value=deptName,sub_key="id")
+                if id:
+                    deptid = id[0]
                 else:
-                    assert False,f"{packageInfo.get('packageName')} 套餐授权出错，服务器返回：{response.get('msg')[0]}"
-                continue
-            else:
+                    response = Org().createDepartmentUsingPOST(CenterToken, name=deptName,parentId=orgid,managerName="测试人",area="1000",startDate="2022-01-28",endDate="2022-01-28",mobile=base_utils.generate_random_mobile(),location=110101,totalInvestment=0,deptType=1,contractType=1,deptProperties=1,status=0,taxesChargeType=1)
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    response = Org().treeNodesUsingPOST(CenterToken, orgId=orgid, type=1,direction=1,property="last_modified_date")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    deptid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=deptName,sub_key="id")[0]
+                Global_Map.set("deptid",deptid)
+                # 判断标段是否存在，不存在时创建标段
+                bidNodeName = '系统校验创建标段'
+                response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
+                Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)
-        # 循环授权非平台套餐packageType不等于31的套餐
-        packagesList = [{"package":packages_2,"packageType":2},{"package":packages_3,"packageType":3},{"package":packages_11,"packageType":11},{"package":packages_12,"packageType":12}]
-        for packages in packagesList:
-            # 获取用户已授权的packageType不等于31的套餐
-            response = Appallocation().getUserAuthPackageUsingGET(CenterToken,userName=userName, packageType=packages.get("packageType"))
+                id = base_utils.jpath(response["source_response"],check_key="name",check_value=bidNodeName,sub_key="id")
+                if id:
+                    bidid = id[0]
+                else:
+                    response = Orgnode().saveNodeUsingPOST(CenterToken, deptId=deptid, nodeName=bidNodeName, nodeType=1, contractInvertment="10000")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    bidid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=bidNodeName,sub_key="id")[0]
+                Global_Map.set("bidid",bidid)
+                # 判断单项是否存在，不存在时创建单项
+                itemNodeName = '系统校验创建单项'
+                response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                id = base_utils.jpath(response.get("source_response"),check_key="name",check_value=itemNodeName,sub_key="id")
+                if id:
+                    itemid = id[0]
+                else:
+                    response = Orgnode().saveNodeUsingPOST(CenterToken, deptId=deptid, nodeName=itemNodeName, nodeType=2,prevNodeId=bidid, contractInvertment="10000")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    itemid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=itemNodeName,sub_key="id")[0]
+                Global_Map.set("itemid",itemid)
+                # 判断单位是否存在，不存在时创建单位
+                unitNodeName = '系统校验创建单位'
+                response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                id = base_utils.jpath(response.get("source_response"),check_key="name",check_value=unitNodeName,sub_key="id")
+                if id:
+                    unitid = id[0]
+                else:
+                    response = Orgnode().saveNodeUsingPOST(CenterToken, deptId=deptid, nodeName=unitNodeName, nodeType=3,prevNodeId=itemid, contractInvertment="10000")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    response = Orgnode().queryOrgNodeByDeptIdsUsingPOST(CenterToken,deptIds=[deptid])
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    unitid = base_utils.jpath(response.get("source_response"),check_key="name",check_value=unitNodeName,sub_key="id")[0]
+                Global_Map.set("unitid",unitid)
+                # 为房建项目部导入wbs实例
+                filepath = base_utils.file_absolute_path("data/WBS.xlsx")
+                response = LubanInfrastructureCenterWbs().getWbsTreeUsingGET_1(CenterToken,dept_id=deptid)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                wbsTree = response.get("source_response").get("data")
+                if len(wbsTree) >= 1:
+                    pass
+                else:
+                    response = LubanInfrastructureCenterWbs().uploadWbsTreeUsingPOST(CenterToken,dept_id=deptid,string_binary=filepath)
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    response = LubanInfrastructureCenterWbs().getWbsTreeUsingGET_1(CenterToken, dept_id=deptid)
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    assert len(response.get("source_response").get("data")) >= 1
+
+            # 添加用户
+            userName = env_conf.get('iworksApp').get('username')
+            # response = User().deleteUsers(CenterToken, userNames=userName)
+            # Assertions.assert_code(response, response.get("status_code"), 200)
+            # Assertions.assert_code(response, response.get("code")[0], 200)
+            email = base_utils.generate_random_mail()
+            mobile = base_utils.generate_random_mobile()
+            pwd =  env_conf.get('iworksApp').get('password') if not deployType else None
+            # 用户不存在添加用户，用户存在更新用户信息
+            if Userrest().checkPassCardUsingGET(CenterToken,userName)["code"][0] == 200:
+                response = Userrest().addUserUsingPOST_2(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
+                               realName="系统校验用户", postIdList=[postid])
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                Global_Map.set("is_adduser", True)
+                ownerId = rootid
+            else:
+                userinfo = Userrest().findUserUsingGET(CenterToken,userName=userName)
+                Assertions.assert_code(userinfo, userinfo.get("status_code"), 200)
+                Assertions.assert_code(userinfo, userinfo.get("code")[0], 200)
+                ownerId = userinfo.get("result_orgId")[0]
+                response = Userrest().updateUserUsingPOST(CenterToken, orgId=ownerId, userName=userinfo.get("result_userName")[0], roleId=roleid, email=userinfo.get("result_email")[0], mobile=userinfo.get("result_mobile")[0],
+                               realName=userinfo.get("result_realName")[0], postIdList=[postid], userId=userinfo.get("result_userId")[0])
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+            Global_Map.set("username", userName)
+            # 授权项目部
+            if "iworksWeb" in Package or "iworksj" in Package:
+                governProjectIds = {infraDeptId: [infraBidId]}
+            elif "iworksWeb" in Package or "iworksf" in Package:
+                governProjectIds = {deptid: [bidid]}
+            else:
+                governProjectIds = {}
+            response = Authrest().saveUserDeptInfoUsingPOST(CenterToken,governProjectIds=governProjectIds,userName=userName,isAll=False,orgIds=[rootid])
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
+            # 授权全部工程
+            response = Authrest().saveUserProjectInfoUsingPOST(CenterToken,userName=userName,isAll=True)
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
+            # 授权场景工程
+            response = Authrest().saveUserSceneProjectInfoUsingPOST(CenterToken,userName=userName,isAll=True)
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
+            # 授权工作集
+            response = Authrest().saveUserWorkSetInfoUsingPOST(CenterToken,userName=userName,isAll=True)
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
+            # 授权luban go
+            response = Authrest().saveUserOrgLevelUsingPOST(CenterToken,username=userName,deptAuth=1,epAuth=1,orgAuth=1)
+            Assertions.assert_code(response, response.get("status_code"), 200)
+            Assertions.assert_code(response, response.get("code")[0], 200)
+            # 获取用户已授权的packageType等于31的套餐
+            response = Appallocation().getUserAuthPackageUsingGET(CenterToken,userName=userName, packageType=31)
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
             package_functionIds = jsonpath.jsonpath(response.get("source_response"), "$..functionId")
-            for package in packages.get("package"):
+            # 循环授权数字平台套餐
+            for packageInfo in packageInfos:
                 # 跳过已授权的套餐
-                if isinstance(package_functionIds,list) and package.get("packageId") in package_functionIds:
+                if isinstance(package_functionIds,list) and packageInfo.get("packageId") in package_functionIds:
                     continue
                 if deployType:
-                    response = Appallocation().getOrderAndAllocationInfoByPackageUsingPOST(CenterToken,packageId=package.get("packageId"),packageType=packages.get("packageType"))
+                    response = Appallocation().getOrderAndAllocationInfoByPackageUsingPOST(CenterToken,packageId=packageInfo.get("packageId"),packageType=31)
                     Assertions.assert_code(response, response.get("status_code"), 200)
                     Assertions.assert_code(response, response.get("code")[0], 200)
                 heldId = response.get("result_orderAndAllocations_heldId")[0] if deployType else 0
-                response = Appallocation().updateUserPackageAuthUsingPOST(CenterToken,userNames=[userName],orgId=ownerId,operType=1,heldId=heldId,packageType=packages.get("packageType"),functionId=package.get("packageId"),productId=package.get("productIds")[0])
+                response = Appallocation().updateUserPlatFormPackageAuthUsingPOST(CenterToken,packageId=packageInfo.get("packageId"),userNames=[userName],orgId=ownerId,operType=1,heldId=heldId)
                 Assertions.assert_code(response, response.get("status_code"), 200)
-                # 跳过已授权的套餐
+                # 处理授权异常
                 if response.get("code")[0] == 1035:
                     if response.get("msg")[0] in ["授权人数大于可授权数量","组织当前剩余授权数为0，请注意分配人数!"]:
                         # 授权不够的添加到noPackage
                         for markname, productId in env_conf.get("productId").items():
-                            if productId in packages.get("package").get("productIds"):
+                            if productId in packageInfo.get("productIds"):
                                 noPackage.append(markname)
-                    elif response.get("msg")[0] == "服务内部错误,请联系管理员!":
-                        assert False,f"{package.get('packageName')} 套餐授权出错，服务器返回：{response.get('msg')[0]}"
-                    elif "不能重复授权" in response.get("msg")[0]:
-                        continue
                     else:
-                        assert False,f"{package.get('packageName')} 套餐授权出错，服务器返回：{response.get('msg')[0]}"
+                        assert False,f"{packageInfo.get('packageName')} 套餐授权出错，服务器返回：{response.get('msg')[0]}"
                     continue
                 else:
                     Assertions.assert_code(response, response.get("code")[0], 200)
-        # wbs配置初始化
-        # 获取wbs模板节点
-        response = LubanInfrastructureCenterWbsTemplate().listWbsTempNodeUsingGET(CenterToken, tempId="DEFAULT")
-        Assertions.assert_code(response, response.get("status_code"), 200)
-        Assertions.assert_code(response, response.get("code")[0], 200)
-        startTempNodeKey = \
-        jsonpath.jsonpath(response.get("source_response"), "$..[?(@.businessType=='DANWEI')].defKey")[0]
-        endTempNodeKey = \
-        jsonpath.jsonpath(response.get("source_response"), "$..[?(@.businessType=='ZI_FENXIANG')].defKey")[0]
-        # 获取已配置的wbs信息
-        WbsConfig = LubanInfrastructureCenterWbsTemplate().listWbsConfigUsingGET(CenterToken, tempId="DEFAULT")
-        Assertions.assert_code(WbsConfig, WbsConfig.get("status_code"), 200)
-        Assertions.assert_code(WbsConfig, WbsConfig.get("code")[0], 200)
-        configs = jsonpath.jsonpath(WbsConfig.get("source_response"), "$..[?(@.configType)]")
-        configTypes = jsonpath.jsonpath(WbsConfig.get("source_response"), "$..[?(@.configType)].configType")
-        for configTypeKye in ["INSPECTION", "QUALITY_SAFETY", "EBS", "METER", "PROCESS_INSPECTION"]:
-            configtype = {
-                "configType": configTypeKye
-            }
-            if not isinstance(configTypes, bool) and configTypeKye in configTypes:
-                for i in configs:
-                    if configTypeKye in i.get("configType"):
-                        if i.get("startTempNodeKey"):
-                            configtype.update({"startTempNodeKey": i.get("startTempNodeKey")})
+            # 循环授权非平台套餐packageType不等于31的套餐
+            packagesList = [{"package":packages_2,"packageType":2},{"package":packages_3,"packageType":3},{"package":packages_11,"packageType":11},{"package":packages_12,"packageType":12}]
+            for packages in packagesList:
+                # 获取用户已授权的packageType不等于31的套餐
+                response = Appallocation().getUserAuthPackageUsingGET(CenterToken,userName=userName, packageType=packages.get("packageType"))
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
+                package_functionIds = jsonpath.jsonpath(response.get("source_response"), "$..functionId")
+                for package in packages.get("package"):
+                    # 跳过已授权的套餐
+                    if isinstance(package_functionIds,list) and package.get("packageId") in package_functionIds:
+                        continue
+                    if deployType:
+                        response = Appallocation().getOrderAndAllocationInfoByPackageUsingPOST(CenterToken,packageId=package.get("packageId"),packageType=packages.get("packageType"))
+                        Assertions.assert_code(response, response.get("status_code"), 200)
+                        Assertions.assert_code(response, response.get("code")[0], 200)
+                    heldId = response.get("result_orderAndAllocations_heldId")[0] if deployType else 0
+                    response = Appallocation().updateUserPackageAuthUsingPOST(CenterToken,userNames=[userName],orgId=ownerId,operType=1,heldId=heldId,packageType=packages.get("packageType"),functionId=package.get("packageId"),productId=package.get("productIds")[0])
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    # 跳过已授权的套餐
+                    if response.get("code")[0] == 1035:
+                        if response.get("msg")[0] in ["授权人数大于可授权数量","组织当前剩余授权数为0，请注意分配人数!"]:
+                            # 授权不够的添加到noPackage
+                            for markname, productId in env_conf.get("productId").items():
+                                if productId in packages.get("package").get("productIds"):
+                                    noPackage.append(markname)
+                        elif response.get("msg")[0] == "服务内部错误,请联系管理员!":
+                            assert False,f"{package.get('packageName')} 套餐授权出错，服务器返回：{response.get('msg')[0]}"
+                        elif "不能重复授权" in response.get("msg")[0]:
+                            continue
                         else:
-                            configtype.update({"startTempNodeKey": startTempNodeKey})
-                        if i.get("endTempNodeKey"):
-                            configtype.update({"endTempNodeKey": i.get("endTempNodeKey")})
-                        else:
-                            configtype.update({"endTempNodeKey": endTempNodeKey})
-            else:
-                configtype.update({"startTempNodeKey": startTempNodeKey, "endTempNodeKey": endTempNodeKey})
-            if "EBS" in configTypeKye:
-                configtype.pop("endTempNodeKey")
-                configtype.update({"startTempNodeKey": endTempNodeKey})
-            # 循环设置各系统的wbs配置
-            response = LubanInfrastructureCenterWbsTemplate().wbsConfigUsingPUT(CenterToken, tempId="DEFAULT",
-                                                                                bodyKwargs=configtype)
+                            assert False,f"{package.get('packageName')} 套餐授权出错，服务器返回：{response.get('msg')[0]}"
+                        continue
+                    else:
+                        Assertions.assert_code(response, response.get("code")[0], 200)
+            # wbs配置初始化
+            # 获取wbs模板节点
+            response = LubanInfrastructureCenterWbsTemplate().listWbsTempNodeUsingGET(CenterToken, tempId="DEFAULT")
             Assertions.assert_code(response, response.get("status_code"), 200)
             Assertions.assert_code(response, response.get("code")[0], 200)
+            startTempNodeKey = \
+            jsonpath.jsonpath(response.get("source_response"), "$..[?(@.businessType=='DANWEI')].defKey")[0]
+            endTempNodeKey = \
+            jsonpath.jsonpath(response.get("source_response"), "$..[?(@.businessType=='ZI_FENXIANG')].defKey")[0]
+            # 获取已配置的wbs信息
+            WbsConfig = LubanInfrastructureCenterWbsTemplate().listWbsConfigUsingGET(CenterToken, tempId="DEFAULT")
+            Assertions.assert_code(WbsConfig, WbsConfig.get("status_code"), 200)
+            Assertions.assert_code(WbsConfig, WbsConfig.get("code")[0], 200)
+            configs = jsonpath.jsonpath(WbsConfig.get("source_response"), "$..[?(@.configType)]")
+            configTypes = jsonpath.jsonpath(WbsConfig.get("source_response"), "$..[?(@.configType)].configType")
+            for configTypeKye in ["INSPECTION", "QUALITY_SAFETY", "EBS", "METER", "PROCESS_INSPECTION"]:
+                configtype = {
+                    "configType": configTypeKye
+                }
+                if not isinstance(configTypes, bool) and configTypeKye in configTypes:
+                    for i in configs:
+                        if configTypeKye in i.get("configType"):
+                            if i.get("startTempNodeKey"):
+                                configtype.update({"startTempNodeKey": i.get("startTempNodeKey")})
+                            else:
+                                configtype.update({"startTempNodeKey": startTempNodeKey})
+                            if i.get("endTempNodeKey"):
+                                configtype.update({"endTempNodeKey": i.get("endTempNodeKey")})
+                            else:
+                                configtype.update({"endTempNodeKey": endTempNodeKey})
+                else:
+                    configtype.update({"startTempNodeKey": startTempNodeKey, "endTempNodeKey": endTempNodeKey})
+                if "EBS" in configTypeKye:
+                    configtype.pop("endTempNodeKey")
+                    configtype.update({"startTempNodeKey": endTempNodeKey})
+                # 循环设置各系统的wbs配置
+                response = LubanInfrastructureCenterWbsTemplate().wbsConfigUsingPUT(CenterToken, tempId="DEFAULT",
+                                                                                    bodyKwargs=configtype)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                Assertions.assert_code(response, response.get("code")[0], 200)
     Global_Map.set("Package",list(set(Package)))
     Global_Map.set("noPackage",list(set(noPackage)))
     yield
     # 是否清理生成的数据
-    if Global_Map.get("is_clear"):
-        # 标记删除工程到回收站
-        projId = [] if not Global_Map.get("projId") else [Global_Map.get("projId")]
-        if projId:
-            RsBimrest().deleteProjectsUsingPOST(CenterToken,array_integer_int32=projId)
-            # 删除回收站中的工程
-            RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=projId)
-        if "iworksWeb" in Package or "iworksf" in Package:
-            # 删除单位
-            Orgnode().deleteOrgUsingDELETE_2(CenterToken, [unitid])
-            # 删除单项
-            Orgnode().deleteOrgUsingDELETE_2(CenterToken, [itemid])
-            # 删除标段
-            Orgnode().deleteOrgUsingDELETE_2(CenterToken, [bidid])
-            # 删除项目部
-            Org().deleteOrgUsingDELETE(CenterToken, orgId=deptid)
-        if "iworksWeb" in Package or "iworksj" in Package:
-            # 删除基建标段
-            Orgnode().deleteOrgUsingDELETE_2(CenterToken,[infraBidId])
-            # 删除基建项目
-            InfraDept().deleteInfraDeptUsingDELETE(CenterToken,[infraDeptId])
-        # 删除组织机构
-        Org().deleteOrgUsingDELETE(CenterToken, orgId=orgid)
-        # 删除用户，如果是添加的用户，就执行删除
-        if Global_Map.get("is_adduser") or env_conf.get('iworksApp').get('username')=="luban":
-            # 如果center账号和登录的账号是同一个，就不删除
-            if env_conf.get('center').get('username') != env_conf.get('iworksApp').get('username'):
-                Userrest().deleteUsersUsingPOST(CenterToken,array_string=[env_conf.get('iworksApp').get('username')])
-                Global_Map.set("is_adduser", False)
-        # 删除角色
-        RoleRest().deleteRole(CenterToken,roleIds=roleid)
-        # 删除项岗位
-        Post().post_del(CenterToken, postId=postid)
+    if Global_Map.get("difference_marker"):
+        if Global_Map.get("is_clear"):
+            # 标记删除工程到回收站
+            projId = [] if not Global_Map.get("projId") else [Global_Map.get("projId")]
+            if projId:
+                RsBimrest().deleteProjectsUsingPOST(CenterToken,array_integer_int32=projId)
+                # 删除回收站中的工程
+                RsBimrecyclerest().deleteProjectUsingPOST(CenterToken,projIds=projId)
+            if "iworksWeb" in Package or "iworksf" in Package:
+                # 删除单位
+                Orgnode().deleteOrgUsingDELETE_2(CenterToken, [unitid])
+                # 删除单项
+                Orgnode().deleteOrgUsingDELETE_2(CenterToken, [itemid])
+                # 删除标段
+                Orgnode().deleteOrgUsingDELETE_2(CenterToken, [bidid])
+                # 删除项目部
+                Org().deleteOrgUsingDELETE(CenterToken, orgId=deptid)
+            if "iworksWeb" in Package or "iworksj" in Package:
+                # 删除基建标段
+                Orgnode().deleteOrgUsingDELETE_2(CenterToken,[infraBidId])
+                # 删除基建项目
+                InfraDept().deleteInfraDeptUsingDELETE(CenterToken,[infraDeptId])
+            # 删除组织机构
+            Org().deleteOrgUsingDELETE(CenterToken, orgId=orgid)
+            # 删除用户，如果是添加的用户，就执行删除
+            if Global_Map.get("is_adduser") or env_conf.get('iworksApp').get('username')=="luban":
+                # 如果center账号和登录的账号是同一个，就不删除
+                if env_conf.get('center').get('username') != env_conf.get('iworksApp').get('username'):
+                    Userrest().deleteUsersUsingPOST(CenterToken,array_string=[env_conf.get('iworksApp').get('username')])
+                    Global_Map.set("is_adduser", False)
+            # 删除角色
+            RoleRest().deleteRole(CenterToken,roleIds=roleid)
+            # 删除项岗位
+            Post().post_del(CenterToken, postId=postid)

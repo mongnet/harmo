@@ -658,31 +658,33 @@ class Token:
         Assertions.assert_code(response,response.get("code")[0], 200)
 
     def login(self):
-        # 判断用户是否有套餐权限
-        product = [key for key, value in Global_Map.get("productId").items() if value == self.productId]
-        if self.loginType == "CENTER_WEB" or set(product) <= set(Global_Map.get("Package")):
-            pass
-        elif Global_Map.get("noPackage") and set(product) <= set(Global_Map.get("Package")):
-            pytest.fail(f"{product} 产品套餐已无可用授权数量，用例无法执行，请释放套餐授权后重试")
-        else:
-            pytest.skip(f"未购买 {product} 产品套餐，用例不用执行")
-        # 老客户端，使用soap的接口登录，需要调用
-        if self.productId in [33,45,86,92,93,192]:
-            self.getServerUrl()
-        self.getToken()
-        # 数字平台获取企业列表不用判断是否有客户端权限
-        if self.productId in [192]:
-            self.getEnterprises()
-        else:
-            self.getAuthEnterprises()
-        self.enterprise()
-        # center登录不能调用这个接口，不然会提示没有授权
-        if self.productId != 100:
-            self.authgroup()
-        # 数字平台获取权限
-        if self.productId in [192]:
-            self.client()
-            self.clientModule()
+        # 如 difference_marker 为空就不执行登录相关接口
+        if Global_Map.get("difference_marker"):
+            # 判断用户是否有套餐权限
+            product = [key for key, value in Global_Map.get("productId").items() if value == self.productId]
+            if self.loginType == "CENTER_WEB" or set(product) <= set(Global_Map.get("Package")):
+                pass
+            elif Global_Map.get("noPackage") and set(product) <= set(Global_Map.get("Package")):
+                pytest.fail(f"{product} 产品套餐已无可用授权数量，用例无法执行，请释放套餐授权后重试")
+            else:
+                pytest.skip(f"未购买 {product} 产品套餐，用例不用执行")
+            # 老客户端，使用soap的接口登录，需要调用
+            if self.productId in [33,45,86,92,93,192]:
+                self.getServerUrl()
+            self.getToken()
+            # 数字平台获取企业列表不用判断是否有客户端权限
+            if self.productId in [192]:
+                self.getEnterprises()
+            else:
+                self.getAuthEnterprises()
+            self.enterprise()
+            # center登录不能调用这个接口，不然会提示没有授权
+            if self.productId != 100:
+                self.authgroup()
+            # 数字平台获取权限
+            if self.productId in [192]:
+                self.client()
+                self.clientModule()
         return self.Login
 
 class OpenAPI:

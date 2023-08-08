@@ -118,7 +118,8 @@ def token():
     '''
     resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('iworksWeb'),Global_Map.get('productId').get('iworksWeb'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 @pytest.fixture(scope='session')
 def CenterToken():
@@ -128,7 +129,8 @@ def CenterToken():
     '''
     resule = public_login.Token(Global_Map.get('center').get('username'), Global_Map.get('center').get('password'),Global_Map.get('productId').get('center'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 @pytest.fixture(scope='session')
 def appToken():
@@ -138,7 +140,8 @@ def appToken():
     '''
     resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('iworksApp'),Global_Map.get('productId').get('iworksApp'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 @pytest.fixture(scope='session')
 def openapi_motor_token(token):
@@ -157,7 +160,8 @@ def inspectionToken():
     '''
     resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('inspection'),Global_Map.get('productId').get('inspection'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 @pytest.fixture(scope='session')
 def archivesToken():
@@ -167,7 +171,8 @@ def archivesToken():
     '''
     resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('archives'),Global_Map.get('productId').get('archives'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 @pytest.fixture(scope='session')
 def pcim():
@@ -177,7 +182,8 @@ def pcim():
     '''
     resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('im'),Global_Map.get('productId').get('im'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 @pytest.fixture(scope='session')
 def meterToken():
@@ -187,7 +193,8 @@ def meterToken():
     '''
     resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('meter'),Global_Map.get('productId').get('meter'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 @pytest.fixture(scope='session')
 def occToken():
@@ -197,7 +204,8 @@ def occToken():
     '''
     resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('LubanGO'),Global_Map.get('productId').get('LubanGO'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 @pytest.fixture(scope='session')
 def iworksfToken():
@@ -207,7 +215,8 @@ def iworksfToken():
     '''
     resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('iworksf'),Global_Map.get('productId').get('iworksf'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 
 @pytest.fixture(scope='session')
@@ -218,7 +227,8 @@ def iworksjToken():
     '''
     resule = public_login.Token(Global_Map.get('iworksApp').get('username'), Global_Map.get('iworksApp').get('password'),Global_Map.get('productId').get('iworksj'),Global_Map.get('productId').get('iworksj'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
 
 @pytest.fixture(scope='session')
 def OpenAPIToken(env_conf):
