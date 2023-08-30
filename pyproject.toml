@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "luban_common"
-version = "3.0.118"
+version = "3.1.0"
 description = "鲁班API基础库"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
@@ -18,7 +18,7 @@ pyyaml = "^6.0"
 faker = "^14.2.1"
 chevron = "^0.14.0"
 py = "^1.11.0"
-pytest-html = "4.0.0rc5"
+pytest-html = "4.0.0rc7"
 pathlib2 = "^2.3.7"
 xmltodict = "^0.13.0"
 suds-py3 = "^1.4.5"

@@ -29,7 +29,7 @@ from swagger.infrastructure.lubanInfrastructureCenterWbsTemplate import LubanInf
 # 购买的产品套餐列表，"center" 是基础服务，所以默认认为是有购买的
 Package = ["center"]
 # 需要排除的 mark 列表，比如mark关键字、环境相关mark等一些必须要运行的mark
-excludeMark = ["parametrize","usefixtures","allure_label","allure_display_name","skipif","cloud","enterprise","configCheck"]
+excludeMark = ["parametrize","xfail","run","dependency","repeat","slow","optionalhook","skip","skipif","importskip","flaky","tryfirst","trylast","timeout","incremental","filterwarnings","usefixtures","allure_label","allure_display_name","cloud","enterprise","configCheck"]
 # 已购，但无可用授权的产品套餐
 noPackage = []
 # 数字平台授权，合并产品成菜单后的处理方式，根据菜单名来判断企业是否有对应产品，从而判断是否执行对应用例，key为center后台菜单名，value为定义的mark名称
@@ -57,7 +57,7 @@ def pytest_collection_finish():
     '''
     获取 marker_all 中有，但 excludeMark 中没有的 marker
     '''
-    difference_marker = list(set(Global_Map.get("marker_all")).difference(excludeMark))
+    difference_marker =list(set(Global_Map.get("marker_all")).difference(excludeMark)) if Global_Map.get("marker_all") else []
     Global_Map.set("difference_marker", difference_marker)
 
 def pytest_runtest_call(item):
