@@ -204,7 +204,7 @@ def pytest_unconfigure(config):
 def pytest_collection_modifyitems(items):
     marker_all = []
     for item in items:
-        # 获取全部 marker 名称
+        # 获取每个用例的 marker 名称，并汇聚成 marker_all
         for marker in item.iter_markers():
             marker_all.append(marker.name)
         Global_Map.set("marker_all",list(set(marker_all)))

@@ -41,18 +41,13 @@ class AnalysisSwaggerJson():
             header ={"Accept": "application/json,text/plain","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}
             response = requests.get(self.url, headers=header)
             assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
-            res = response.json()
-            if isinstance(res,dict):
-                if res.get("paths"):
-                    http_interface_groups.append(self.analysis(res))
-                else:
-                    print(f'注意 {self.url} 中没有定义接口')
-            else:
-                if isinstance(res,list) and "swagger-resources" in self.url:
-                    print(f"这是一个 swagger-resources, 共有 {len(res)} 个group")
-                    for i in res:
-                        if isinstance(i,dict) and i.get("url"):
-                            response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"), headers=header)
+            swagger_res = response.json()
+            if isinstance(swagger_res,dict):
+                if swagger_res.get("urls"):
+                    print(f"这是一个 swagger-groups, 共有 {len(swagger_res.get('urls'))} 个group")
+                    for i in swagger_res.get("urls"):
+                        if isinstance(i, dict) and i.get("url"):
+                            response = requests.get(self.url.split(f"{swagger_res.get('configUrl')}",1)[0] + i.get("url"), headers=header)
                             assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
                             res = response.json()
                             if res.get("paths"):
@@ -61,15 +56,32 @@ class AnalysisSwaggerJson():
                                 print(f'注意 {i.get("url")} 中没有定义接口')
                         else:
                             raise ValueError(u"不是一个有效的swagger地址")
+                elif swagger_res.get("paths"):
+                    http_interface_groups.append(self.analysis(swagger_res))
                 else:
-                    raise ValueError(u"不是一个有效的swagger地址")
+                    print(f'注意 {self.url} 中没有定义接口')
+            elif isinstance(swagger_res,list) and "swagger-resources" in self.url:
+                print(f"这是一个 swagger-groups, 共有 {len(swagger_res)} 个group")
+                for i in swagger_res:
+                    if isinstance(i,dict) and i.get("url"):
+                        response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"), headers=header)
+                        assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
+                        res = response.json()
+                        if res.get("paths"):
+                            http_interface_groups.append(self.analysis(res))
+                        else:
+                            print(f'注意 {i.get("url")} 中没有定义接口')
+                    else:
+                        raise ValueError(u"不是一个有效的swagger地址")
+            else:
+                raise ValueError(u"不是一个有效的swagger地址")
             return http_interface_groups
         except Exception as e:
             raise e
 
     def analysis(self,res):
         # 定义接口分组格式
-        http_interface_group = {"config": {"name": "","name_en": "","host": "", "base_url": ""},"groups": []}
+        http_interface_group = {"config": {"name": "","name_en": "","host": "", "base_url": "", "version": ""},"groups": []}
         pathsData = res.get("paths")  # 取接口地址返回的path数据,包括了请求的路径
         self.basePath = res.get("basePath") if res.get("basePath") else ""  # 获取接口的根路径
         self.version = res.get("openapi") if res.get("openapi") else res.get("swagger")
@@ -85,6 +97,7 @@ class AnalysisSwaggerJson():
         http_interface_group["config"]["name_en"] = self.url.split("/")[3].lower().replace("-", "_") if self.url.startswith("http") else self.url.split("/")[1].lower().replace("-", "_")
         http_interface_group["config"]["host"] = host
         http_interface_group["config"]["base_url"] = self.basePath
+        http_interface_group["config"]["version"] = self.version
         if isinstance(pathsData, dict):  # 判断接口返回的paths数据类型是否dict类型
             # 获取全部接口的tag名称,再按tag去分group
             tags = list(set(jsonpath.jsonpath(pathsData, "$..tags[0]")))
@@ -92,6 +105,7 @@ class AnalysisSwaggerJson():
                 group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
                 self.repetition_operationId = []
                 for uri, value in list(pathsData.items()):
+                    # TODO 重复循环
                     # print(uri)
                     for method in list(value.keys()):
                         params = value[method]
@@ -619,13 +633,14 @@ if __name__ == "__main__":
     url19 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E7%94%9F%E4%BA%A7%E6%A8%A1%E5%9D%97"
     url20 = "http://192.168.13.246:8182/gateway/process-inspection/v2/api-docs?group=Center"
     url21 = "http://192.168.13.246:8182/pdscommon/rs/swagger/swagger.json"
-    url30 = "http://192.168.13.242:8864/sphere/swagger-resources"
+    url30 = "http://192.168.13.246:8864/sphere/swagger-resources"
     url31 = "http://192.168.13.157:8022/luban-bi/v2/api-docs?group=%E6%95%B0%E6%8D%AE%E6%BA%90"
     url32 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url33 = "http://192.168.13.157:8022/luban-bi/swagger-resources"
     url34 = "http://192.168.13.246:8182/gateway/lbbe/rs/swagger/swagger.json"
     url35 = "http://192.168.13.161:8864/sphere/v2/api-docs?group=%E5%AE%89%E5%85%A8%E6%A8%A1%E5%9D%97--%E5%AE%89%E5%85%A8%E6%8A%A5%E5%91%8A"
     url36 = "http://192.168.13.178:8182/ent-admin/v3/api-docs"
+    url37 = "http://192.168.13.178:8182/gateway/ent-admin/v3/api-docs/swagger-confi"
 
 
 
@@ -658,3 +673,4 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url34).analysis_json_data())
     # print(AnalysisSwaggerJson(url35).analysis_json_data())
     # print(AnalysisSwaggerJson(url36).analysis_json_data())
+    # print(AnalysisSwaggerJson(url37).analysis_json_data())
