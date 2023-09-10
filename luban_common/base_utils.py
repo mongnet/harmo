@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 # Created by hubiao on 2017/5/9
 from __future__ import print_function
-
 import ast
 import base64
 import calendar
@@ -12,16 +11,14 @@ import os
 import random
 import re
 import uuid
-from typing import Union
-
 import requests
 import subprocess
 import time
-from datetime import datetime, timedelta
 import jsonpath
+from datetime import datetime, timedelta
+from typing import Union
 from luban_common.config import Config
 from pathlib2 import Path
-
 
 def getFileMD5(file_Path):
     '''
@@ -42,7 +39,6 @@ def getFileMD5(file_Path):
     except Exception as e:
         return None
 
-
 def getFileSize(file_Path):
     '''
     传入文件路径，返回文件大小
@@ -52,7 +48,6 @@ def getFileSize(file_Path):
     file = file_is_exist(file_Path)
     filesize = os.path.getsize(file)
     return filesize
-
 
 def getFileName(file_Path):
     '''
@@ -64,7 +59,6 @@ def getFileName(file_Path):
     fileName = os.path.basename(file)
     return fileName
 
-
 def file_is_exist(file_path):
     '''
     判断文件是否存在
@@ -74,7 +68,6 @@ def file_is_exist(file_path):
     if not Path(file_path).exists():
         raise FileNotFoundError(f"请确认 {file_path} 文件路径是否正确！")
     return file_path
-
 
 def getStrMD5(String):
     '''
@@ -88,7 +81,6 @@ def getStrMD5(String):
     m.update(String.encode('utf-8'))
     return m.hexdigest()
 
-
 def getStrSha1(String):
     """
     sha1 算法加密
@@ -101,7 +93,6 @@ def getStrSha1(String):
     sh.update(String.encode('utf-8'))
     return sh.hexdigest()
 
-
 def ToBase64(String):
     '''
     传入一个字符串，返回字符串的Base64
@@ -112,7 +103,6 @@ def ToBase64(String):
         String = str(String)
     base64Str = base64.urlsafe_b64encode(String.encode("utf-8"))
     return str(base64Str, 'utf-8')
-
 
 def FromBase64(String):
     '''
@@ -127,7 +117,6 @@ def FromBase64(String):
         String += '=' * missing_padding
     return str(base64.urlsafe_b64decode(String), 'utf-8')
 
-
 def toFileBase64(file):
     '''
     传入一个文件，返回文件的Base64编码
@@ -138,7 +127,6 @@ def toFileBase64(file):
     with open(file, 'rb') as f:
         image = f.read()
     return str(base64.b64encode(image), encoding='utf-8')
-
 
 def getUnix(date: str = None, day: int = 0, current: bool = True, scope: str = "s") -> int:
     '''
@@ -169,7 +157,6 @@ def getUnix(date: str = None, day: int = 0, current: bool = True, scope: str = "
     unixST = int(time.mktime(ST)) if scope == "s" else int(time.mktime(ST)) * 1000
     return unixST
 
-
 def UnixToTime(unix: int):
     '''
     把时间戳转换成时间
@@ -186,7 +173,6 @@ def UnixToTime(unix: int):
         raise ValueError("传入参数错误，不是一个正确的时间戳，正确时间戳应该为10或13位")
     dt = time.strftime("%Y-%m-%d %H:%M:%S", time_local)
     return dt
-
 
 def getRecentMonthOfDay():
     '''
@@ -207,7 +193,6 @@ def getRecentMonthOfDay():
     day = d - timedelta(days=days)
     unixtime = int(time.mktime(day.timetuple())) * 1000
     return unixtime, day
-
 
 def calday(month: int, year: int):
     '''
@@ -236,7 +221,6 @@ def calday(month: int, year: int):
             days = "28"
             return days
 
-
 def shell(cmd):
     '''
     CMD命令执行函数
@@ -247,7 +231,6 @@ def shell(cmd):
     o = output.decode("utf-8")
     return o
 
-
 def generate_random_str(randomlength: int = 8):
     '''
     生成随机字符串
@@ -257,7 +240,6 @@ def generate_random_str(randomlength: int = 8):
     base_str = 'ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789'
     return "".join(random.choice(base_str) for i in range(randomlength))
 
-
 def generate_random_mail():
     '''
     生成随机邮件地址
@@ -265,7 +247,6 @@ def generate_random_mail():
     '''
     postfix = ["163.com", "126.com", "qq.com", "yahoo.com.cn"]
     return generate_random_str() + "@" + random.choice(postfix)
-
 
 def generate_random_mobile():
     '''
@@ -278,7 +259,6 @@ def generate_random_mobile():
               "188", "189",
               "191","198", "199"]
     return random.choice(prefix) + "".join(random.choice("0123456789") for i in range(8))
-
 
 def dict_generator(indict, pre=None):
     '''
@@ -329,7 +309,6 @@ def dict_generator(indict, pre=None):
     except BaseException as e:
         print(str(e))
 
-
 def ResponseData(indict):
     '''
     通过数据生成字典
@@ -353,7 +332,6 @@ def ResponseData(indict):
     except BaseException as e:
         print(str(e))
 
-
 def Search_tag_text(url, label, text):
     '''
     请求网页并搜索指定的html标签内是否有指定文本
@@ -376,13 +354,13 @@ def Search_tag_text(url, label, text):
     if not obj.group(1) == text:
         assert False, f'not found {text}'
 
-
-def TextLineContains(url, textKey, textValue):
+def TextLineContains(url, textKey, textValue, split_str_list=None):
     '''
     文本行是否包含指定文本
     :param url: 指定要检查文件连接地址
     :param textKey: 检查文本key
     :param textValue: 检查文本Value
+    :param split_str_list: 分割字符串列表，默认为空
     :return: None:不包含textKey,1:不包含textValue,2:包含textKey和textValue
     '''
     try:
@@ -391,17 +369,29 @@ def TextLineContains(url, textKey, textValue):
         assert resp.status_code == 200, f'请求出错，响应接状态不等于200，现返回的状态码为：{resp.status_code}'
     except requests.exceptions.RequestException as e:
         assert False, f'请求连接地址出错，错误信息为:{e}'
+    # 按行循环
     for line in resp.text.splitlines():
+        # 清除空格
         textLine = line.strip()
-        if not textLine.startswith("/") and textLine.isprintable():
-            if len(textLine):
-                if textLine.__contains__(textKey):
-                    if textLine.__contains__(textValue):
-                        return 2, textLine
-                    else:
-                        return 1, textLine
+        if isinstance(split_str_list,list):
+            for split_str in split_str_list:
+                for comma in textLine.split(f"{split_str}"):
+                    if not comma.startswith("/") and comma.isprintable():
+                        if len(comma):
+                            if comma.__contains__(textKey):
+                                if comma.__contains__(textValue):
+                                    return 2, comma
+                                else:
+                                    return 1, comma
+        else:
+            if not textLine.startswith("/") and textLine.isprintable():
+                if len(textLine):
+                    if textLine.__contains__(textKey):
+                        if textLine.__contains__(textValue):
+                            return 2, textLine
+                        else:
+                            return 1, textLine
     return None, None
-
 
 def time_difference(start_time, end_time):
     '''
@@ -414,7 +404,6 @@ def time_difference(start_time, end_time):
         return (end_time - start_time).seconds
     else:
         raise TypeError("只支持 datetime 类型")
-
 
 def jpath(data, check_key, check_value=None, sub_key=None):
     '''
@@ -438,7 +427,6 @@ def jpath(data, check_key, check_value=None, sub_key=None):
         expr = f"$..[?(@.{check_key})]" if sub_key is None else f"$..[?(@.{check_key})]..{sub_key}"
     return jsonpath.jsonpath(data, expr)
 
-
 def get_all_key(data):
     '''
     获取全部字典的key，包含列表中包含的字典
@@ -446,7 +434,6 @@ def get_all_key(data):
     :return: key组成的列表，未去重
     '''
     ALLKEY = []
-
     def in_key(data):
         if isinstance(data, list):
             for item in data:
@@ -457,9 +444,7 @@ def get_all_key(data):
                     in_key(value)
                 ALLKEY.append(key)
         return ALLKEY
-
     return in_key(data)
-
 
 def get_all_value(data):
     '''
@@ -468,7 +453,6 @@ def get_all_value(data):
     :return: value组成的列表，未去重
     '''
     ALLVALUE = []
-
     def in_key(data):
         if isinstance(data, list):
             for item in data:
@@ -483,9 +467,7 @@ def get_all_value(data):
                 else:
                     ALLVALUE.append(value)
         return ALLVALUE
-
     return in_key(data)
-
 
 def strListToList(string):
     '''
@@ -494,7 +476,6 @@ def strListToList(string):
     :return: list
     '''
     return ast.literal_eval(string)
-
 
 def gen_uuid(filter=False):
     '''
@@ -507,7 +488,6 @@ def gen_uuid(filter=False):
     else:
         uid = uuid.uuid4()
     return uid
-
 
 def gen_sign(timestamp, secret):
     '''
@@ -523,7 +503,6 @@ def gen_sign(timestamp, secret):
     hmac_code = hmac.new(string_to_sign.encode("utf-8"), digestmod=hashlib.sha256).digest()
     sign = base64.b64encode(hmac_code).decode("utf-8")
     return sign
-
 
 def file_absolute_path(rel_path):
     '''
@@ -560,29 +539,6 @@ def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict):
             else:
                 for checkValue, replaceValue in replaceDict.items():
                     if str(value) == str(checkValue):
-                        source[key] = replaceValue
-    else:
-        pass
-
-def replace_key_value(source: Union[dict,list], replaceDict: dict):
-    '''
-    替换指定key的值
-    :param source:
-    :param replaceDict:
-    :return:
-    '''
-    if not isinstance(replaceDict,dict):
-        raise TypeError("replaceDict 必需是dict类型")
-    if isinstance(source, list):
-        for item in source:
-            replace_key_value(item,replaceDict)
-    elif isinstance(source, dict):
-        for key, value in source.items():
-            if isinstance(value, dict) or isinstance(value, list):
-                replace_key_value(value, replaceDict)
-            else:
-                for checkKey, replaceValue in replaceDict.items():
-                    if str(key) == str(checkKey):
                         source[key] = replaceValue
     else:
         pass
