@@ -1,0 +1,52 @@
+Config:
+  lb_driver: chrome
+TestDataCollections:
+  - CaseName : 添加公司节点
+    Tag : smoking
+    Query :
+      parentId: '1'
+      name: 'testapi公司'
+      nodeType: 'CMP'
+      contactPerson: 'testapi联系人'
+      mobile: ${generate_random_mail()}
+      address: ${lb_driver}
+    Validate :
+      - assert_code : ['status_code',200]
+      - assert_code : ['resp.code','${lb_driver}']
+      - assert_isEmpty : ['resp.data']
+  - CaseName : 添加部门节点
+    Tag : smoking
+    Body :
+      parentId: '1'
+      name: 'testapi部门'
+      nodeType: 'DEPT'
+      contactPerson: 'testapi联系人'
+      mobile: '15800000001'
+      address: 'address联系地址'
+    Validate :
+      - assert_code : ['status_code',200]
+      - assert_code : ['resp.code',200]
+  - CaseName : 添加小组节点
+    Tag : smoking
+    Body :
+      parentId: '1'
+      name: 'testapi小组'
+      nodeType: 'GROUP'
+      contactPerson: 'testapi联系人'
+      mobile: ${generate_random_mail()}
+      address: ${lb_driver}
+    Validate :
+      - assert_code : ['status_code',200]
+      - assert_code : ['resp.code',200]
+  - CaseName : 不传入父节点
+    Tag : unit
+    Body :
+      parentId: ~
+      name: 'testapi小组'
+      nodeType: 'GROUP'
+      contactPerson: 'testapi联系人'
+      mobile: '15800000001'
+      address: 'address联系地址'
+    Validate :
+      - assert_code : ['status_code',200]
+      - assert_code : ['resp.code',200]

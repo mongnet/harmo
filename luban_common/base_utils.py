@@ -376,21 +376,19 @@ def TextLineContains(url, textKey, textValue, split_str_list=None):
         if isinstance(split_str_list,list):
             for split_str in split_str_list:
                 for comma in textLine.split(f"{split_str}"):
-                    if not comma.startswith("/") and comma.isprintable():
-                        if len(comma):
-                            if comma.__contains__(textKey):
-                                if comma.__contains__(textValue):
-                                    return 2, comma
-                                else:
-                                    return 1, comma
+                    if not comma.startswith("/") and comma.isprintable() and comma:
+                        if comma.__contains__(textKey):
+                            if comma.__contains__(textValue):
+                                return 2, comma
+                            else:
+                                return 1, comma
         else:
-            if not textLine.startswith("/") and textLine.isprintable():
-                if len(textLine):
-                    if textLine.__contains__(textKey):
-                        if textLine.__contains__(textValue):
-                            return 2, textLine
-                        else:
-                            return 1, textLine
+            if not textLine.startswith("/") and textLine.isprintable() and textLine:
+                if textLine.__contains__(textKey):
+                    if textLine.__contains__(textValue):
+                        return 2, textLine
+                    else:
+                        return 1, textLine
     return None, None
 
 def time_difference(start_time, end_time):
@@ -543,71 +541,73 @@ def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict):
     else:
         pass
 
+
 if __name__ == "__main__":
-    dict1 = {"projId": 113692, "ppid": 130817, "projName": "BW接口用工程-勿删160711"}
-    dict2 = {"projId": 113692, "projName": "BW接口用工程-勿删160711", "ppid": 130817}
-    dict3 = {'hu': [1111, 'adfaf', '胡彪']}
-    list1 = [1111, 'adfaf', '胡彪']
-    list2 = [1111, '胡彪', 'adfaf']
-    str2 = {'hu': 'adf'}
-    list3 = ['89010001#89', '89010001#89', '89010001#89', '96003010#96']
-    list4 = [{"name": "hubiao"}, {"name": "mongnet"}, {"chengji": [10, 20, 30]},
-             {"proj": [{"projname": "项目部工程"}, {"projsize": 1024}, {"poe": [{'hu': 'adf'}]}]}]
-    list5 = [['89010001#89', '89010001#89', '89010001#89', '96003010#96'], {"name": "mongnet"},
-             {"chengji": [10, 20, 30]}, {"proj": [{"projname": "项目部工程"}, {"projsize": 1024}, {"poe": [{'hu': 'adf'}]}]}]
-    dict4 = {"name": "hubiao", "chengji": [10, 20, 30],
-             "proj": [{"projname": "项目部工程"}, {"projsize": 1024}, {"poe": [{'hu': 'adf'}]}]}
-    dict5 = {'busiModuleList': {'type': 'array', 'description': '流程类型id列表', 'items': {'type': 'string'}}}
-    print(generate_random_mobile())
-    print(generate_random_str())
-    print(generate_random_mail())
-    print(getStrMD5("hubiao"))
-    print(calday(3, 2015))
-    print(get_all_key(data=list4))
-    print(get_all_key(data=dict4))
-    print(get_all_key(data=dict5))
-    print(get_all_key(data=str2))
-    print(get_all_value(data=list4))
-    print(get_all_value(data=list5))
-    print(get_all_value(data=dict4))
-    print(get_all_value(data=dict3))
-    print(get_all_value(data=dict5))
-    name = "我是中国人"
-    ToBa = ToBase64(name)
-    print(ToBa)
-    print(FromBase64(ToBa))
-    print(toFileBase64("../data/20201222101200.png"))
-    print(toFileBase64("../data/config1.yaml"))
-    print(getFileSize("../data/20201222101200.png"))
-    print(UnixToTime(unix=1644844153000))
-    print(UnixToTime(unix=1636942336))
-    print(gen_uuid())
-    print(gen_uuid(True))
-    print(gen_sign(getUnix(), "123456"))
-    print(gen_sign(getUnix(), True))
-    print(getUnix(current=False))
-    print(getUnix())
-    print(getUnix(day=2, scope="ams"))
-    print(getUnix(date='2017-05-09 18:31:22'))
-    print(getUnix(date='2017-05-09'))
-    print(getUnix(date='2017-05-09 18:31:22', scope="ams"))
-    print(getUnix(date='2017-05-09', scope="ams"))
-    print(getUnix(date='2017-05-09 18:31:22', day=2))
-    print(getUnix(date='2017-05-09', day=2))
-    print(getUnix(date='2017-05-09', day=2))
-    print(getUnix(date='2019-12-31'))
-    print(getUnix(date='2019-12-31 18:31:22', day=2))
-    print(UnixToTime(unix=1662432740))
-    print(UnixToTime(unix=1494325882000))
-    print(UnixToTime(unix=getUnix(date='2019-12-31 18:31:22', day=2)))
-    print(file_absolute_path('E:/Automation/standard_polling/data/Quality_check_lib.xls'))
-    print(file_is_exist(file_absolute_path('../data/Quality_check_lib.xls')))
-    a = {"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}
-    alist = [{"name":"mongnet","ex1":False,"age":37},{"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}]
-    rep = {37:38,False:True,"wgj":"mong"}
-    print(recursion_replace_dict_value(a,rep))
-    print(recursion_replace_dict_value(alist,rep))
-    print(a)
-    print(alist)
+    pass
+    # dict1 = {"projId": 113692, "ppid": 130817, "projName": "BW接口用工程-勿删160711"}
+    # dict2 = {"projId": 113692, "projName": "BW接口用工程-勿删160711", "ppid": 130817}
+    # dict3 = {'hu': [1111, 'adfaf', '胡彪']}
+    # list1 = [1111, 'adfaf', '胡彪']
+    # list2 = [1111, '胡彪', 'adfaf']
+    # str2 = {'hu': 'adf'}
+    # list3 = ['89010001#89', '89010001#89', '89010001#89', '96003010#96']
+    # list4 = [{"name": "hubiao"}, {"name": "mongnet"}, {"chengji": [10, 20, 30]},
+    #          {"proj": [{"projname": "项目部工程"}, {"projsize": 1024}, {"poe": [{'hu': 'adf'}]}]}]
+    # list5 = [['89010001#89', '89010001#89', '89010001#89', '96003010#96'], {"name": "mongnet"},
+    #          {"chengji": [10, 20, 30]}, {"proj": [{"projname": "项目部工程"}, {"projsize": 1024}, {"poe": [{'hu': 'adf'}]}]}]
+    # dict4 = {"name": "hubiao", "chengji": [10, 20, 30],
+    #          "proj": [{"projname": "项目部工程"}, {"projsize": 1024}, {"poe": [{'hu': 'adf'}]}]}
+    # dict5 = {'busiModuleList': {'type': 'array', 'description': '流程类型id列表', 'items': {'type': 'string'}}}
+    # print(generate_random_mobile())
+    # print(generate_random_str())
+    # print(generate_random_mail())
+    # print(getStrMD5("hubiao"))
+    # print(calday(3, 2015))
+    # print(get_all_key(data=list4))
+    # print(get_all_key(data=dict4))
+    # print(get_all_key(data=dict5))
+    # print(get_all_key(data=str2))
+    # print(get_all_value(data=list4))
+    # print(get_all_value(data=list5))
+    # print(get_all_value(data=dict4))
+    # print(get_all_value(data=dict3))
+    # print(get_all_value(data=dict5))
+    # name = "我是中国人"
+    # ToBa = ToBase64(name)
+    # print(ToBa)
+    # print(FromBase64(ToBa))
+    # print(toFileBase64("../data/20201222101200.png"))
+    # print(toFileBase64("../data/config1.yaml"))
+    # print(getFileSize("../data/20201222101200.png"))
+    # print(UnixToTime(unix=1644844153000))
+    # print(UnixToTime(unix=1636942336))
+    # print(gen_uuid())
+    # print(gen_uuid(True))
+    # print(gen_sign(getUnix(), "123456"))
+    # print(gen_sign(getUnix(), True))
+    # print(getUnix(current=False))
+    # print(getUnix())
+    # print(getUnix(day=2, scope="ams"))
+    # print(getUnix(date='2017-05-09 18:31:22'))
+    # print(getUnix(date='2017-05-09'))
+    # print(getUnix(date='2017-05-09 18:31:22', scope="ams"))
+    # print(getUnix(date='2017-05-09', scope="ams"))
+    # print(getUnix(date='2017-05-09 18:31:22', day=2))
+    # print(getUnix(date='2017-05-09', day=2))
+    # print(getUnix(date='2017-05-09', day=2))
+    # print(getUnix(date='2019-12-31'))
+    # print(getUnix(date='2019-12-31 18:31:22', day=2))
+    # print(UnixToTime(unix=1662432740))
+    # print(UnixToTime(unix=1494325882000))
+    # print(UnixToTime(unix=getUnix(date='2019-12-31 18:31:22', day=2)))
+    # print(file_absolute_path('E:/Automation/standard_polling/data/Quality_check_lib.xls'))
+    # print(file_is_exist(file_absolute_path('../data/Quality_check_lib.xls')))
+    # a = {"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}
+    # alist = [{"name":"mongnet","ex1":False,"age":37},{"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}]
+    # rep = {37:38,False:True,"wgj":"mong"}
+    # print(recursion_replace_dict_value(a,rep))
+    # print(recursion_replace_dict_value(alist,rep))
+    # print(a)
+    # print(alist)
 
 

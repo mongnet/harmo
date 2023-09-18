@@ -55,6 +55,11 @@ def pytest_addoption(parser):
                     metavar="path",
                     default=os.getenv('lb_msg_name', None),
                     help='set robot msg name')
+    group.addoption('--lb-case-tag',
+                    action="append",
+                    metavar="path",
+                    default=os.getenv('lb_case_tags', None),
+                    help='Set the use case tags to be executed')
     # 自定义的配置选项，需要先注册才能在ptest.ini中使用，注册方法如下
     parser.addini('message_switch', help='message_switch configuration')
     parser.addini('success_message', help='success_message configuration')
@@ -73,6 +78,7 @@ def pytest_configure(config):
     _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
     _robot = os.getenv("lb_robot", None) if os.getenv("lb_robot", None) else config.getoption("--lb-robot")
     _msg_name = os.getenv("lb_msg_name", None) if os.getenv("lb_msg_name", None) else config.getoption("--lb-msg-name")
+    _case_tag = os.getenv("lb_case_tag", None) if os.getenv("lb_case_tag", None) else config.getoption("--lb-case-tag")
     _message_switch = True if config.getini("message_switch") == "True" else False
     _success_message = True if config.getini("success_message") == "True" else False
     _case_message = True if config.getini("case_message") == "True" else False
@@ -84,6 +90,7 @@ def pytest_configure(config):
         "lb_base_url": _base_url,
         "lb_robot": _robot,
         "lb_msg_name": _msg_name,
+        "lb_case_tag": _case_tag,
         "message_switch": _message_switch,
         "success_message": _success_message,
         "case_message": _case_message,
@@ -111,6 +118,8 @@ def pytest_configure(config):
                 config.stash[metadata_key]["机器人"] = _robot
             if _is_clear is not None:
                 config.stash[metadata_key]["是否清理数据"] = _is_clear
+            if _is_clear is not None:
+                config.stash[metadata_key]["执行用例tag"] = _case_tag
         if _is_local:
             _tmp_data = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
             if _tmp_data.get("lb_env") in _env_config or not _tmp_data.get("lb_env"):

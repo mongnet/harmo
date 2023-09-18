@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "luban_common"
-version = "3.1.1"
+version = "3.2.0"
 description = "鲁班API基础库"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
@@ -29,6 +29,8 @@ cleo = "^2.0.1"
 openpyxl = "^3.1.2"
 mitmproxy = "^9.0.1"
 pytest-metadata = "3.0.0"
+jinja2 = "^3.1.2"
+jmespath = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.3"

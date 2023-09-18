@@ -114,6 +114,7 @@ class Send:
                 res["request_method"] = method
                 res["request_params"] = params
                 res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")
+                res["response_obj"] = self.Response
             except BaseException as e:
                 logging.error("获取请求和响应信息出现异常：" + str(e))
             # 当响应体为json类型，且响应信息不为空时
