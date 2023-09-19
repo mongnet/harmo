@@ -36,91 +36,91 @@ class Assertions:
 
     @classmethod
     @allure.step("校验数据集中指定key的值,预期key为:{2},预期值为:{3}")
-    def assert_assign_attribute_value(self, data,key,expected_value):
+    def assert_assign_attribute_value(self, data,key,expect_value):
         """
         校验数据集中指定key的值是否等于预期值
         :param data:校验的data
         :param key:预期key
-        :param expected_value:预期值
+        :param expect_value:预期值
         :return:
         """
-        if isinstance(data[key], list) and isinstance(expected_value,list):
-            if data[key] != expected_value:
+        if isinstance(data[key], list) and isinstance(expect_value,list):
+            if data[key] != expect_value:
                 assert False, f"预期值不等于实际值,实际值为:{data[key]}, 预期值为:{expected_value}"
         elif isinstance(data[key], (str,int,float)):
-            assert data[key] == expected_value, f"预期值不等于实际值,实际值为:{data[key]}, 预期值为:{expected_value}"
+            assert data[key] == expect_value, f"预期值不等于实际值,实际值为:{data[key]}, 预期值为:{expect_value}"
         else:
-            assert False, f"当前传入的实际值类型为{type(data[key])},预期值类型为{type(expected_value)}, 现只支持list,str,int,float的校验, 其余暂不支持"
+            assert False, f"当前传入的实际值类型为{type(data[key])},预期值类型为{type(expect_value)}, 现只支持list,str,int,float的校验, 其余暂不支持"
 
     @classmethod
     @allure.step("校验数据集中存在预期值,预期值为:{2}")
-    def assert_in_value(self, actual_value,expected_value):
+    def assert_in_value(self, actual_value,expect_value):
         """
         校验数据集中存在预期值
         :param actual_value: 校验的actual_value
-        :param expected_value:预期值
+        :param expect_value:预期值
         :return:
         """
         if isinstance(actual_value,(list,dict)):
-            if isinstance(expected_value, dict):
-                for value in base_utils.get_all_value(expected_value):
+            if isinstance(expect_value, dict):
+                for value in base_utils.get_all_value(expect_value):
                     assert value in base_utils.get_all_value(actual_value), f"实际数据中不存在预期值为：{value} 的数据,实际数据为：{actual_value}"
-            elif isinstance(expected_value, list):
-                for value in expected_value:
+            elif isinstance(expect_value, list):
+                for value in expect_value:
                     assert value in base_utils.get_all_value(actual_value), f"实际数据中不存在预期值为：{value} 的数据,实际数据为：{actual_value}"
             else:
-                assert expected_value in base_utils.get_all_value(actual_value), f"实际数据中不存在预期值为：{expected_value} 的数据,实际数据为：{actual_value}"
+                assert expect_value in base_utils.get_all_value(actual_value), f"实际数据中不存在预期值为：{expect_value} 的数据,实际数据为：{actual_value}"
         else:
             assert False, f"{type(actual_value)}数据类型不支持,现只支持list,dict"
 
     @classmethod
     @allure.step("校验数据集中不存在预期值,预期值为:{2}")
-    def assert_not_in_value(self, actual_value,expected_value):
+    def assert_not_in_value(self, actual_value,expect_value):
         """
         校验数据集中不存在预期值
         :param actual_value: 响应数据
-        :param expected_value: 预期值
+        :param expect_value: 预期值
         :return:
         """
         if isinstance(actual_value,(list,dict)):
-            if isinstance(expected_value, dict):
-                for value in base_utils.get_all_value(expected_value):
+            if isinstance(expect_value, dict):
+                for value in base_utils.get_all_value(expect_value):
                     assert value not in base_utils.get_all_value(actual_value), f"实际数据中存在预期值为：{value} 的数据,实际数据为：{actual_value}"
-            elif isinstance(expected_value, list):
-                for value in expected_value:
+            elif isinstance(expect_value, list):
+                for value in expect_value:
                     assert value not in base_utils.get_all_value(actual_value), f"实际数据中存在预期值为：{value} 的数据,实际数据为：{actual_value}"
             else:
-                assert expected_value not in base_utils.get_all_value(actual_value), f"实际数据中存在预期值为：{expected_value} 的数据,实际数据为：{actual_value}"
+                assert expect_value not in base_utils.get_all_value(actual_value), f"实际数据中存在预期值为：{expect_value} 的数据,实际数据为：{actual_value}"
         else:
             assert False,f"{type(actual_value)}数据类型不支持,现只支持list,dict"
 
     @classmethod
     @allure.step("校验以预期值开头,预期值为:{2}")
-    def assert_startswith(self, actual_value,expected_value, msg=None):
+    def assert_startswith(self, actual_value,expect_value, msg=None):
         """
         校验以预期值开头
         :param actual_value: 校验的actual_value
-        :param expected_value: 预期值
+        :param expect_value: 预期值
         :param msg: 预制消息
         :return:
         """
         if isinstance(actual_value,str):
-            assert actual_value.startswith(expected_value),f"实际数据没有以：{expected_value} 开头, 实际数据为：{actual_value}" if not msg else f"{msg},实际数据没有以：{expected_value} 开头, 实际数据为：{actual_value}"
+            assert actual_value.startswith(expect_value),f"实际数据没有以：{expect_value} 开头, 实际数据为：{actual_value}" if not msg else f"{msg},实际数据没有以：{expect_value} 开头, 实际数据为：{actual_value}"
         else:
             assert False, "只支持 str 的校验,其余暂不支持"
 
     @classmethod
     @allure.step("校验以预期值结尾,预期值为:{2}")
-    def assert_endswith(self, actual_value,expected_value, msg=None):
+    def assert_endswith(self, actual_value,expect_value, msg=None):
         """
         校验以预期值结尾
         :param actual_value: 校验的actual_value
-        :param expected_value: 预期值
+        :param expect_value: 预期值
         :param msg: 预制消息
         :return:
         """
         if isinstance(actual_value,str):
-            assert actual_value.endswith(expected_value),f"实际数据没有以：{expected_value} 结尾, 实际数据为：{actual_value}" if not msg else f"{msg},实际数据没有以：{expected_value} 结尾, 实际数据为：{actual_value}"
+            assert actual_value.endswith(expect_value),f"实际数据没有以：{expect_value} 结尾, 实际数据为：{actual_value}" if not msg else f"{msg},实际数据没有以：{expect_value} 结尾, 实际数据为：{actual_value}"
         else:
             assert False, "只支持 str 的校验,其余暂不支持"
 
@@ -156,18 +156,18 @@ class Assertions:
 
     @classmethod
     @allure.step("校验实际值:{1} 等于预期值:{2}")
-    def assert_equal_value(self, actual_value, expected_value, msg=None):
+    def assert_equal_value(self, actual_value, expect_value, msg=None):
         """
         校验等于预期值
         :param actual_value: 实际值
-        :param expected_value: 预期值
+        :param expect_value: 预期值
         :param msg: 预制消息
         :return:
         """
-        if isinstance(actual_value,type(expected_value)):
-            assert expected_value == actual_value, f"断言失败, 实际值为:{actual_value}, 预期值为:{expected_value}" if not msg else f"{msg}, 实际值为:{actual_value}, 预期值为：{expected_value}"
+        if isinstance(actual_value,type(expect_value)):
+            assert actual_value == expect_value, f"断言失败, 实际值为:{actual_value}, 预期值为:{expect_value}" if not msg else f"{msg}, 实际值为:{actual_value}, 预期值为：{expect_value}"
         else:
-            assert False, f"数据类型不匹配,实际值:{actual_value} 类型为:{type(actual_value)},预期值:{expected_value} 类型为:{type(expected_value)}"
+            assert False, f"数据类型不匹配,实际值:{actual_value} 类型为:{type(actual_value)},预期值:{expect_value} 类型为:{type(expect_value)}"
 
     @classmethod
     @allure.step("校验字符串中包含指定字符串,预期值为:{2}")
@@ -201,15 +201,15 @@ class Assertions:
 
     @classmethod
     @allure.step("校验等于预期值,预期值为:{2}")
-    def assert_not_equal_value(self, actual_value, expected_value, msg=None):
+    def assert_not_equal_value(self, actual_value, expect_value, msg=None):
         """
         校验不等于预期值
         :param actual_value: 实际值
-        :param expected_value: 预期值
+        :param expect_value: 预期值
         :param msg: 预制消息
         :return:
         """
-        assert expected_value != actual_value, f"断言失败,实际值等于预期值,实际值为:{actual_value}, 预期值为:{expected_value}" if not msg else f"{msg},实际值等于预期值,实际值为:{actual_value}, 预期值为:{expected_value}"
+        assert actual_value != expect_value, f"断言失败,实际值等于预期值,实际值为:{actual_value}, 预期值为:{expect_value}" if not msg else f"{msg},实际值等于预期值,实际值为:{actual_value}, 预期值为:{expect_value}"
 
     @classmethod
     @allure.step("校验是否等于None")
@@ -399,6 +399,7 @@ if __name__ == "__main__":
     str2 = "大佬"
     data = ['WBS数据-质检','WEB质检-标段基本信息', 'w' ]
     expected_value = ['WEB质检-标段基本信息', 'WBS数据-质检']
+    Assertions.assert_equal_value('自动化测试企业','初始化分公司')
     # Assertions.assert_dictOrList_eq(dict1,dict2)
     # Assertions.assert_dictOrList_eq(list1,list2)
     # Assertions.assert_assign_attribute_value(dict3, "hu", ["adf",1111, "胡彪"])
