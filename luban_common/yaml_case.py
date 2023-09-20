@@ -5,17 +5,17 @@
 # @Email : 250021520@qq.com
 # @File : yaml_case.py
 
-from typing import Optional, List
 from luban_common import base_utils
 from luban_common.global_map import Global_Map
 from luban_common.operation.yaml_file import get_yaml_data
 from luban_common.render_template import rend_template_any
+import importlib
+import importlib.util
 
-def get_yaml_cases(yamlpath: str, tags: Optional[List[str]]=None) -> list:
+def get_yaml_cases(yamlpath: str) -> list:
     '''
     获取yaml用例
     :param yamlpath: yaml 文件路径，相对于项目目录，如 "data/config.yaml"
-    :param tags: 按tag筛选case，不指定时获取全部
     :return:
     '''
     yaml_data = get_yaml_data(base_utils.file_absolute_path(yamlpath))
@@ -29,9 +29,14 @@ def get_yaml_cases(yamlpath: str, tags: Optional[List[str]]=None) -> list:
         context.update(Global_Map.get())
     if isinstance(config,dict):
         context.update(config)
-    context.update(base_utils.__dict__)  # 自定义函数对象
+    context.update(__builtins__) # 系统内置函数
+    context.update(base_utils.__dict__)  # luban-common内置函数
+    if importlib.util.find_spec("expand_function"):
+        expand_function = importlib.import_module("expand_function")
+        context.update(expand_function.__dict__)  # 自定义拓展函数
     rend_template_any(cases, context)
     # 如果有tag时，只返回指定tag的数据
+    tags = Global_Map.get("lb_case_tag")
     if tags and isinstance(tags,list):
         tags_cases = []
         for case in cases:
@@ -40,7 +45,6 @@ def get_yaml_cases(yamlpath: str, tags: Optional[List[str]]=None) -> list:
         return tags_cases
     else:
         return cases
-
 
 if __name__ == '__main__':
     #读取信息

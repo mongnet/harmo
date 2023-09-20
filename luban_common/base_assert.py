@@ -8,7 +8,6 @@ from collections import Counter
 import allure
 from luban_common import base_utils, extract
 
-
 class Assertions:
     """
     公共断言方法
