@@ -1725,6 +1725,15 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之
 
   ![image-20230613143927218](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20230613143927218.png)
 
+- `--lb-case-tag`： 运行指定 Tag 的用例
+
+  ```python
+  # 单个Tag
+  pytest --lb-case-tag smoking
+# 多个Tag
+  pytest --lb-case-tag smoking --lb-case-tag unit
+```
+  
   
   
   **注意**：
@@ -1858,8 +1867,8 @@ def token(env_conf):
 # -*- coding: utf-8 -*-
 # @Time : 2023-6-12 18:18
 # @Author : hubiao
-# @Email : xxx@gmail.com
-# @File : fixture_platform.py.template.template
+# @Email : 250021520@qq.com
+# @公众号 : 彪哥的测试之路
 
 import time
 from luban_common import base_utils
@@ -1894,6 +1903,157 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         }
         resource = "/addcddata"
         owner.request("post",resource,body)
+```
+
+### 4.6 yaml用例参数化，基于parametrize
+
+#### 4.6.1 实现说明
+
+ `@pytest.mark.parametrize`  支持通过 `get_yaml_cases` 指定 `yaml` 文件进行参数化，可实现在yaml中编写指定接口的测试用例，实现方式如下
+
+```python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @TIME    : 2022-6-22 15:38
+# @Author  : hubiao
+# @Email : 250021520@qq.com
+# @公众号 : 彪哥的测试之路
+
+import pytest
+import allure
+from luban_common.base_assert import Assertions
+from luban_common.yaml_case import get_yaml_cases
+from luban_common.global_map import Global_Map
+from swagger.builder.org import Org
+
+@allure.feature("web工序报验")
+@pytest.mark.processInspection
+class Test_processInspection:
+    '''
+    web工序报验
+    '''
+    @allure.story("工序表单配置")
+    @pytest.mark.parametrize("case", get_yaml_cases(yamlpath="data/caseConfig.yaml"))
+    def test_rocedureFormConfig(self, CenterToken,case):
+        '''
+        工序表单配置
+        '''
+        response = Org().treeNodesUsingGET(CenterToken, bodyKwargs=case.get("Body"))
+        Assertions.validate_response(response,validate_list=case.get("Validate"))
+
+if __name__ == '__main__':
+    pytest.main(["-s", "test_processInspection.py"])
+```
+
+> **yamlpath**：yaml文件的路，相对于项目目录
+>
+> **Assertions.validate_response**：用来校验响应信息，配合 yaml 文件中的 Validate 使用
+
+
+
+caseConfig.yaml 测试用例内容如下：
+
+```yaml
+Config:
+  lb_driver: chrome
+TestDataCollections:
+  - CaseName : 添加公司节点
+    Tag : smoking
+    Body :
+      username: ${center.username}
+      contactPerson: ${lbuilder[1]}
+      mobile: ${generate_random_mail()}
+      driver: ${lb_driver}
+      example: ${example()}
+      time: ${time.time()}
+    Query :
+      Type: ${nodeType}
+    Validate :
+      - assert_code : ['status_code',200]
+      - assert_code : ['resp.code',200]
+      - assert_equal_value : ['resp.result[1].name','初始化分公司']
+      - assert_equal_value : ['$..[1].name','初始化分公司']
+```
+
+使用方法解析：
+
+> 1. 支持直接调用函数，调用方式为 ${函数}，支持系统内置函数、luban_common.base_utils 框架内置函数、`expand_function.py` 自定义函数
+> 2. 支持获取变量值，调用方式为 ${变量名}，支持获取 Global_Map 中的变量，如：${center.username} 、${lbuilder[1]}、${lb_driver}
+> 3. 支持在 yaml 中通过 Config 来指定私有变量，然后通过${变量名}来获取
+
+Validate 中编写断言的形式如下：
+
+```yaml
+- assert_code : ['status_code',200]
+- assert_equal_value : ['resp.name','初始化分公司']
+- assert_equal_value : ['$..[1].name','初始化分公司']
+```
+
+> **assert_code**：断言类型，支持 `Assertions` 类中全部断言类型，这里写函数名即可
+>
+> **status_code**：断言的实际值，支持获取 `response ` 对象、jmespath、jsonpath取值方式
+>
+> **200**：断言预期值
+
+[^注意1]: 当函数不存在时渲染引擎会报错，所以需要确保调用的函数是存在的
+[^注意2]: 当变量不存在时，变量值会替换显示为空
+
+
+
+#### 4.6.2 response对象取值语法
+
+支持获取 response  对象的信息，如：
+
+```yaml
+- assert_code : ['status_code',200]
+- assert_equal_value : ['url','http://dome.cn/org/nodes']
+- assert_equal_value : ['ok',True]
+- assert_equal_value : ['headers.Server','nginx']
+- assert_equal_value : ['encoding','UTF-8']
+- assert_code : ['status_code','${code}']
+```
+
+
+
+#### 4.6.3 jmespath取值语法
+
+resp 是 response 的简写，表示获取响应信息，然后用点分割表示路径，如：
+
+```yaml
+- assert_equal_value : ['resp.code',200]
+- assert_equal_value : ['resp.name','初始化分公司']
+- assert_equal_value : ['resp.result[1].name','初始化分公司']
+- assert_equal_value : ['resp.code','${code}']
+```
+
+
+
+#### 4.6.4 jsonpath取值语法
+
+获取方式直接为jsonpath语法，如：
+
+```yaml
+- assert_equal_value : ['$..name','初始化分公司']
+- assert_equal_value : ['$..[1].name','初始化分公司']
+```
+
+
+
+#### 4.6.5 自定义拓展函数
+
+自定义拓展函数 `expand_function.py` 放在项目根目录下，做为拓展函数使用，默认支持 `python` 系统内置函数和 `luban_common.base_utils ` 框架内置的函数，如果不够用，可以拓展在  `expand_function.py` 中，在解析 `yaml` 用例时也会同时获取这里的函数，如：
+
+```python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @Time : 2023-9-19 22:30
+# @Author : hubiao
+# @Email : 250021520@qq.com
+# @公众号 : 彪哥的测试之路
+# @File : expand_function.py
+
+def example():
+    return "test_example"
 ```
 
 
@@ -1951,6 +2111,7 @@ luban new CenterAutomation
 │   └─utils.py
 ├─.gitignore
 ├─conftest.py
+├─expand_function.py
 └─pytest.ini
 ```
 
@@ -1982,7 +2143,7 @@ luban new CenterAutomation
 
 > **fixtures**：存放自定义 `fixture`
 
-
+> **expand_function.py**：自定义拓展函数
 
 ### 5.2 执行测试
 
