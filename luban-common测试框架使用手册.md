@@ -1725,51 +1725,44 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之
 
   ![image-20230613143927218](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20230613143927218.png)
 
-- `--lb-case-tag`： 运行指定 Tag 的用例
+- `--lb-case-tag`： 运行指定 tag 的用例
 
   ```python
-  # 单个Tag
+  # 单个tag
   pytest --lb-case-tag smoking
-# 多个Tag
+  # 多个tag
   pytest --lb-case-tag smoking --lb-case-tag unit
-```
-  
-  
-  
-  **注意**：
-  
-  ​	`--lb-env` 参数是必须指定的参数
-  
-  ​	`--lb-robot` 参数指定后会替换 `--lb-env` 配置文件中的 robot ，且会忽略 `message_switch` 配置
-  
-  如果参数不常变，也可直接写在 `pytest.ini` 中，类似如下形式
-  
-```
-  [pytest]
-  addopts =
+  ```
+
+**注意**
+
+  	`--lb-env` 参数是必须指定的参数
+
+  	`--lb-robot` 参数指定后会替换 `--lb-env` 配置文件中的 robot ，且会忽略 `message_switch` 配置
+
+如果参数不常变，也可直接写在 `pytest.ini` 中，类似如下形式
+
+```yaml
+[pytest]
+addopts =
       --lb-env=config/release/config.yaml
       --lb-driver=firefox
 ```
 
-  
+
 
 ### 4.3 pytest.ini配置
 
 在 `pytest.ini` 文件中新增如下配置：
 
 - `is_local` ：是否走本地初始化，为True时走本地配置文件，为False时走线上初始化数据，默认为False
-
 - `message_switch` ：消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为Flase
-
 - `success_message` ： 成功时是否发送消息通知，默认为False
-
 - `is_clear` ： 用例执行成功后是否清理数据，默认为True
-
 - 默认使用 `pytest-html` 插件生成报告，生成在当前执行目录的 `reports/report.html` 中
-
 - 其它，指定了 `pytest` 的最低版本号为 `7.0` ，只到 `testcases`、 `testsuites` 下搜索用例
 
-  
+
 
 ### 4.4 系统自带fixture
 
@@ -1905,11 +1898,11 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         owner.request("post",resource,body)
 ```
 
-### 4.6 yaml用例参数化，基于parametrize
+### 4.6 基于parametrize的yaml用例参数化
 
-#### 4.6.1 实现说明
+#### 4.6.1 功能演示
 
- `@pytest.mark.parametrize`  支持通过 `get_yaml_cases` 指定 `yaml` 文件进行参数化，可实现在yaml中编写指定接口的测试用例，实现方式如下
+ `@pytest.mark.parametrize`  支持通过 `get_yaml_cases` 指定 `yaml` 文件进行用例参数化，实现方式如下
 
 ```python
 #!/usr/bin/env python
@@ -1926,19 +1919,28 @@ from luban_common.yaml_case import get_yaml_cases
 from luban_common.global_map import Global_Map
 from swagger.builder.org import Org
 
-@allure.feature("web工序报验")
+@allure.feature("测试示例")
 @pytest.mark.processInspection
-class Test_processInspection:
+class Test_example:
     '''
-    web工序报验
+    测试示例
     '''
-    @allure.story("工序表单配置")
+    @allure.story("复用原有swagger接口方法")
     @pytest.mark.parametrize("case", get_yaml_cases(yamlpath="data/caseConfig.yaml"))
-    def test_rocedureFormConfig(self, CenterToken,case):
+    def test_swagger(self, CenterToken,case):
         '''
-        工序表单配置
+        复用原有swagger接口方法
         '''
-        response = Org().treeNodesUsingGET(CenterToken, bodyKwargs=case.get("Body"))
+        response = Org().treeNodesUsingGET(CenterToken)
+        Assertions.validate_response(response,validate_list=case.get("Validate"))
+
+    @allure.story("脱离swagger,直接使用yaml文件")
+    @pytest.mark.parametrize("case", get_yaml_cases(yamlpath="data/caseConfig2.yaml"))
+    def test_yaml(self, CenterToken,case):
+        '''
+        脱离swagger,直接使用yaml文件
+        '''
+        response = CenterToken.request(case.get("Request").get("Method"), case.get("Request").get("Url"))
         Assertions.validate_response(response,validate_list=case.get("Validate"))
 
 if __name__ == '__main__':
@@ -1959,15 +1961,19 @@ Config:
 TestDataCollections:
   - CaseName : 添加公司节点
     Tag : smoking
-    Body :
-      username: ${center.username}
-      contactPerson: ${lbuilder[1]}
-      mobile: ${generate_random_mail()}
-      driver: ${lb_driver}
-      example: ${example()}
-      time: ${time.time()}
-    Query :
-      Type: ${nodeType}
+    Request:
+      Url : ${base_url}/builder/org/nodes
+      Method : GET
+      Body :
+        name: 'testapi部门'
+        nodeType: ${center.username}
+        contactPerson: ${lbuilder[1]}
+        mobile: ${generate_random_mail()}
+        address: ${lb_driver}
+        example: ${example()}
+        time: ${time.time()}
+      Query :
+          Type: ${nodeType}
     Validate :
       - assert_code : ['status_code',200]
       - assert_code : ['resp.code',200]
@@ -1977,7 +1983,7 @@ TestDataCollections:
 
 使用方法解析：
 
-> 1. 支持直接调用函数，调用方式为 ${函数}，支持系统内置函数、luban_common.base_utils 框架内置函数、`expand_function.py` 自定义函数
+> 1. 支持直接调用函数，调用方式为 ${函数}，支持系统内置函数、luban_common.base_utils 框架内置函数、`expand_function.py` 自定义扩展函数
 > 2. 支持获取变量值，调用方式为 ${变量名}，支持获取 Global_Map 中的变量，如：${center.username} 、${lbuilder[1]}、${lb_driver}
 > 3. 支持在 yaml 中通过 Config 来指定私有变量，然后通过${变量名}来获取
 
@@ -2017,7 +2023,7 @@ Validate 中编写断言的形式如下：
 
 #### 4.6.3 jmespath取值语法
 
-resp 是 response 的简写，表示获取响应信息，然后用点分割表示路径，如：
+resp 是 response 的简写，表示通过jmespath获取response 响应体中的信息，然后用点分割表示路径，如：
 
 ```yaml
 - assert_equal_value : ['resp.code',200]
@@ -2041,7 +2047,7 @@ resp 是 response 的简写，表示获取响应信息，然后用点分割表�
 
 #### 4.6.5 自定义拓展函数
 
-自定义拓展函数 `expand_function.py` 放在项目根目录下，做为拓展函数使用，默认支持 `python` 系统内置函数和 `luban_common.base_utils ` 框架内置的函数，如果不够用，可以拓展在  `expand_function.py` 中，在解析 `yaml` 用例时也会同时获取这里的函数，如：
+自定义拓展函数 `expand_function.py` 放在项目根目录下，做为拓展函数使用，`yaml ` 渲染默认支持 `python` 系统内置函数和 `luban_common.base_utils ` 框架内置的函数，如果不够用，可以拓展在  `expand_function.py` 中，在渲染 `yaml` 用例时也会同时获取这里的函数，如：
 
 ```python
 #!/usr/bin/env python

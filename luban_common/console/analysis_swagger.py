@@ -237,6 +237,7 @@ class AnalysisSwaggerJson():
             elif each.get("in") == "query":
                 if ref:
                     # 拆分这个ref，根据实际情况来取第几个/反斜杠
+                    # schema.get("originalRef") if schema.get("originalRef") else ref.split("/")[-1]
                     param_key = ref[0].split("/")[-1]
                     properties = self.components.get(param_key).get("properties")
                     for key, value in properties.items():
@@ -453,7 +454,7 @@ class AnalysisSwaggerJson():
             ref = schema.get("$ref")
             if ref:
                 # 拆分这个ref，根据实际情况来取第几个/反斜杠
-                param_key = ref.split("/")[-1]
+                param_key = schema.get("originalRef") if schema.get("originalRef") else ref.split("/")[-1]
                 try:
                     properties = self.components.get(param_key).get("properties")
                     requireds = self.components.get(param_key).get("required")
@@ -640,7 +641,8 @@ if __name__ == "__main__":
     url34 = "http://192.168.13.246:8182/gateway/lbbe/rs/swagger/swagger.json"
     url35 = "http://192.168.13.161:8864/sphere/v2/api-docs?group=%E5%AE%89%E5%85%A8%E6%A8%A1%E5%9D%97--%E5%AE%89%E5%85%A8%E6%8A%A5%E5%91%8A"
     url36 = "http://192.168.13.178:8182/ent-admin/v3/api-docs"
-    url37 = "http://192.168.13.178:8182/gateway/ent-admin/v3/api-docs/swagger-confi"
+    url37 = "http://192.168.13.178:8182/gateway/ent-admin/v3/api-docs/swagger-config"
+    url38 = "http://192.168.13.178:8182/gateway/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
 
 
 
@@ -674,3 +676,4 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url35).analysis_json_data())
     # print(AnalysisSwaggerJson(url36).analysis_json_data())
     # print(AnalysisSwaggerJson(url37).analysis_json_data())
+    # print(AnalysisSwaggerJson(url38).analysis_json_data())
