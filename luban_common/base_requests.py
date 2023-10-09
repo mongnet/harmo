@@ -39,11 +39,11 @@ class Send:
             }
         self.pdsUrl = Global_Map.get("pds")
 
-    def request(self, method, address, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,timeout=60,**kwargs):
+    def request(self, method, url, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,timeout=60,**kwargs):
         """
         封装request方法，要求传三个参数
         :param method：请求的方式post,get,delete,put等
-        :param address：请求的地址
+        :param url：请求的url地址
         :param payload：请求的body数据，可以不传，默认为空
         :param header：header信息
         :param flush_header: 刷新header，默认临时刷新，只对当前请求有效，当传True时会刷新整个session，后续请求都会用新header
@@ -52,8 +52,8 @@ class Send:
         :param cookies_kwargs: cookie参数，接收一个字典数据
         :return: 对响应信息进行重组，响应信息中加入status_code和responsetime
         """
-        # 如果address不是http开头，组装请求地址
-        self.Url = address if address.startswith("http") else "".join([self.host,address])
+        # url，组装请求地址
+        self.Url = url if url.startswith("http") else "".join([self.host,url])
         request_header = copy.deepcopy(self.header)
         # 添加header信息，有些接口请求时添加请求头,flush_header用来指定是否更新基线header
         if header is not None:
