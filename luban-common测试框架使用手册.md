@@ -2047,7 +2047,7 @@ resp 是 response 的简写，表示通过jmespath获取response 响应体中的
 
 #### 4.6.5 自定义拓展函数
 
-自定义拓展函数 `expand_function.py` 放在项目根目录下，做为拓展函数使用，`yaml ` 渲染默认支持 `python` 系统内置函数和 `luban_common.base_utils ` 框架内置的函数，如果不够用，可以拓展在  `expand_function.py` 中，在渲染 `yaml` 用例时也会同时获取这里的函数，如：
+自定义拓展函数 `expand_function.py` 放在项目根目录下，做为拓展函数使用，默认支持 `python` 系统内置函数和 `luban_common.base_utils ` 框架内置的函数，如果不够用，可以拓展在  `expand_function.py` 中，在获取 `yaml` 用例时会获取和执行 `yaml` 中填写的函数，如：
 
 ```python
 #!/usr/bin/env python

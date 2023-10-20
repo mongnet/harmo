@@ -18,6 +18,7 @@ import jsonpath
 from datetime import datetime, timedelta
 from typing import Union
 from luban_common.config import Config
+from luban_common import base_requests
 from pathlib2 import Path
 
 def getFileMD5(file_Path):
@@ -354,7 +355,7 @@ def Search_tag_text(url, label, text):
     if not obj.group(1) == text:
         assert False, f'not found {text}'
 
-def TextLineContains(url, textKey, textValue, split_str_list=None):
+def TextLineContains(url, textKey, textValue, split_str_list=None, **kwargs):
     '''
     文本行是否包含指定文本
     :param url: 指定要检查文件连接地址
@@ -365,7 +366,8 @@ def TextLineContains(url, textKey, textValue, split_str_list=None):
     '''
     try:
         # 请求服务器
-        resp = requests.get(url, verify=False)
+        req = base_requests.Send(url)
+        resp = req.request("GET", url,header=kwargs.get("header")).get("response_obj")
         assert resp.status_code == 200, f'请求出错，响应接状态不等于200，现返回的状态码为：{resp.status_code}'
     except requests.exceptions.RequestException as e:
         assert False, f'请求连接地址出错，错误信息为:{e}'
