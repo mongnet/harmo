@@ -399,7 +399,8 @@ class AnalysisSwaggerJson():
         if "body" in http_interface.keys() and http_interface["body"]:
             self.args = []
             self.kwargs = []
-            http_interface["body_field_type"] = copy.deepcopy(http_interface["body"])
+            body_field_type = copy.deepcopy(http_interface["body"])
+            http_interface["body_field_type"] = ["array_string"] if body_field_type == "$array_string$" else body_field_type
             self.recursion(http_interface["body"])
             http_interface["body_params_args"] = (list(set(self.args)) if http_interface["body_params_args"]==[] else http_interface["body_params_args"])
             http_interface["body_params_kwargs"] = (list(set(self.kwargs)) if http_interface["body_params_kwargs"]==[] else http_interface["body_params_kwargs"])
