@@ -64,7 +64,7 @@ class Global_Map:
             dic = self.map
         elif len(args) == 1:
             try:
-                dic = self.map[args[0]]
+                return self.map[args[0]]
             except:
                 pass
         else:
@@ -79,28 +79,5 @@ class Global_Map:
             return None
 
 if __name__ == '__main__':
-    gl = Global_Map()
-    gl.set("name","hubiao")
-    left = [4]
-    gl.set("age",left)
-    print(gl.get("age"))
-    left.append(7)
-    print(left)
-    print(gl.get("age"))
-    gl.sets({"公众号":"彪哥的测试之路"})
-    gl.del_key("aged")
-    print(gl.get("all"))
-    print(gl.get("name","ada"))
-    print(gl.get("named","ada"))
-    print(gl.get("name"))
-    print(gl.get())
-    print(gl.get("named"))
-    print(gl.get("namedd"))
-    projId = [] if not Global_Map.get("projId") else [Global_Map.get("projId")]
-    print("projId:",projId)
-    gl.set("sh",True)
-    gl.set("shs",None)
-    print(gl.get())
-    print(type(gl.get("sh")))
-    print(type(gl.get("shs")))
-    print(type(gl.get("shsda")))
+    pass
+
