@@ -10,18 +10,36 @@ class Global_Map:
     '''
     全局变量
     '''
-    map = {}
+    __map = {}
 
     @classmethod
-    def set(self, key:str, value:[str,int,list,dict,bool]):
+    def set(self, key:str, value:[str,int,list,dict,bool], mode="overlay"):
         '''
         添加指定变量到全局变量
         :param key: 变量名
         :param value: 变量值
+        :param mode：变量模式，append追加模式，其它值时为覆盖模式
         :return:
         '''
         try:
-            self.map[key] = copy.deepcopy(value)
+            if key in self.__map.keys():
+                if mode == "append" and isinstance(self.__map[key],(list,dict)):
+                    if isinstance(self.__map[key],list):
+                        if isinstance(value,list):
+                            self.__map[key].extend(value)
+                        else:
+                            self.__map[key].append(value)
+                    elif isinstance(self.__map[key],dict):
+                        if isinstance(value, dict):
+                            self.__map[key].update(value)
+                        else:
+                            raise TypeError(f"{key} 是 dict 类型，但 {value} 是 {type(value)} 类型，无法完成更新")
+                    else:
+                        self.__map[key] = copy.deepcopy(value)
+                else:
+                    self.__map[key] = copy.deepcopy(value)
+            else:
+                self.__map[key] = copy.deepcopy(value)
         except BaseException as msg:
             raise msg
 
@@ -35,7 +53,7 @@ class Global_Map:
         try:
             if isinstance(dict_kwargs, dict):
                 for key, value in dict_kwargs.items():
-                    self.map[key] = copy.deepcopy(value)
+                    self.set(key,value)
         except BaseException as msg:
             raise msg
 
@@ -47,7 +65,7 @@ class Global_Map:
         :return:
         '''
         try:
-            del self.map[key]
+            del self.__map[key]
             return
         except:
             return
@@ -61,16 +79,16 @@ class Global_Map:
         '''
         dic = {}
         if (len(args)==1 and args[0]=='all') or len(args)==0:
-            dic = self.map
+            dic = self.__map
         elif len(args) == 1:
             try:
-                return self.map[args[0]]
+                return self.__map[args[0]]
             except:
                 pass
         else:
             for key in args:
                 try:
-                    dic[key]=self.map[key]
+                    dic[key]=self.__map[key]
                 except:
                     pass
         if dic:
@@ -80,4 +98,3 @@ class Global_Map:
 
 if __name__ == '__main__':
     pass
-

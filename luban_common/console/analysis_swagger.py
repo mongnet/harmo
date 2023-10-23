@@ -5,6 +5,7 @@
 # @File    : analysis_swagger.py
 import json
 import os
+from typing import Optional
 
 import jsonpath
 import requests
@@ -28,9 +29,10 @@ class AnalysisSwaggerJson():
         yamlDate = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
         self.default_parame = yamlDate.get("defaultParame")
         self.blacklist = yamlDate.get("blacklist")
+        self.header ={"Accept": "application/json,text/plain","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}
 
 
-    def analysis_json_data(self, isDuplicated=False):
+    def analysis_json_data(self, header: Optional[dict]=None):
         """
         解析json格式数据的主函数
         :return:
@@ -38,8 +40,9 @@ class AnalysisSwaggerJson():
         # swagger接口文档地址
         try:
             http_interface_groups =[]
-            header ={"Accept": "application/json,text/plain","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}
-            response = requests.get(self.url, headers=header)
+            if header:
+                self.header.update(json.loads(header) if not isinstance(header, dict) else header)
+            response = requests.get(self.url, headers=self.header)
             assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
             swagger_res = response.json()
             if isinstance(swagger_res,dict):
@@ -48,7 +51,7 @@ class AnalysisSwaggerJson():
                     for i in swagger_res.get("urls"):
                         if isinstance(i, dict) and i.get("url"):
                             response = requests.get(self.url.split(f"{swagger_res.get('configUrl')}",1)[0] + i.get("url"), headers=header)
-                            assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
+                            assert response.status_code == 200, f"连接请求失败，HTTP状态码为{response.status_code}"
                             res = response.json()
                             if res.get("paths"):
                                 http_interface_groups.append(self.analysis(res))
@@ -644,6 +647,7 @@ if __name__ == "__main__":
     url36 = "http://192.168.13.178:8182/ent-admin/v3/api-docs"
     url37 = "http://192.168.13.178:8182/gateway/ent-admin/v3/api-docs/swagger-config"
     url38 = "http://192.168.13.178:8182/gateway/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
+    url39 = "http://192.168.13.178:19001/process/v3/api-docs"
 
 
 
@@ -678,3 +682,4 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson(url36).analysis_json_data())
     # print(AnalysisSwaggerJson(url37).analysis_json_data())
     # print(AnalysisSwaggerJson(url38).analysis_json_data())
+    # print(AnalysisSwaggerJson(url39).analysis_json_data(header={"Authorization": "Basic YWRtaW46MTExMTEx"}))

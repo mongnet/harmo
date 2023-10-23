@@ -56,6 +56,14 @@ class CasesCommand(Command):
             "swagger",
             "s",
             description="是否生成 swagger 接口方法，默认生成 swagger 接口方法，可选"
+        ),
+        option(
+            "header",
+            "H",
+            description="请求头信息",
+            flag=False,
+            default=None,
+            multiple=True
         )
     ]
 
@@ -97,8 +105,15 @@ class CasesCommand(Command):
         replace_text = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
         swaggerIsEmpty = True
         caseIsEmpty = True
-        js = AnalysisSwaggerJson(self.argument("swagger-url-json"))
-        dataList = js.analysis_json_data()
+        js = AnalysisSwaggerJson(url=self.argument("swagger-url-json"))
+        __headers = self.option("header")
+        __header = {}
+        if __headers:
+            for h in __headers:
+                __tem_header = h.split(":",1)
+                if len(__tem_header) == 2 and len(__tem_header[0].strip()) > 0 and len(__tem_header[1].strip()) > 0:
+                    __header.update({__tem_header[0].strip():__tem_header[1].strip()})
+        dataList = js.analysis_json_data(header=__header)
         for data in dataList:
             if not isinstance(data,dict):
                 raise RuntimeError(
