@@ -1480,16 +1480,22 @@ base_utils.recursion_replace_dict_value(source,replaceDict)
 调用格式如下：
 
 ```python
-Global_Map.set(key, value)
+Global_Map.set(key, value, mode)
 ```
 
 > **key**：变量名称
 
 > **value**：变量值
 
+> **mode**：设置模式，append 为追加模式，其它值时为覆盖模式
+
 ```python
 from luban_common.global_map import Global_Map
+# 覆盖模式
 Global_Map.set("username","hubiao")
+
+# 追加模式
+Global_Map.set("username","hubiao",mode="append")
 ```
 
 
@@ -1594,6 +1600,8 @@ luban swagger [-p [<...>]] <swagger-url-json> <project-directory>
 
 > **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
+> **-H**：指定header信息，可选参数
+
 例：生成接口文件到swagger目录下的 `builder` 目录
 
 ```python
@@ -1604,6 +1612,12 @@ luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder
 
 ```python
 luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
+```
+
+例：指定多个header信息
+
+```python
+luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder -H "Authorization: Basic YWRtaW46MTExMTEx" -H "Accept-Language: zh-CN,zh;q=0.9"
 ```
 
 
@@ -1631,6 +1645,8 @@ luban swaggerCase [-p [<...>]] [-b] [-t <...>] [-s] <swagger-url-json> <projec
 
 > **-s**：是否生成 swagger 脚本，默认生成 swagger 脚本，可选项
 
+> **-H**：指定header信息，可选参数
+
 例：生成接口文件到swagger目录下的 `builder` 目录，生成测试用例到 `center` 目录
 
 ```python
@@ -1641,6 +1657,12 @@ luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center
 
 ```python
 luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center -p builder
+```
+
+例：指定多个header信息
+
+```python
+luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center -p builder -H "Authorization: Basic YWRtaW46MTExMTEx" -H "Accept-Language: zh-CN,zh;q=0.9"
 ```
 
 

@@ -18,7 +18,7 @@ class Global_Map:
         添加指定变量到全局变量
         :param key: 变量名
         :param value: 变量值
-        :param mode：变量模式，append追加模式，其它值时为覆盖模式
+        :param mode：设置模式，append追加模式，其它值时为覆盖模式
         :return:
         '''
         try:

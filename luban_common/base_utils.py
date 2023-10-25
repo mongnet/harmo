@@ -20,6 +20,7 @@ from typing import Union
 from luban_common.config import Config
 from luban_common import base_requests
 from pathlib2 import Path
+from bs4 import BeautifulSoup
 
 def getFileMD5(file_Path):
     '''
@@ -333,27 +334,38 @@ def ResponseData(indict):
     except BaseException as e:
         print(str(e))
 
-def Search_tag_text(url, label, text):
+def Search_html_tag(url: str, label: str, matchText: str, attribute=None) -> list:
     '''
-    请求网页并搜索指定的html标签内是否有指定文本
+    请求网页并搜索指定的html标签或属性内是否有指定文本
     :param url: 指定要检查的连接地址
     :param label: 指定要检查的html或xml标签，不要尖括号，如:h2
-    :param text: 指定要检查是否存在的文本
+    :param matchText: 指定要检查是否存在的文本
+    :param attribute: html属性，如：<script src="./static/iconfont.js"> 中的 src
     :return:
     '''
     try:
         # 请求服务器
-        resp = requests.get(url, verify=False)
-    except requests.exceptions.RequestException as e:
+        req = base_requests.Send(url)
+        resp = req.request("GET", url).get("response_obj")
+    except BaseException as e:
         assert False, f'请求连接地址出错，错误信息为:{e}'
     # 查询指定标签
-    obj = re.search(f'<{label}>(.*)</{label}>', resp.text)
+    bsObj = BeautifulSoup(resp.text,"html.parser")
     # 判断是否找到指定标签
-    if not obj:
-        assert False, f'not found {label}'
-    # 判断标签中的值是否为指定的文本
-    if not obj.group(1) == text:
-        assert False, f'not found {text}'
+    namelist = bsObj.findAll(label)
+    result = []
+    for name in namelist:
+        # 判断标签中的值是否为指定的文本
+        try:
+            if attribute:
+                text = name[attribute]
+            else:
+                text = name.__str__()
+            if text.__contains__(matchText):
+                result.append(text)
+        except KeyError:
+            pass
+    return result
 
 def TextLineContains(url, textKey, textValue, split_str_list=None, **kwargs):
     '''
@@ -369,7 +381,7 @@ def TextLineContains(url, textKey, textValue, split_str_list=None, **kwargs):
         req = base_requests.Send(url)
         resp = req.request("GET", url,header=kwargs.get("header")).get("response_obj")
         assert resp.status_code == 200, f'请求出错，响应接状态不等于200，现返回的状态码为：{resp.status_code}'
-    except requests.exceptions.RequestException as e:
+    except BaseException as e:
         assert False, f'请求连接地址出错，错误信息为:{e}'
     # 按行循环
     for line in resp.text.splitlines():
