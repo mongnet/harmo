@@ -10,7 +10,13 @@ class Global_Map:
     '''
     全局变量
     '''
-    __map = {}
+    __map = dict()
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Global_Map,cls).__new__(cls)
+        return cls._instance
 
     @classmethod
     def set(self, key:str, value:[str,int,list,dict,bool], mode="overlay"):

@@ -13,6 +13,13 @@ class Assertions:
     公共断言方法
     """
 
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Assertions,cls).__new__(cls)
+        return cls._instance
+
     @classmethod
     @allure.step("校验status_code和code")
     def assert_all_code(self, response, expected_http_code, expected_code):
