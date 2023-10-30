@@ -17,6 +17,8 @@ import time
 import jsonpath
 from datetime import datetime, timedelta
 from typing import Union
+
+from luban_common.base_assert import Assertions
 from luban_common.config import Config
 from luban_common import base_requests
 from pathlib2 import Path
@@ -376,15 +378,12 @@ def TextLineContains(url, textKey, textValue, split_str_list=None, **kwargs):
     :param split_str_list: 分割字符串列表，默认为空
     :return: None:不包含textKey,1:不包含textValue,2:包含textKey和textValue
     '''
-    try:
-        # 请求服务器
-        req = base_requests.Send(url)
-        resp = req.request("GET", url,header=kwargs.get("header")).get("response_obj")
-        assert resp.status_code == 200, f'请求出错，响应接状态不等于200，现返回的状态码为：{resp.status_code}'
-    except BaseException as e:
-        assert False, f'请求连接地址出错，错误信息为:{e}'
+    # 请求服务器
+    req = base_requests.Send(url)
+    resp = req.request("GET", url,header=kwargs.get("header"))
+    Assertions.assert_code(resp, resp.get("status_code"), 200)
     # 按行循环
-    for line in resp.text.splitlines():
+    for line in resp.get("response_obj").text.splitlines():
         # 清除空格
         textLine = line.strip()
         if isinstance(split_str_list,list):
