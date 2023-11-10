@@ -361,12 +361,12 @@ def Center_initialize(CenterToken,env_conf):
             pwd =  env_conf.get('iworksApp').get('password') if not deployType else None
             # 用户不存在添加用户，用户存在更新用户信息
             if Userrest().checkPassCardUsingGET(CenterToken,userName)["code"][0] == 200:
-                response = Userrest().addUserUsingPOST_2(CenterToken, orgId=rootid, userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
+                response = Userrest().addUserUsingPOST_2(CenterToken, orgId=Global_Map.get("orgid"), userName=userName, roleId=roleid, email=email, mobile=mobile, passWord=pwd,
                                realName="系统校验用户", postIdList=[postid])
                 Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)
                 Global_Map.set("is_adduser", True)
-                ownerId = rootid
+                ownerId = Global_Map.get("orgid")
             else:
                 userinfo = Userrest().findUserUsingGET(CenterToken,userName=userName)
                 Assertions.assert_code(userinfo, userinfo.get("status_code"), 200)
