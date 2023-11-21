@@ -19,25 +19,25 @@ class AnalysisSwaggerJson():
     swagger自动生成接口测试用例的工具类,此类以生成json格式的测试用例
     """
 
-    def __init__(self, url):
+    def __init__(self):
         """
-        初始化类,指定请求的swagger接口地址
-        如："http://192.168.13.197:8989/builder/v2/api-docs"
-        如："http://192.168.13.202:8081/Plan/rs/swagger/swagger.json"
+        初始化类
         """
-        self.url = url
         yamlDate = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
         self.default_parame = yamlDate.get("defaultParame")
         self.blacklist = yamlDate.get("blacklist")
         self.header ={"Accept": "application/json,text/plain","User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/53.0.2785.104 Safari/537.36 Core/1.53.2372.400 QQBrowser/9.5.10548.400","Content-Type": "application/json;charset=utf-8","Accept-Encoding": "gzip, deflate","Accept-Language": "zh-CN,zh;q=0.8"}
 
 
-    def analysis_json_data(self, header: Optional[dict]=None):
+    def analysis_json_data(self, swaggerUrl: str, header: Optional[dict]=None):
         """
         解析json格式数据的主函数
         :return:
         """
-        # swagger接口文档地址
+        # 指定请求的swagger接口地址
+        # 如："http://192.168.13.197:8989/builder/v2/api-docs"
+        # 如："http://192.168.13.202:8081/Plan/rs/swagger/swagger.json"
+        self.url = swaggerUrl
         try:
             http_interface_groups =[]
             if header:
@@ -54,13 +54,13 @@ class AnalysisSwaggerJson():
                             assert response.status_code == 200, f"连接请求失败，HTTP状态码为{response.status_code}"
                             res = response.json()
                             if res.get("paths"):
-                                http_interface_groups.append(self.analysis(res))
+                                http_interface_groups.append(self.__analysis(self.url,res))
                             else:
                                 print(f'注意 {i.get("url")} 中没有定义接口')
                         else:
                             raise ValueError(u"不是一个有效的swagger地址")
                 elif swagger_res.get("paths"):
-                    http_interface_groups.append(self.analysis(swagger_res))
+                    http_interface_groups.append(self.__analysis(self.url,swagger_res))
                 else:
                     print(f'注意 {self.url} 中没有定义接口')
             elif isinstance(swagger_res,list) and "swagger-resources" in self.url:
@@ -71,7 +71,7 @@ class AnalysisSwaggerJson():
                         assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
                         res = response.json()
                         if res.get("paths"):
-                            http_interface_groups.append(self.analysis(res))
+                            http_interface_groups.append(self.__analysis(self.url,res))
                         else:
                             print(f'注意 {i.get("url")} 中没有定义接口')
                     else:
@@ -82,7 +82,7 @@ class AnalysisSwaggerJson():
         except Exception as e:
             raise e
 
-    def analysis(self,res):
+    def __analysis(self, swaggerUrl: str, res: dict):
         # 定义接口分组格式
         http_interface_group = {"config": {"name": "","name_en": "","host": "", "base_url": "", "version": ""},"groups": []}
         pathsData = res.get("paths")  # 取接口地址返回的path数据,包括了请求的路径
@@ -97,7 +97,7 @@ class AnalysisSwaggerJson():
         host = "http://" + res.get("host") if res.get("host") else ""
         title = res.get("info").get("title")  # 获取接口的标题
         http_interface_group["config"]["name"] = title  # 在初始化用例集字典更新值
-        http_interface_group["config"]["name_en"] = self.url.split("/")[3].lower().replace("-", "_") if self.url.startswith("http") else self.url.split("/")[1].lower().replace("-", "_")
+        http_interface_group["config"]["name_en"] = swaggerUrl.split("/")[3].lower().replace("-", "_") if swaggerUrl.startswith("http") else swaggerUrl.split("/")[1].lower().replace("-", "_")
         http_interface_group["config"]["host"] = host
         http_interface_group["config"]["base_url"] = self.basePath
         http_interface_group["config"]["version"] = self.version
@@ -116,7 +116,7 @@ class AnalysisSwaggerJson():
                         if not "deprecated" in value.keys():
                             if params.get("tags")[0] == tag:
                                 group["name"] = tag
-                                interface = self.wash_params(params, uri, method, group)
+                                interface = self.__wash_params(params, uri, method, group)
                                 group["interfaces"].append(interface)
                         else:
                             print(f'interface path: {uri}, if name: {params["operationId"]}, is deprecated.')
@@ -147,7 +147,7 @@ class AnalysisSwaggerJson():
             return f"error:paths不是一个dict类型，现在的类型为：{type(pathsData)}，paths的内容为:{pathsData}"
         return http_interface_group
 
-    def wash_params(self, params, api, method, group):
+    def __wash_params(self, params, api, method, group):
         """
         清洗数据json，把每个接口数据都加入到一个字典中
         :param params: swagger中的接口参数信息
@@ -210,7 +210,7 @@ class AnalysisSwaggerJson():
         if params.get("requestBody"):
             requestBody_schema = jsonpath.jsonpath(params.get("requestBody"), "$..schema")
             if requestBody_schema:
-                self.jiexi(requestBody_schema[0], http_interface)
+                self.__jiexi(requestBody_schema[0], http_interface)
                 # schema type为array时，已把变量命名成 array_string，后续直接传数组即可
                 if requestBody_schema[0].get("type") == "array":
                     if isinstance(http_interface["body"],str) and http_interface["body"].startswith("$array_"):
@@ -228,7 +228,7 @@ class AnalysisSwaggerJson():
             if each.get("in") == "body":
                 schema = each.get("schema")
                 if schema:
-                    self.jiexi(schema, http_interface, each=each)
+                    self.__jiexi(schema, http_interface, each=each)
                     # schema type为array时，已把变量命名成 array_string，后续直接传数组即可
                     if schema.get("type") == "array":
                         if isinstance(http_interface["body"],str) and http_interface["body"].startswith("$array_"):
@@ -368,7 +368,7 @@ class AnalysisSwaggerJson():
             kwargs = []
             http_interface["formData_params_field_type"] = copy.deepcopy(http_interface["formData_params"])
             for key, value in http_interface["formData_params"].items():
-                self.wash_body(key, http_interface["formData_params"], args, kwargs, parameters_form="formData")
+                self.__wash_body(key, http_interface["formData_params"], args, kwargs, parameters_form="formData")
             http_interface["formData_params_args"] = list(set(args))
             http_interface["formData_params_kwargs"] = list(set(kwargs))
         # 把 query_params 的 key 组装成新的 query_params_url ,生成用例时添加成测试方法的参数
@@ -377,7 +377,7 @@ class AnalysisSwaggerJson():
             kwargs = []
             http_interface["query_params_field_type"] = copy.deepcopy(http_interface["query_params"])
             for key, value in http_interface["query_params"].items():
-                self.wash_body(key, http_interface["query_params"], args, kwargs, parameters_form="query")
+                self.__wash_body(key, http_interface["query_params"], args, kwargs, parameters_form="query")
             http_interface["query_params_args"] = list(set(args))
             http_interface["query_params_kwargs"] = list(set(kwargs))
         # 把 path_params 的 key 组装成新的 path_params_url ,生成用例时添加成测试方法的参数
@@ -386,7 +386,7 @@ class AnalysisSwaggerJson():
             kwargs = []
             http_interface["path_params_field_type"] = copy.deepcopy(http_interface["path_params"])
             for key, value in http_interface["path_params"].items():
-                self.wash_body(key, http_interface["path_params"], args, kwargs, parameters_form="path")
+                self.__wash_body(key, http_interface["path_params"], args, kwargs, parameters_form="path")
             http_interface["path_params_args"] = list(set(args))
             http_interface["path_params_kwargs"] = list(set(kwargs))
         # 把 cookie_params 的 key 组装成新的 cookie_params_url ,生成用例时添加成测试方法的参数
@@ -395,7 +395,7 @@ class AnalysisSwaggerJson():
             kwargs = []
             http_interface["cookie_params_field_type"] = copy.deepcopy(http_interface["cookie_params"])
             for key, value in http_interface["cookie_params"].items():
-                self.wash_body(key, http_interface["cookie_params"], args, kwargs, parameters_form="cookie")
+                self.__wash_body(key, http_interface["cookie_params"], args, kwargs, parameters_form="cookie")
             http_interface["cookie_params_args"] = list(set(args))
             http_interface["cookie_params_kwargs"] = list(set(kwargs))
         # 把 body 的 key 组装成新的 body_param ,生成用例时添加成测试方法的参数
@@ -404,7 +404,7 @@ class AnalysisSwaggerJson():
             self.kwargs = []
             body_field_type = copy.deepcopy(http_interface["body"])
             http_interface["body_field_type"] = ["array_string"] if body_field_type == "$array_string$" else body_field_type
-            self.recursion(http_interface["body"])
+            self.__recursion(http_interface["body"])
             http_interface["body_params_args"] = (list(set(self.args)) if http_interface["body_params_args"]==[] else http_interface["body_params_args"])
             http_interface["body_params_kwargs"] = (list(set(self.kwargs)) if http_interface["body_params_kwargs"]==[] else http_interface["body_params_kwargs"])
         # 把 args、kwargs 组装在一起，方便后续调用
@@ -453,7 +453,7 @@ class AnalysisSwaggerJson():
         # 定义接口测试用例
         return http_interface
 
-    def jiexi(self,schema,http_interface,ephemeral_key=None,key_type=None,body=None,each=None):
+    def __jiexi(self, schema, http_interface, ephemeral_key=None, key_type=None, body=None, each=None):
         if "$ref" in schema.keys():
             ref = schema.get("$ref")
             if ref:
@@ -504,7 +504,7 @@ class AnalysisSwaggerJson():
                                 else:
                                     if ephemeral_key is None:
                                         http_interface["body"].update({key: []})
-                                        self.jiexi(value.get("items"), http_interface, key, value["type"],body=http_interface["body"][key])
+                                        self.__jiexi(value.get("items"), http_interface, key, value["type"], body=http_interface["body"][key])
                                     else:
                                         if body is not None:
                                             if key_type == "array":
@@ -512,7 +512,7 @@ class AnalysisSwaggerJson():
                                                     ephemeral_data.update({key: []})
                                                 else:
                                                     body.append({key: []})
-                                        self.jiexi(value.get("items"), http_interface, key, value["type"],body=ephemeral_data)
+                                        self.__jiexi(value.get("items"), http_interface, key, value["type"], body=ephemeral_data)
                         elif "$ref" in value.keys():
                             if value.get("$ref") == ref:
                                 # 跳出递归死循环
@@ -520,7 +520,7 @@ class AnalysisSwaggerJson():
                             else:
                                 # print("value:",value)
                                 # print("key:",key)
-                                self.jiexi(value, http_interface, key)
+                                self.__jiexi(value, http_interface, key)
                 if ephemeral_key:
                     if body:
                         if body[ephemeral_key] == "array":
@@ -537,7 +537,7 @@ class AnalysisSwaggerJson():
         else:
             for key, value in schema.items():
                 if isinstance(value, dict) and "$ref" in value.keys():
-                    self.jiexi(value, http_interface,ephemeral_key)
+                    self.__jiexi(value, http_interface, ephemeral_key)
                     return
             # 处理body为列表时的情况
             if schema.get("type") == "array" and ephemeral_key is None:
@@ -556,7 +556,7 @@ class AnalysisSwaggerJson():
                 http_interface["body_params_kwargs"].append(f"${body}=None$")
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
 
-    def recursion(self, data):
+    def __recursion(self, data):
         """
         递归解析数据
         :param data:
@@ -564,22 +564,22 @@ class AnalysisSwaggerJson():
         """
         if isinstance(data, list):
             for itme in data:
-                self.recursion(itme)
+                self.__recursion(itme)
         elif isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, list):
-                    self.recursion(value)
+                    self.__recursion(value)
                     continue
                 if isinstance(value, dict):
                     for k, v in value.items():
                         if isinstance(v, list):
-                            self.recursion(v)
+                            self.__recursion(v)
                             continue
-                        self.wash_body(k, value, self.args, self.kwargs)
+                        self.__wash_body(k, value, self.args, self.kwargs)
                     continue
-                self.wash_body(key, data, self.args, self.kwargs)
+                self.__wash_body(key, data, self.args, self.kwargs)
 
-    def wash_body(self,arg, body, list_args, list_kwargs, parameters_form=None):
+    def __wash_body(self, arg, body, list_args, list_kwargs, parameters_form=None):
         """
         清洗body 数据
         :param arg: 指定key
@@ -651,35 +651,35 @@ if __name__ == "__main__":
 
 
 
-    # print(AnalysisSwaggerJson(url).analysis_json_data())
-    # print(AnalysisSwaggerJson(url0).analysis_json_data())
-    # print(AnalysisSwaggerJson(url1).analysis_json_data())
-    # print(AnalysisSwaggerJson(url2).analysis_json_data())
-    # print(AnalysisSwaggerJson(url3).analysis_json_data())
-    # print(AnalysisSwaggerJson(url4).analysis_json_data())
-    # print(AnalysisSwaggerJson(url5).analysis_json_data())
-    # print(AnalysisSwaggerJson(url6).analysis_json_data())
-    # print(AnalysisSwaggerJson(url7).analysis_json_data())
-    # print(AnalysisSwaggerJson(url9).analysis_json_data())
-    # print(AnalysisSwaggerJson(url10).analysis_json_data())
-    # print(AnalysisSwaggerJson(url11).analysis_json_data())
-    # print(AnalysisSwaggerJson(url12).analysis_json_data())
-    # print(AnalysisSwaggerJson(url13).analysis_json_data())
-    # print(AnalysisSwaggerJson(url14).analysis_json_data())
-    # print(AnalysisSwaggerJson(url15).analysis_json_data())
-    # print(AnalysisSwaggerJson(url16).analysis_json_data())
-    # print(AnalysisSwaggerJson(url17).analysis_json_data())
-    # print(AnalysisSwaggerJson(url18).analysis_json_data())
-    # print(AnalysisSwaggerJson(url19).analysis_json_data())
-    # print(AnalysisSwaggerJson(url20).analysis_json_data())
-    # print(AnalysisSwaggerJson(url21).analysis_json_data())
-    # print(AnalysisSwaggerJson(url30).analysis_json_data())
-    # print(AnalysisSwaggerJson(url31).analysis_json_data())
-    # print(AnalysisSwaggerJson(url32).analysis_json_data())
-    # print(AnalysisSwaggerJson(url33).analysis_json_data())
-    # print(AnalysisSwaggerJson(url34).analysis_json_data())
-    # print(AnalysisSwaggerJson(url35).analysis_json_data())
-    # print(AnalysisSwaggerJson(url36).analysis_json_data())
-    # print(AnalysisSwaggerJson(url37).analysis_json_data())
-    # print(AnalysisSwaggerJson(url38).analysis_json_data())
-    # print(AnalysisSwaggerJson(url39).analysis_json_data(header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
+    # print(AnalysisSwaggerJson(url).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson(url0).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson(url1).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson(url2).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson(url3).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson(url4).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson(url5).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson(url6).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson(url7).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson(url9).analysis_json_data(swaggerUrl=))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url10))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url11))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url12))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url13))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url14))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url15))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url16))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url17))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url18))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url19))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url20))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url21))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url30))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url31))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url32))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url33))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url34))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url35))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url36))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url37))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url38))
+    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url39,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
