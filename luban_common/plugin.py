@@ -66,6 +66,7 @@ def pytest_addoption(parser):
     parser.addini('case_message', help='case_message configuration')
     parser.addini('is_local', help='is_local configuration')
     parser.addini('is_clear', help='is_clear configuration')
+    parser.addini('custom_config', type='linelist' ,help='custom_config configuration')
 
 def pytest_configure(config):
     '''
@@ -84,6 +85,19 @@ def pytest_configure(config):
     _case_message = True if config.getini("case_message") == "True" else False
     _is_local =  True if config.getini("is_local") == "True" else False
     _is_clear = True if config.getini("is_clear") == "True" else False
+    _custom_config_temp = config.getini("custom_config")
+    _custom_config = {}
+    if _custom_config_temp:
+        for cfg in _custom_config_temp:
+            cfg_list = cfg.split(":",1)
+            if len(cfg_list) >1:
+                if cfg_list[1].strip().lower() == "false":
+                    value = False
+                elif cfg_list[1].strip().lower() == "true":
+                    value = True
+                else:
+                    value = cfg_list[1].strip()
+                _custom_config.update({cfg_list[0].strip():value})
     pytestini = {
         "lb_env": _env_config,
         "lb_driver": _browser,
@@ -95,7 +109,8 @@ def pytest_configure(config):
         "success_message": _success_message,
         "case_message": _case_message,
         "is_local": _is_local,
-        "is_clear": _is_clear
+        "is_clear": _is_clear,
+        "custom_config": _custom_config
     }
     if _env_config:
         metadata = config.pluginmanager.getplugin("metadata")
@@ -122,12 +137,12 @@ def pytest_configure(config):
                 config.stash[metadata_key]["执行用例tag"] = _case_tag
         if _is_local:
             _tmp_data = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
-            if _tmp_data.get("lb_env") in _env_config or not _tmp_data.get("lb_env"):
-                _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
+            if not _tmp_data.get("lb_env") or _tmp_data.get("lb_env") in _env_config:
+                _global_conf = _tmp_data
             else:
-                _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"), filter=["_global_map.yaml"])
+                _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"), filter=["_global_map.yaml","_global_map_temp.yaml"])
         else:
-            _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"), filter=["_global_map.yaml"])
+            _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"), filter=["_global_map.yaml","_global_map_temp.yaml"])
         _global = {**_global_conf,**yaml_file.get_yaml_data(file_absolute_path(_env_config))}
         if _base_url:
             _global["base_url"] = _base_url
@@ -205,9 +220,9 @@ def pytest_unconfigure(config):
     :return:
     '''
 
-    # 有lb_env表示使用到了luban-common，然后把全局变量写入到 _global_map.yaml 文件
+    # 有lb_env表示使用到了luban-common，然后把全局变量写入到 _global_map_temp.yaml 文件
     if Global_Map.get("lb_env"):
-        yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_map.yaml"), data=Global_Map.get())
+        yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_map_temp.yaml"), data=Global_Map.get())
     # unregister plugin
 
 def pytest_collection_modifyitems(items):

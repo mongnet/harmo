@@ -5,12 +5,11 @@
 # @File    : analysis_swagger.py
 import json
 import os
-from typing import Optional
-
 import jsonpath
 import requests
 import copy
-
+from collections import Counter
+from typing import Optional
 from luban_common import base_utils
 from luban_common.operation import yaml_file
 
@@ -85,7 +84,7 @@ class AnalysisSwaggerJson():
     def __analysis(self, swaggerUrl: str, res: dict):
         # 定义接口分组格式
         http_interface_group = {"config": {"name": "","name_en": "","host": "", "base_url": "", "version": ""},"groups": []}
-        pathsData = res.get("paths")  # 取接口地址返回的path数据,包括了请求的路径
+        paths = res.get("paths")  # 取接口地址返回的path数据,包括了请求的路径
         self.basePath = res.get("basePath") if res.get("basePath") else ""  # 获取接口的根路径
         self.version = res.get("openapi") if res.get("openapi") else res.get("swagger")
         # swagger
@@ -101,39 +100,54 @@ class AnalysisSwaggerJson():
         http_interface_group["config"]["host"] = host
         http_interface_group["config"]["base_url"] = self.basePath
         http_interface_group["config"]["version"] = self.version
-        if isinstance(pathsData, dict):  # 判断接口返回的paths数据类型是否dict类型
-            # 获取全部接口的tag名称,再按tag去分group
-            tags = list(set(jsonpath.jsonpath(pathsData, "$..tags[0]")))
-            for tag in tags:
+        if isinstance(paths, dict):  # 判断接口返回的paths数据类型是否dict类型
+            # 获取全部path的tag名称,按tag分组
+            tags = {}
+            for path_key,path_value in paths.items():
+                tag_name = jsonpath.jsonpath(path_value, "$..tags[0]")[0]
+                if tag_name in tags.keys():
+                    tags.get(tag_name).update({path_key:path_value})
+                else:
+                    tags.update({tag_name:{path_key:path_value}})
+            # 相同tag的接口放一起，生成在同一文件中
+            for tag_name,tag_value in tags.items():
+                # 调试用
+                # if tag_name != "项目进展月报(项目级)":
+                #     continue
                 group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
-                self.repetition_operationId = []
-                for uri, value in list(pathsData.items()):
-                    # TODO 重复循环
-                    # print(uri)
-                    for method in list(value.keys()):
-                        params = value[method]
-                        # deprecated字段标识：接口是否被弃用，暂时无法判断
-                        if not "deprecated" in value.keys():
-                            if params.get("tags")[0] == tag:
-                                group["name"] = tag
-                                interface = self.__wash_params(params, uri, method, group)
-                                group["interfaces"].append(interface)
-                        else:
-                            print(f'interface path: {uri}, if name: {params["operationId"]}, is deprecated.')
-                            break
                 # 生成 class_name 和 file_name
-                uri_list = base_utils.jpath(group, check_key="uri", sub_key="uri")
+                uri_list = list(tag_value.keys())
+                startswith_equal_path_list = []
                 if isinstance(uri_list,list):
                     file_name = ""
                     for uri in uri_list:
-                        k1 = uri.split("?")[0].split("/{", 1)[0].split("/")[1:]
+                        k1 = uri.split("?")[0].replace("{", "").replace("}", "").split("/")[1:]
+                        tmp_k1 = copy.deepcopy(k1)
                         for i in uri_list:
-                            k2 = i.split("?")[0].split("/{", 1)[0].split("/")[1:]
+                            k2 = i.split("?")[0].replace("{", "").replace("}", "").split("/")[1:]
                             k1 = k1 if not list(sorted(set(k1).intersection(set(k2)), key=k1.index)) else list(sorted(set(k1).intersection(set(k2)), key=k1.index))
+                        # 获取path中从头开始，匹配的path目录
+                        if isinstance([tmp_k1,k1],list):
+                            for tk in tmp_k1:
+                                if tk in k1:
+                                    startswith_equal_path_list.append(tk)
+                                else:
+                                    break
                         file_name = "_".join(k1).replace("-", "_").title().replace("_", "")
                         break
                     group["class_name"] = file_name
                     group["file_name"] = file_name[0].lower()+file_name[1:]
+                for uri, value in list(tag_value.items()):
+                    for method in list(value.keys()):
+                        params = value[method]
+                        # deprecated字段标识：接口是否被弃用，暂时无法判断
+                        if not "deprecated" in value.keys():
+                            group["name"] = tag_name
+                            interface = self.__wash_params(params, uri, method, group, startswith_equal_path_list)
+                            group["interfaces"].append(interface)
+                        else:
+                            print(f'interface path: {uri}, is deprecated.')
+                            break
                 # 合并相同file_name
                 groups = base_utils.jpath(http_interface_group.get("groups"), check_key="file_name", sub_key="file_name")
                 if groups:
@@ -142,16 +156,21 @@ class AnalysisSwaggerJson():
                         interface_group["name"] = "_".join([interface_group.get("name"),group.get("name")])
                         interface_group["interfaces"].extend(group.get("interfaces"))
                         continue
+                # 校验同一个分组中是否有相同的name_en，如有相同的会导致方法同名
+                repetition = {"方法名 "+key: "重复了 "+str(value)+" 次" for key, value in dict(Counter(jsonpath.jsonpath(group.get("interfaces"),"$..name_en"))).items() if value > 1}
+                if repetition:
+                    print(group)
+                    assert False, f"生成的接口方法名出现重名：{repetition}"
                 http_interface_group["groups"].append(group)
         else:
-            return f"error:paths不是一个dict类型，现在的类型为：{type(pathsData)}，paths的内容为:{pathsData}"
+            return f"error:paths不是一个dict类型，现在的类型为：{type(paths)}，paths的内容为:{paths}"
         return http_interface_group
 
-    def __wash_params(self, params, api, method, group):
+    def __wash_params(self, params, uri, method, group, startswith_equal_path_list):
         """
         清洗数据json，把每个接口数据都加入到一个字典中
         :param params: swagger中的接口参数信息
-        :param api: 接口URI地址
+        :param uri: 接口URI地址
         :param method: 接口请求方法
         :return:
         """
@@ -188,22 +207,26 @@ class AnalysisSwaggerJson():
         # 这里程序可能没有写summary，只能用operationId来替代了
         name = params.get("summary").replace("/", "_") if params.get("summary") else params.get("operationId")
         http_interface["name_cn"] = name
-        # 处理 operationId 会相同的问题
-        name_en_list = base_utils.jpath(group["interfaces"], check_key="name_en", sub_key="name_en")
-        if name_en_list and params.get("operationId") in name_en_list:
-            self.repetition_operationId.append(params.get("operationId"))
-            name_en = params.get("operationId") + "_" + str(self.repetition_operationId.count(params.get("operationId")))
-        else:
-            name_en = params.get("operationId")
+        # 通过url生成测试方法名，path中相同的前部分会被去掉
+        repuri = [u.replace("{", "").replace("}", "").replace("_", "") for u in uri.split("/")[len(startswith_equal_path_list)+1 if len(uri.split("/")) > 2 else len(startswith_equal_path_list):]]
+        # 原序去重
+        sort_repuri = list(set(repuri))
+        sort_repuri.sort(key=repuri.index)
+        if not sort_repuri:
+            operationId = params.get("operationId").split("_")
+            if len(operationId) >= 1:
+                sort_repuri.append(operationId[0].lower())
+        sort_repuri.append(method)
+        name_en = "_".join(sort_repuri).replace("-", "_")
         http_interface["name_en"] = name_en
         http_interface["method"] = method.upper()
-        http_interface["uri"] = api
+        http_interface["uri"] = uri
         http_interface["basePath"] = self.basePath
         #请求类型
         produces = params.get("produces")
 
         # 调试用
-        # if name != "获取某企业下的所有专业类型列表":
+        # if name != "批量删除报告":
         #     return
 
         # swagger 3.0 当请求有 body 传参时，没有 in: "body"了，现使用 requestBody 标示请求体
@@ -542,14 +565,14 @@ class AnalysisSwaggerJson():
             # 处理body为列表时的情况
             if schema.get("type") == "array" and ephemeral_key is None:
                 del http_interface["body"]
-                body = "_".join(base_utils.get_all_value(schema))
+                body = "_".join(base_utils.get_all_value(schema, filter_key=["description"]))
                 http_interface.update({"body": f"${body}$"})
                 http_interface["body_params_kwargs"].append(f"${body}=None$")
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
             # 处理body为字符串时的情况
             elif schema.get("type") == "string" and ephemeral_key is None:
-                body = "_".join(base_utils.get_all_value(schema))
-                if "binary" in base_utils.get_all_value(schema):
+                body = "_".join(base_utils.get_all_value(schema, filter_key=["description"]))
+                if "binary" in base_utils.get_all_value(schema, filter_key=["description"]):
                     http_interface.update({"body_binary": f"${body}$"})
                 else:
                     http_interface.update({"body": f"${body}$"})
@@ -616,70 +639,56 @@ class AnalysisSwaggerJson():
 
 
 if __name__ == "__main__":
-    url = "http://192.168.13.242:8864/sphere/swagger-resources"
+    url = "http://192.168.13.246:8864/sphere/swagger-resources"
     url0 = "http://192.168.13.246:8182/Plan/rs/swagger/swagger.json"
     url1 = "http://192.168.13.246:8182/gateway/builder/v2/api-docs"
-    url2 = "http://192.168.3.195:8989/LBprocess/v2/api-docs"
-    url3 = "http://192.168.3.195/pdscommon/rs/swagger/swagger.json"
-    url4 = "http://192.168.3.195/pdsdoc/rs/swagger/swagger.json"
-    url5 = "http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json"
-    url6 = "http://192.168.13.233:8080/auth-server/v2/api-docs"
+    url3 = "http://192.168.13.246:8182/pdscommon/rs/swagger/swagger.json"
+    url4 = "http://192.168.13.246:8182/pdsdoc/rs/swagger/swagger.json"
+    url5 = "http://192.168.13.246:8182/BuilderCommonBusinessdata/rs/swagger/swagger.json"
     url7 = "http://192.168.13.246:8182/openapi/rs/swagger/swagger.json"
-    # url9 = "http://192.168.3.236:8083/monitor/v2/api-docs?group=center"
-    url10 = "http://192.168.13.246:8182/misc/v2/api-docs?group=信息深度(center端)"
-    url11 = "http://192.168.13.246:8182/misc/v2/api-docs?group=信息深度(客户端)"
-    url12 = "http://192.168.3.195/BuilderCommonBusinessdata/rs/swagger/swagger.json"
-    url13 = "http://192.168.3.195/gateway/process/v2/api-docs"
+    url12 = "http://192.168.13.246:8182/BuilderCommonBusinessdata/rs/swagger/swagger.json"
     url14 = "http://192.168.13.246:8182/gateway/luban-meter/v2/api-docs?group=V1.0.0"
     url15 = "http://192.168.13.246:8182/gateway/luban-infrastructure-center/v2/api-docs?group=V1.0.0"
     url16 = "http://192.168.13.246:8182/gateway/luban-misc/v2/api-docs?group=V1.0.0"
     url17 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=安全模块-检查"
     url18 = "http://192.168.13.246:8502/luban-archives/v2/api-docs?group=V1.0.0"
     url19 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E7%94%9F%E4%BA%A7%E6%A8%A1%E5%9D%97"
-    url20 = "http://192.168.13.246:8182/gateway/process-inspection/v2/api-docs?group=Center"
     url21 = "http://192.168.13.246:8182/pdscommon/rs/swagger/swagger.json"
     url30 = "http://192.168.13.246:8864/sphere/swagger-resources"
     url31 = "http://192.168.13.157:8022/luban-bi/v2/api-docs?group=%E6%95%B0%E6%8D%AE%E6%BA%90"
-    url32 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
+    url32 = "http://192.168.13.246:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url33 = "http://192.168.13.157:8022/luban-bi/swagger-resources"
     url34 = "http://192.168.13.246:8182/gateway/lbbe/rs/swagger/swagger.json"
-    url35 = "http://192.168.13.161:8864/sphere/v2/api-docs?group=%E5%AE%89%E5%85%A8%E6%A8%A1%E5%9D%97--%E5%AE%89%E5%85%A8%E6%8A%A5%E5%91%8A"
     url36 = "http://192.168.13.178:8182/ent-admin/v3/api-docs"
-    url37 = "http://192.168.13.178:8182/gateway/ent-admin/v3/api-docs/swagger-config"
-    url38 = "http://192.168.13.178:8182/gateway/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
+    url37 = "http://192.168.13.178:8182/service/ent-admin/v3/api-docs/swagger-config"
+    url38 = "http://192.168.13.178:8182/service/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url39 = "http://192.168.13.178:19001/process/v3/api-docs"
+    url40 = "http://192.168.13.178:16636/builder-plan/v3/api-docs"
 
 
 
-    # print(AnalysisSwaggerJson(url).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson(url0).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson(url1).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson(url2).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson(url3).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson(url4).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson(url5).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson(url6).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson(url7).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson(url9).analysis_json_data(swaggerUrl=))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url10))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url11))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url0))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url1))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url3))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url4))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url5))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url7))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url12))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url13))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url14))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url15))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url16))
+    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url16))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url17))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url18))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url19))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url20))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url21))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url30))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url31))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url32))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url33))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url34))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url35))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url36))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url37))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url38))
-    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url39,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url39,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url40))

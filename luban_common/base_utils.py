@@ -16,9 +16,7 @@ import subprocess
 import time
 import jsonpath
 from datetime import datetime, timedelta
-from typing import Union
-
-from luban_common.base_assert import Assertions
+from typing import Union, Optional, List
 from luban_common.config import Config
 from luban_common import base_requests
 from pathlib2 import Path
@@ -381,6 +379,7 @@ def TextLineContains(url, textKey, textValue, split_str_list=None, **kwargs):
     # 请求服务器
     req = base_requests.Send(url)
     resp = req.request("GET", url,header=kwargs.get("header"))
+    from luban_common.base_assert import Assertions
     Assertions.assert_code(resp, resp.get("status_code"), 200)
     # 按行循环
     for line in resp.get("response_obj").text.splitlines():
@@ -438,7 +437,7 @@ def jpath(data, check_key, check_value=None, sub_key=None):
         expr = f"$..[?(@.{check_key})]" if sub_key is None else f"$..[?(@.{check_key})]..{sub_key}"
     return jsonpath.jsonpath(data, expr)
 
-def get_all_key(data):
+def get_all_key(data: Union[dict,list], filter_key: Optional[List[str]]=None):
     '''
     获取全部字典的key，包含列表中包含的字典
     :param data:
@@ -453,11 +452,14 @@ def get_all_key(data):
             for key, value in data.items():
                 if isinstance(value, (list, dict)):
                     in_key(value)
-                ALLKEY.append(key)
+                if filter_key and key in filter_key:
+                    pass
+                else:
+                    ALLKEY.append(key)
         return ALLKEY
     return in_key(data)
 
-def get_all_value(data):
+def get_all_value(data: Union[dict,list], filter_key: Optional[List[str]]=None):
     '''
     获取全部value，可取list和dict的value值
     :param data:
@@ -476,11 +478,14 @@ def get_all_value(data):
                 if isinstance(value, (list, dict)):
                     in_key(value)
                 else:
-                    ALLVALUE.append(value)
+                    if filter_key and key in filter_key:
+                        pass
+                    else:
+                        ALLVALUE.append(value)
         return ALLVALUE
     return in_key(data)
 
-def strListToList(string):
+def strListToList(string:str):
     '''
     字符串类型的列表转为列表
     :param string: "['1', '2', '3']" ---> ['1', '2', '3']
@@ -576,7 +581,7 @@ if __name__ == "__main__":
     # print(generate_random_mail())
     # print(getStrMD5("hubiao"))
     # print(calday(3, 2015))
-    # print(get_all_key(data=list4))
+    # print(get_all_key(data=list4,filter_key=["name"]))
     # print(get_all_key(data=dict4))
     # print(get_all_key(data=dict5))
     # print(get_all_key(data=str2))
