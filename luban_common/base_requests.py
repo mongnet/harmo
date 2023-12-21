@@ -39,7 +39,7 @@ class Send:
             }
         self.pdsUrl = Global_Map.get("pds")
 
-    def request(self, method, url, payload=None, header=None, flush_header=False, files=None, params=None, cookies_kwargs=None,timeout=60,**kwargs):
+    def request(self, method: str, url: str, payload=None, header: Optional[dict]=None, flush_header=False, files=None, params: Optional[dict]=None, cookies_kwargs: Optional[dict]=None,timeout=60,**kwargs):
         """
         封装request方法，要求传三个参数
         :param method：请求的方式post,get,delete,put等

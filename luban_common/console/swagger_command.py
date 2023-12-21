@@ -66,7 +66,6 @@ class SwaggerCommand(Command):
                 )
         replace_text = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
         swaggerIsEmpty = True
-        js = AnalysisSwaggerJson()
         __headers = self.option("header")
         __header = {}
         if __headers:
@@ -74,6 +73,7 @@ class SwaggerCommand(Command):
                 __tem_header = h.split(":",1)
                 if len(__tem_header) == 2 and len(__tem_header[0].strip()) > 0 and len(__tem_header[1].strip()) > 0:
                     __header.update({__tem_header[0].strip():__tem_header[1].strip()})
+        js = AnalysisSwaggerJson()
         dataList = js.analysis_json_data(swaggerUrl=self.argument("swagger-url-json"),header=__header)
         for data in dataList:
             if not isinstance(data,dict):

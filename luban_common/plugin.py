@@ -133,8 +133,10 @@ def pytest_configure(config):
                 config.stash[metadata_key]["机器人"] = _robot
             if _is_clear is not None:
                 config.stash[metadata_key]["是否清理数据"] = _is_clear
-            if _is_clear is not None:
+            if _case_tag is not None:
                 config.stash[metadata_key]["执行用例tag"] = _case_tag
+            if _custom_config is not None:
+                config.stash[metadata_key]["自定义配置"] = _custom_config
         if _is_local:
             _tmp_data = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
             if not _tmp_data.get("lb_env") or _tmp_data.get("lb_env") in _env_config:

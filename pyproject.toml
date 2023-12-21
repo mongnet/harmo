@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "luban_common"
-version = "3.3.0"
+version = "3.3.3"
 description = "鲁班API基础库"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
@@ -31,6 +31,9 @@ requests = "^2.31.0"
 jsonpath = "^0.82.2"
 allure-pytest = "^2.13.2"
 beautifulsoup4 = "^4.12.2"
+playwright = "^1.40.0"
+pytest-playwright = "^0.4.3"
+sqlalchemy = "^2.0.23"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4"
@@ -41,7 +44,7 @@ luban = "luban_common.console:main"
 [[tool.poetry.source]]
 name = "aliyun"
 url = "http://mirrors.aliyun.com/pypi/simple/"
-default = true
+priority = "default"
 
 [tool.poetry.plugins."pytest11"]
 "plugin" = "luban_common.plugin"

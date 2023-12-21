@@ -48,6 +48,7 @@ class AnalysisSwaggerJson():
                 if swagger_res.get("urls"):
                     print(f"这是一个 swagger-groups, 共有 {len(swagger_res.get('urls'))} 个group")
                     for i in swagger_res.get("urls"):
+                        print(f"正在处理第 {swagger_res.get('urls').index(i)+1} 个")
                         if isinstance(i, dict) and i.get("url"):
                             response = requests.get(self.url.split(f"{swagger_res.get('configUrl')}",1)[0] + i.get("url"), headers=header)
                             assert response.status_code == 200, f"连接请求失败，HTTP状态码为{response.status_code}"
@@ -65,6 +66,7 @@ class AnalysisSwaggerJson():
             elif isinstance(swagger_res,list) and "swagger-resources" in self.url:
                 print(f"这是一个 swagger-groups, 共有 {len(swagger_res)} 个group")
                 for i in swagger_res:
+                    print(f"正在处理第 {swagger_res.index(i)+1} 个")
                     if isinstance(i,dict) and i.get("url"):
                         response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"), headers=header)
                         assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
@@ -112,7 +114,7 @@ class AnalysisSwaggerJson():
             # 相同tag的接口放一起，生成在同一文件中
             for tag_name,tag_value in tags.items():
                 # 调试用
-                # if tag_name != "项目进展月报(项目级)":
+                # if tag_name != "省市区管理":
                 #     continue
                 group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
                 # 生成 class_name 和 file_name
@@ -122,17 +124,13 @@ class AnalysisSwaggerJson():
                     file_name = ""
                     for uri in uri_list:
                         k1 = uri.split("?")[0].replace("{", "").replace("}", "").split("/")[1:]
-                        tmp_k1 = copy.deepcopy(k1)
+                        coincide_list = []
                         for i in uri_list:
                             k2 = i.split("?")[0].replace("{", "").replace("}", "").split("/")[1:]
+                            coincide_list.append(k2)
                             k1 = k1 if not list(sorted(set(k1).intersection(set(k2)), key=k1.index)) else list(sorted(set(k1).intersection(set(k2)), key=k1.index))
                         # 获取path中从头开始，匹配的path目录
-                        if isinstance([tmp_k1,k1],list):
-                            for tk in tmp_k1:
-                                if tk in k1:
-                                    startswith_equal_path_list.append(tk)
-                                else:
-                                    break
+                        startswith_equal_path_list = base_utils.coincide_list(coincide_list)
                         file_name = "_".join(k1).replace("-", "_").title().replace("_", "")
                         break
                     group["class_name"] = file_name
@@ -650,11 +648,8 @@ if __name__ == "__main__":
     url14 = "http://192.168.13.246:8182/gateway/luban-meter/v2/api-docs?group=V1.0.0"
     url15 = "http://192.168.13.246:8182/gateway/luban-infrastructure-center/v2/api-docs?group=V1.0.0"
     url16 = "http://192.168.13.246:8182/gateway/luban-misc/v2/api-docs?group=V1.0.0"
-    url17 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=安全模块-检查"
     url18 = "http://192.168.13.246:8502/luban-archives/v2/api-docs?group=V1.0.0"
-    url19 = "http://192.168.13.242:8864/sphere/v2/api-docs?group=%E7%94%9F%E4%BA%A7%E6%A8%A1%E5%9D%97"
     url21 = "http://192.168.13.246:8182/pdscommon/rs/swagger/swagger.json"
-    url30 = "http://192.168.13.246:8864/sphere/swagger-resources"
     url31 = "http://192.168.13.157:8022/luban-bi/v2/api-docs?group=%E6%95%B0%E6%8D%AE%E6%BA%90"
     url32 = "http://192.168.13.246:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url33 = "http://192.168.13.157:8022/luban-bi/swagger-resources"
@@ -677,18 +672,15 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url12))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url14))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url15))
-    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url16))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url17))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url16))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url18))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url19))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url21))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url30))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url31))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url32))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url33))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url34))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url36))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url37))
+    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url37))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url38))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url39,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url40))

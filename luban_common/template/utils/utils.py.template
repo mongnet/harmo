@@ -13,10 +13,11 @@ def file_absolute_path(rel_path):
     :param rel_path: 相对于项目根目录的路径，如data/check_lib.xlsx
     :return:
     '''
-    if os.path.isfile(rel_path):
-        return rel_path
+    new_path = rel_path.replace("\\","/")
+    if os.path.isfile(new_path):
+        return new_path
     current_path = os.path.abspath(os.path.dirname(__file__))
-    file_path = os.path.join(current_path,'..', rel_path)
+    file_path = os.path.join(current_path,'..', new_path)
     return base_utils.file_is_exist(file_path)
 
 @allure.step("上传文件")

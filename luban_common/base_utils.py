@@ -22,7 +22,7 @@ from luban_common import base_requests
 from pathlib2 import Path
 from bs4 import BeautifulSoup
 
-def getFileMD5(file_Path):
+def getFileMD5(file_Path: str):
     '''
     传入文件路径，返回文件MD5
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -41,7 +41,7 @@ def getFileMD5(file_Path):
     except Exception as e:
         return None
 
-def getFileSize(file_Path):
+def getFileSize(file_Path: str):
     '''
     传入文件路径，返回文件大小
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -51,7 +51,7 @@ def getFileSize(file_Path):
     filesize = os.path.getsize(file)
     return filesize
 
-def getFileName(file_Path):
+def getFileName(file_Path: str):
     '''
     传入文件路径，返回文件名称
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -61,17 +61,18 @@ def getFileName(file_Path):
     fileName = os.path.basename(file)
     return fileName
 
-def file_is_exist(file_path):
+def file_is_exist(file_path: str):
     '''
     判断文件是否存在
     :param file_path:
     :return:
     '''
-    if not Path(file_path).exists():
+    new_path = file_path.replace("\\","/")
+    if not Path(new_path).exists():
         raise FileNotFoundError(f"请确认 {file_path} 文件路径是否正确！")
-    return file_path
+    return new_path
 
-def getStrMD5(String):
+def getStrMD5(String: str):
     '''
     传入一个字符串，返回字符串MD5值
     :param String: 字符串
@@ -83,7 +84,7 @@ def getStrMD5(String):
     m.update(String.encode('utf-8'))
     return m.hexdigest()
 
-def getStrSha1(String):
+def getStrSha1(String: str):
     """
     sha1 算法加密
     :param msg: 需加密的字符串
@@ -95,7 +96,7 @@ def getStrSha1(String):
     sh.update(String.encode('utf-8'))
     return sh.hexdigest()
 
-def ToBase64(String):
+def ToBase64(String: str):
     '''
     传入一个字符串，返回字符串的Base64
     :param String: 字符串
@@ -106,7 +107,7 @@ def ToBase64(String):
     base64Str = base64.urlsafe_b64encode(String.encode("utf-8"))
     return str(base64Str, 'utf-8')
 
-def FromBase64(String):
+def FromBase64(String: str):
     '''
     传入一个Base64，返回字符串
     :param String: 字符串
@@ -367,7 +368,7 @@ def Search_html_tag(url: str, label: str, matchText: str, attribute=None) -> lis
             pass
     return result
 
-def TextLineContains(url, textKey, textValue, split_str_list=None, **kwargs):
+def TextLineContains(url, textKey, textValue, split_str_list: Optional[list]=None, **kwargs):
     '''
     文本行是否包含指定文本
     :param url: 指定要检查文件连接地址
@@ -526,10 +527,11 @@ def file_absolute_path(rel_path):
     :param rel_path: 相对于项目根目录的路径，如data/check_lib.xlsx
     :return:
     '''
-    if os.path.isfile(rel_path):
-        return rel_path
+    new_path = rel_path.replace("\\","/")
+    if os.path.isfile(new_path):
+        return new_path
     _current_path = Config.project_root_dir  # os.path.abspath(os.path.dirname(__file__))
-    _file_path = os.path.join(_current_path, rel_path)
+    _file_path = os.path.join(_current_path, new_path)
     return file_is_exist(_file_path)
 
 def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict):
@@ -559,6 +561,19 @@ def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict):
     else:
         pass
 
+def coincide_list(lists: list) -> list:
+    index = [len(v) for v in lists].index(min([len(v) for v in lists]))
+    match =[]
+    for i in range(len(lists[index])):
+        switch =True
+        for k in lists:
+            if lists[index][i]!=k[i]:
+                switch =False
+        if switch:
+            match.append(lists[index][i])
+        else:
+            break
+    return match
 
 if __name__ == "__main__":
     pass
@@ -627,5 +642,6 @@ if __name__ == "__main__":
     # print(recursion_replace_dict_value(alist,rep))
     # print(a)
     # print(alist)
+    TextLineContains(f"http://etlview.lbuilder.cn/center-new/config.js", "serviceUrl", f"http://etlview.lbuilder.cn/api","etlview config.js 配置未修改")
 
 
