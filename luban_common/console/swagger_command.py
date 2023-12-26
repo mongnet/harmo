@@ -21,7 +21,7 @@ class SwaggerCommand(Command):
     arguments = [
         argument(
             "swagger-url-json",
-            description="swagger url 地址（必须要是json地址），必填"
+            description="swagger 的url或本地json文件（必须是json格式），必填"
         ),
         argument(
             "project-directory",

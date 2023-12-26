@@ -36,14 +36,21 @@ class AnalysisSwaggerJson():
         # 指定请求的swagger接口地址
         # 如："http://192.168.13.197:8989/builder/v2/api-docs"
         # 如："http://192.168.13.202:8081/Plan/rs/swagger/swagger.json"
+        # 如："D:/Automation/standadrd_polling/data/swagger_ent_admin.json"
         self.url = swaggerUrl
         try:
             http_interface_groups =[]
-            if header:
-                self.header.update(json.loads(header) if not isinstance(header, dict) else header)
-            response = requests.get(self.url, headers=self.header)
-            assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
-            swagger_res = response.json()
+            if self.url.startswith("http"):
+                if header:
+                    self.header.update(json.loads(header) if not isinstance(header, dict) else header)
+                response = requests.get(self.url, headers=self.header)
+                assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
+                swagger_res = response.json()
+            elif self.url.endswith(".json"):
+                swaggerfile = open(base_utils.file_absolute_path(self.url),'r',encoding='utf-8-sig')
+                swagger_res = json.loads(swaggerfile.read())
+            else:
+                raise ValueError(u"不是一个有效的swagger地址或文件")
             if isinstance(swagger_res,dict):
                 if swagger_res.get("urls"):
                     print(f"这是一个 swagger-groups, 共有 {len(swagger_res.get('urls'))} 个group")
@@ -58,7 +65,7 @@ class AnalysisSwaggerJson():
                             else:
                                 print(f'注意 {i.get("url")} 中没有定义接口')
                         else:
-                            raise ValueError(u"不是一个有效的swagger地址")
+                            raise ValueError(u"不是一个有效的swagger地址或文件")
                 elif swagger_res.get("paths"):
                     http_interface_groups.append(self.__analysis(self.url,swagger_res))
                 else:
@@ -78,7 +85,7 @@ class AnalysisSwaggerJson():
                     else:
                         raise ValueError(u"不是一个有效的swagger地址")
             else:
-                raise ValueError(u"不是一个有效的swagger地址")
+                raise ValueError(u"不是一个有效的swagger地址或文件")
             return http_interface_groups
         except Exception as e:
             raise e
@@ -659,6 +666,8 @@ if __name__ == "__main__":
     url38 = "http://192.168.13.178:8182/service/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url39 = "http://192.168.13.178:19001/process/v3/api-docs"
     url40 = "http://192.168.13.178:16636/builder-plan/v3/api-docs"
+    url41 = "D:/Automation/luban-common/data/swagger_ent_admin.json"
+    url42 = "http://192.168.13.178:8182/ent-admin/v3/api-docs/%E4%B8%9A%E5%8A%A1%E6%8E%A5%E5%8F%A3"
 
 
 
@@ -680,7 +689,9 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url33))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url34))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url36))
-    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url37))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url37))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url38))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url39,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url40))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url41))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url42))

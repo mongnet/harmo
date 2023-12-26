@@ -22,7 +22,7 @@ from luban_common import base_requests
 from pathlib2 import Path
 from bs4 import BeautifulSoup
 
-def getFileMD5(file_Path: str):
+def getFileMD5(file_Path: str) -> str:
     '''
     传入文件路径，返回文件MD5
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -41,7 +41,7 @@ def getFileMD5(file_Path: str):
     except Exception as e:
         return None
 
-def getFileSize(file_Path: str):
+def getFileSize(file_Path: str) -> int:
     '''
     传入文件路径，返回文件大小
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -51,7 +51,7 @@ def getFileSize(file_Path: str):
     filesize = os.path.getsize(file)
     return filesize
 
-def getFileName(file_Path: str):
+def getFileName(file_Path: str) -> str:
     '''
     传入文件路径，返回文件名称
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -61,7 +61,7 @@ def getFileName(file_Path: str):
     fileName = os.path.basename(file)
     return fileName
 
-def file_is_exist(file_path: str):
+def file_is_exist(file_path: str) -> str:
     '''
     判断文件是否存在
     :param file_path:
@@ -72,7 +72,7 @@ def file_is_exist(file_path: str):
         raise FileNotFoundError(f"请确认 {file_path} 文件路径是否正确！")
     return new_path
 
-def getStrMD5(String: str):
+def getStrMD5(String: str) -> str:
     '''
     传入一个字符串，返回字符串MD5值
     :param String: 字符串
@@ -84,7 +84,7 @@ def getStrMD5(String: str):
     m.update(String.encode('utf-8'))
     return m.hexdigest()
 
-def getStrSha1(String: str):
+def getStrSha1(String: str) -> str:
     """
     sha1 算法加密
     :param msg: 需加密的字符串
@@ -96,7 +96,7 @@ def getStrSha1(String: str):
     sh.update(String.encode('utf-8'))
     return sh.hexdigest()
 
-def ToBase64(String: str):
+def ToBase64(String: str) -> str:
     '''
     传入一个字符串，返回字符串的Base64
     :param String: 字符串
@@ -107,7 +107,7 @@ def ToBase64(String: str):
     base64Str = base64.urlsafe_b64encode(String.encode("utf-8"))
     return str(base64Str, 'utf-8')
 
-def FromBase64(String: str):
+def FromBase64(String: str) -> str:
     '''
     传入一个Base64，返回字符串
     :param String: 字符串
@@ -120,7 +120,7 @@ def FromBase64(String: str):
         String += '=' * missing_padding
     return str(base64.urlsafe_b64decode(String), 'utf-8')
 
-def toFileBase64(file):
+def toFileBase64(file: str) -> str:
     '''
     传入一个文件，返回文件的Base64编码
     :param file: 文件
@@ -160,7 +160,7 @@ def getUnix(date: str = None, day: int = 0, current: bool = True, scope: str = "
     unixST = int(time.mktime(ST)) if scope == "s" else int(time.mktime(ST)) * 1000
     return unixST
 
-def UnixToTime(unix: int):
+def UnixToTime(unix: int) -> str:
     '''
     把时间戳转换成时间
     :param unix: 时间戳
@@ -234,7 +234,7 @@ def shell(cmd):
     o = output.decode("utf-8")
     return o
 
-def generate_random_str(randomlength: int = 8):
+def generate_random_str(randomlength: int = 8) -> str:
     '''
     生成随机字符串
     :param randomlength: 默认生成的字符串长度为8位
@@ -243,7 +243,7 @@ def generate_random_str(randomlength: int = 8):
     base_str = 'ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789'
     return "".join(random.choice(base_str) for i in range(randomlength))
 
-def generate_random_mail():
+def generate_random_mail() -> str:
     '''
     生成随机邮件地址
     :return: 返回随机邮件地址
@@ -251,7 +251,7 @@ def generate_random_mail():
     postfix = ["163.com", "126.com", "qq.com", "yahoo.com.cn"]
     return generate_random_str() + "@" + random.choice(postfix)
 
-def generate_random_mobile():
+def generate_random_mobile() -> str:
     '''
     生成随机手机号
     :return:
@@ -379,7 +379,7 @@ def TextLineContains(url, textKey, textValue, split_str_list: Optional[list]=Non
     '''
     # 请求服务器
     req = base_requests.Send(url)
-    resp = req.request("GET", url,header=kwargs.get("header"))
+    resp = req.request("GET", url, **kwargs)
     from luban_common.base_assert import Assertions
     Assertions.assert_code(resp, resp.get("status_code"), 200)
     # 按行循环
@@ -438,7 +438,7 @@ def jpath(data, check_key, check_value=None, sub_key=None):
         expr = f"$..[?(@.{check_key})]" if sub_key is None else f"$..[?(@.{check_key})]..{sub_key}"
     return jsonpath.jsonpath(data, expr)
 
-def get_all_key(data: Union[dict,list], filter_key: Optional[List[str]]=None):
+def get_all_key(data: Union[dict,list], filter_key: Optional[List[str]]=None) -> list:
     '''
     获取全部字典的key，包含列表中包含的字典
     :param data:
@@ -460,7 +460,7 @@ def get_all_key(data: Union[dict,list], filter_key: Optional[List[str]]=None):
         return ALLKEY
     return in_key(data)
 
-def get_all_value(data: Union[dict,list], filter_key: Optional[List[str]]=None):
+def get_all_value(data: Union[dict,list], filter_key: Optional[List[str]]=None) -> list:
     '''
     获取全部value，可取list和dict的value值
     :param data:
@@ -486,7 +486,7 @@ def get_all_value(data: Union[dict,list], filter_key: Optional[List[str]]=None):
         return ALLVALUE
     return in_key(data)
 
-def strListToList(string:str):
+def strListToList(string: str) -> list:
     '''
     字符串类型的列表转为列表
     :param string: "['1', '2', '3']" ---> ['1', '2', '3']
@@ -494,7 +494,7 @@ def strListToList(string:str):
     '''
     return ast.literal_eval(string)
 
-def gen_uuid(filter=False):
+def gen_uuid(filter: bool = False) -> str:
     '''
     生成uuid
     :param filter: 生成的uuid默认会带有'-'，当filter为False时不过滤'-'，默认为False
@@ -506,7 +506,7 @@ def gen_uuid(filter=False):
         uid = uuid.uuid4()
     return uid
 
-def gen_sign(timestamp, secret):
+def gen_sign(timestamp, secret) -> str:
     '''
     根据时间戳和secret生成签名
     使用场景：请求数据时发送当前时间戳和生成的签名，接受方根据约定的secret和发送过来的时间戳，以相同方式获取签名，如生成的签名一致，表示签名有效
@@ -521,7 +521,7 @@ def gen_sign(timestamp, secret):
     sign = base64.b64encode(hmac_code).decode("utf-8")
     return sign
 
-def file_absolute_path(rel_path):
+def file_absolute_path(rel_path: str) -> str:
     '''
     通过文件相对路径，返回文件绝对路径
     :param rel_path: 相对于项目根目录的路径，如data/check_lib.xlsx
@@ -534,7 +534,7 @@ def file_absolute_path(rel_path):
     _file_path = os.path.join(_current_path, new_path)
     return file_is_exist(_file_path)
 
-def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict):
+def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict) -> None:
     '''
     递归替换字典值
     example:
@@ -613,7 +613,6 @@ if __name__ == "__main__":
     # print(toFileBase64("../data/config1.yaml"))
     # print(getFileSize("../data/20201222101200.png"))
     # print(UnixToTime(unix=1644844153000))
-    # print(UnixToTime(unix=1636942336))
     # print(gen_uuid())
     # print(gen_uuid(True))
     # print(gen_sign(getUnix(), "123456"))
@@ -633,7 +632,7 @@ if __name__ == "__main__":
     # print(UnixToTime(unix=1662432740))
     # print(UnixToTime(unix=1494325882000))
     # print(UnixToTime(unix=getUnix(date='2019-12-31 18:31:22', day=2)))
-    # print(file_absolute_path('E:/Automation/standard_polling/data/Quality_check_lib.xls'))
+    # print(file_absolute_path('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
     # print(file_is_exist(file_absolute_path('../data/Quality_check_lib.xls')))
     # a = {"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}
     # alist = [{"name":"mongnet","ex1":False,"age":37},{"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}]
@@ -642,6 +641,6 @@ if __name__ == "__main__":
     # print(recursion_replace_dict_value(alist,rep))
     # print(a)
     # print(alist)
-    TextLineContains(f"http://etlview.lbuilder.cn/center-new/config.js", "serviceUrl", f"http://etlview.lbuilder.cn/api","etlview config.js 配置未修改")
+    # TextLineContains(f"http://etlview.lbuilder.cn/center-new/config.js", "serviceUrl", f"http://etlview.lbuilder.cn/api","etlview config.js 配置未修改")
 
 

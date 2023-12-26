@@ -43,7 +43,7 @@ def get_yaml_data_all(catalogue: str,filter: Optional[List[str]]=None) -> dict:
                     _all_date = {**yaml.load(_full_path),**_all_date}
     return _all_date
 
-def writer_yaml(file: str,data: dict):
+def writer_yaml(file: str,data: dict) -> None:
     '''
     写yaml文件
     :param file: 文件路径

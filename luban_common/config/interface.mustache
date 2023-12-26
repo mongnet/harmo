@@ -12,7 +12,7 @@ class {{class_name}}:
 
     {{# interfaces}}
     @allure.step("{{name_cn}}")
-    def {{name_en}}(self, item_fixture{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}}{{# body}}, bodyKwargs=None{{/ body}}{{# query_params}}, paramsKwargs = None{{/ query_params}}):
+    def {{name_en}}(self, item_fixture{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}}{{# body}}, bodyKwargs=None{{/ body}}{{# query_params}}, paramsKwargs = None{{/ query_params}}, **kwargs):
         """
         {{name_cn}}
         :param item_fixture: item fixture,
@@ -35,7 +35,7 @@ class {{class_name}}:
         {{# cookie_params}}
         cookies_kwargs = {{{cookie_params}}}
         {{/ cookie_params}}
-        response = item_fixture.request("{{method}}", resource{{# body}}, payload = payload{{/ body}}{{# body_binary}}, files = {'file':open({{body_binary}}, 'rb')}{{/ body_binary}}{{# query_params}}, params = query_params{{/ query_params}}{{# cookie_params}}, cookies_kwargs = cookies_kwargs{{/ cookie_params}})
+        response = item_fixture.request("{{method}}", resource{{# body}}, payload = payload{{/ body}}{{# body_binary}}, files = {'file':open({{body_binary}}, 'rb')}{{/ body_binary}}{{# query_params}}, params = query_params{{/ query_params}}{{# cookie_params}}, cookies_kwargs = cookies_kwargs{{/ cookie_params}}, **kwargs)
         return response
 
     {{/ interfaces}}

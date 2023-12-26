@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "luban_common"
-version = "3.3.3"
+version = "3.3.4"
 description = "鲁班API基础库"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
-readme = "README.md"
+readme = ["README.md"]
 homepage = "https://github.com/mongnet/luban_common"
 repository = "https://github.com/mongnet/luban_common"
 keywords = ["api", "Testing", "pytest", "luban_common"]
@@ -34,6 +34,8 @@ beautifulsoup4 = "^4.12.2"
 playwright = "^1.40.0"
 pytest-playwright = "^0.4.3"
 sqlalchemy = "^2.0.23"
+jsonschema = "^4.20.0"
+genson = "^1.2.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4"

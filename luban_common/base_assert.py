@@ -7,6 +7,7 @@ import operator
 from collections import Counter
 import allure
 from luban_common import base_utils, extract
+from jsonschema import validate
 
 class Assertions:
     """
@@ -350,6 +351,17 @@ class Assertions:
                 assert False, f"列表中有重复项,重复项为：{repetition}"
         else:
             assert False, "传入的数据不是一个list"
+
+    @classmethod
+    @allure.step("schema检查")
+    def assert_schema(self, schema, response):
+        """
+        schema检查
+        :param schema: 要验证的 json schema 数据
+        :param response: 要验证的 json 数据
+        :return:
+        """
+        validate(instance=response, schema=schema)
 
     @classmethod
     @allure.step("集合校验")

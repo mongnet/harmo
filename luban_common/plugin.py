@@ -66,6 +66,7 @@ def pytest_addoption(parser):
     parser.addini('case_message', help='case_message configuration')
     parser.addini('is_local', help='is_local configuration')
     parser.addini('is_clear', help='is_clear configuration')
+    parser.addini('schema_check', help='schema_check configuration')
     parser.addini('custom_config', type='linelist' ,help='custom_config configuration')
 
 def pytest_configure(config):
@@ -85,6 +86,7 @@ def pytest_configure(config):
     _case_message = True if config.getini("case_message") == "True" else False
     _is_local =  True if config.getini("is_local") == "True" else False
     _is_clear = True if config.getini("is_clear") == "True" else False
+    _schema_check = True if config.getini("schema_check") == "True" else False
     _custom_config_temp = config.getini("custom_config")
     _custom_config = {}
     if _custom_config_temp:
@@ -110,6 +112,7 @@ def pytest_configure(config):
         "case_message": _case_message,
         "is_local": _is_local,
         "is_clear": _is_clear,
+        "schema_check": _schema_check,
         "custom_config": _custom_config
     }
     if _env_config:
@@ -126,17 +129,19 @@ def pytest_configure(config):
             if _message_switch is not None:
                 config.stash[metadata_key]["消息开关"] = _message_switch
             if _success_message is not None:
-                config.stash[metadata_key]["成功是否发送消息"] = _success_message
+                config.stash[metadata_key]["成功消息提醒"] = _success_message
             if _case_message is not None:
-                config.stash[metadata_key]["单用例失败提醒"] = _case_message
+                config.stash[metadata_key]["用例失败提醒"] = _case_message
             if _robot is not None:
-                config.stash[metadata_key]["机器人"] = _robot
+                config.stash[metadata_key]["机器人ID"] = _robot
             if _is_clear is not None:
                 config.stash[metadata_key]["是否清理数据"] = _is_clear
             if _case_tag is not None:
                 config.stash[metadata_key]["执行用例tag"] = _case_tag
+            if _schema_check is not None:
+                config.stash[metadata_key]["schema检查状态"] = _schema_check
             if _custom_config is not None:
-                config.stash[metadata_key]["自定义配置"] = _custom_config
+                config.stash[metadata_key]["其它自定义配置"] = _custom_config
         if _is_local:
             _tmp_data = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
             if not _tmp_data.get("lb_env") or _tmp_data.get("lb_env") in _env_config:
@@ -382,4 +387,4 @@ def all_plugins():
     return _fixtures
 
 if __name__ == '__main__':
-    print(all_plugins())
+    pass
