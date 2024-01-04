@@ -121,7 +121,7 @@ class AnalysisSwaggerJson():
             # 相同tag的接口放一起，生成在同一文件中
             for tag_name,tag_value in tags.items():
                 # 调试用
-                # if tag_name != "省市区管理":
+                # if tag_name != "aclMgr":
                 #     continue
                 group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
                 # 生成 class_name 和 file_name
@@ -213,14 +213,16 @@ class AnalysisSwaggerJson():
         name = params.get("summary").replace("/", "_") if params.get("summary") else params.get("operationId")
         http_interface["name_cn"] = name
         # 通过url生成测试方法名，path中相同的前部分会被去掉
-        repuri = [u.replace("{", "").replace("}", "").replace("_", "") for u in uri.split("/")[len(startswith_equal_path_list)+1 if len(uri.split("/")) > 2 else len(startswith_equal_path_list):]]
-        # 原序去重
-        sort_repuri = list(set(repuri))
-        sort_repuri.sort(key=repuri.index)
-        if not sort_repuri:
+        repuris = [u.replace("{", "").replace("}", "").replace("_", "") for u in uri.split("/")[len(startswith_equal_path_list)+1 if len(uri.split("/")) > 2 else len(startswith_equal_path_list):]]
+        # 原序去重、去空
+        sort_repuri = [repuris for repuris in list(set(repuris)) if repuris != '']
+        sort_repuri.sort(key=repuris.index)
+        if not sort_repuri and params.get("operationId"):
             operationId = params.get("operationId").split("_")
             if len(operationId) >= 1:
                 sort_repuri.append(operationId[0].lower())
+        if not sort_repuri:
+            sort_repuri.extend(startswith_equal_path_list)
         sort_repuri.append(method)
         name_en = "_".join(sort_repuri).replace("-", "_")
         http_interface["name_en"] = name_en
@@ -229,11 +231,10 @@ class AnalysisSwaggerJson():
         http_interface["basePath"] = self.basePath
         #请求类型
         produces = params.get("produces")
-
         # 调试用
-        # if name != "批量删除报告":
+        # if name != "创建Acl":
         #     return
-
+        # print(name)
         # swagger 3.0 当请求有 body 传参时，没有 in: "body"了，现使用 requestBody 标示请求体
         if params.get("requestBody"):
             requestBody_schema = jsonpath.jsonpath(params.get("requestBody"), "$..schema")
@@ -482,9 +483,12 @@ class AnalysisSwaggerJson():
         return http_interface
 
     def __jiexi(self, schema, http_interface, ephemeral_key=None, key_type=None, body=None, each=None):
-        if "$ref" in schema.keys():
-            ref = schema.get("$ref")
-            if ref:
+        if "$ref" in schema.keys() or schema.get("type") == "object":
+            if schema.get("type") == "object":
+                properties = schema.get("properties")
+                requireds = schema.get("required")
+            else:
+                ref = schema.get("$ref")
                 # 拆分这个ref，根据实际情况来取第几个/反斜杠
                 param_key = schema.get("originalRef") if schema.get("originalRef") else ref.split("/")[-1]
                 try:
@@ -500,81 +504,82 @@ class AnalysisSwaggerJson():
                         http_interface["params_description"].update({f"${body}$": f"{body_description}"})
                     print(f"警告: {http_interface.get('name_cn')} 接口的 {ref} 定义，没有properties节点信息，请确认程序生成的swagger信息是否正确")
                     return
-                ephemeral_data = {}
+            ephemeral_data = {}
 
-                # print("schema:", schema)
-                # print("param_key:", param_key)
-                # print("properties:", self.definitions.get(param_key))
-                # print("properties:", properties)
-                # print("requireds:", requireds)
-                # print("ephemeral_key:", ephemeral_key)
-                # print("body:", body)
-                if properties:
-                    for key, value in properties.items():
-                        required = True if isinstance(requireds,list) and key in requireds else False
-                        if "type" in value.keys():
-                            if ephemeral_key:
-                                ephemeral_data.update({key: value["type"]})
-                                if "description" in value.keys():
-                                    http_interface["params_description"].update({key: value.get("description") + (",可用值:" + ",".join(value.get("enum")) if "enum" in value.keys() else "") + (",必填" if required else ",非必填")})
-                                if "items" in value.keys() and "$ref" in value.get("items"):
-                                    pass
-                            else:
-                                if "description" in value.keys():
-                                    http_interface["params_description"].update({key: value.get("description") + (",可用值:" + ",".join(value.get("enum")) if "enum" in value.keys() else "") + (",必填" if required else ",非必填")})
-                                else:
-                                    http_interface["params_description"].update({key: value.get("type") + (",必填" if value.get("required") else ",非必填")})
-                                http_interface["body"].update({key: value.get("type")})
+            # print("schema:", schema)
+            # print("param_key:", param_key)
+            # print("properties:", self.definitions.get(param_key))
+            # print("properties:", properties)
+            # print("requireds:", requireds)
+            # print("ephemeral_key:", ephemeral_key)
+            # print("body:", body)
+            if properties:
+                for key, value in properties.items():
+                    # 字段是否必填
+                    required = True if isinstance(requireds,list) and key in requireds else False
+                    if "type" in value.keys():
+                        if ephemeral_key:
+                            ephemeral_data.update({key: value["type"]})
+                            if "description" in value.keys():
+                                http_interface["params_description"].update({key: value.get("description") + (",可用值:" + ",".join(value.get("enum")) if "enum" in value.keys() else "") + (",必填" if required else ",非必填")})
                             if "items" in value.keys() and "$ref" in value.get("items"):
-                                if value.get("items").get("$ref") == ref:
-                                    # 跳出递归死循环
-                                    pass
-                                else:
-                                    if ephemeral_key is None:
-                                        http_interface["body"].update({key: []})
-                                        self.__jiexi(value.get("items"), http_interface, key, value["type"], body=http_interface["body"][key])
-                                    else:
-                                        if body is not None:
-                                            if key_type == "array":
-                                                if key in ephemeral_data:
-                                                    ephemeral_data.update({key: []})
-                                                else:
-                                                    body.append({key: []})
-                                        self.__jiexi(value.get("items"), http_interface, key, value["type"], body=ephemeral_data)
-                        elif "$ref" in value.keys():
-                            if value.get("$ref") == ref:
+                                pass
+                        else:
+                            if "description" in value.keys():
+                                http_interface["params_description"].update({key: value.get("description") + (",可用值:" + ",".join(value.get("enum")) if "enum" in value.keys() else "") + (",必填" if required else ",非必填")})
+                            else:
+                                http_interface["params_description"].update({key: value.get("type") + (",必填" if value.get("required") else ",非必填")})
+                            http_interface["body"].update({key: value.get("type")})
+                        if "items" in value.keys() and "$ref" in value.get("items"):
+                            if value.get("items").get("$ref") == ref:
                                 # 跳出递归死循环
                                 pass
                             else:
-                                # print("value:",value)
-                                # print("key:",key)
-                                self.__jiexi(value, http_interface, key)
-                if ephemeral_key:
-                    if body:
-                        if body[ephemeral_key] == "array":
-                            body[ephemeral_key] = [ephemeral_data]
+                                if ephemeral_key is None:
+                                    http_interface["body"].update({key: []})
+                                    self.__jiexi(value.get("items"), http_interface, key, value["type"], body=http_interface["body"][key])
+                                else:
+                                    if body is not None:
+                                        if key_type == "array":
+                                            if key in ephemeral_data:
+                                                ephemeral_data.update({key: []})
+                                            else:
+                                                body.append({key: []})
+                                    self.__jiexi(value.get("items"), http_interface, key, value["type"], body=ephemeral_data)
+                    elif "$ref" in value.keys():
+                        if value.get("$ref") == ref:
+                            # 跳出递归死循环
+                            pass
                         else:
-                            body[ephemeral_key].append(ephemeral_data)
+                            # print("value:",value)
+                            # print("key:",key)
+                            self.__jiexi(value, http_interface, key)
+            if ephemeral_key:
+                if body:
+                    if body[ephemeral_key] == "array":
+                        body[ephemeral_key] = [ephemeral_data]
                     else:
-                        if isinstance(body,list):
-                            http_interface["body"].update({ephemeral_key.split("_")[-1]: [ephemeral_data]})
-                        else:
-                            # print(ephemeral_key.split("_")[-1])
-                            # print("ephemeral_data:",ephemeral_data)
-                            http_interface["body"].update({ephemeral_key.split("_")[-1]: ephemeral_data})
+                        body[ephemeral_key].append(ephemeral_data)
+                else:
+                    if isinstance(body,list):
+                        http_interface["body"].update({ephemeral_key.split("_")[-1]: [ephemeral_data]})
+                    else:
+                        # print(ephemeral_key.split("_")[-1])
+                        # print("ephemeral_data:",ephemeral_data)
+                        http_interface["body"].update({ephemeral_key.split("_")[-1]: ephemeral_data})
         else:
             for key, value in schema.items():
                 if isinstance(value, dict) and "$ref" in value.keys():
                     self.__jiexi(value, http_interface, ephemeral_key)
                     return
-            # 处理body为列表时的情况
+            # 处理body为array时的情况
             if schema.get("type") == "array" and ephemeral_key is None:
                 del http_interface["body"]
                 body = "_".join(base_utils.get_all_value(schema, filter_key=["description"]))
                 http_interface.update({"body": f"${body}$"})
                 http_interface["body_params_kwargs"].append(f"${body}=None$")
                 http_interface["params_description"].update({f"${body}$": f"${body}$"})
-            # 处理body为字符串时的情况
+            # 处理body为string时的情况
             elif schema.get("type") == "string" and ephemeral_key is None:
                 body = "_".join(base_utils.get_all_value(schema, filter_key=["description"]))
                 if "binary" in base_utils.get_all_value(schema, filter_key=["description"]):
@@ -661,13 +666,15 @@ if __name__ == "__main__":
     url32 = "http://192.168.13.246:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url33 = "http://192.168.13.157:8022/luban-bi/swagger-resources"
     url34 = "http://192.168.13.246:8182/gateway/lbbe/rs/swagger/swagger.json"
+    url35 = "http://192.168.13.178:8182/service/sphere/swagger-resources"
     url36 = "http://192.168.13.178:8182/ent-admin/v3/api-docs"
     url37 = "http://192.168.13.178:8182/service/ent-admin/v3/api-docs/swagger-config"
     url38 = "http://192.168.13.178:8182/service/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url39 = "http://192.168.13.178:19001/process/v3/api-docs"
-    url40 = "http://192.168.13.178:16636/builder-plan/v3/api-docs"
+    url40 = "http://192.168.13.178:16636/plan/v3/api-docs"
     url41 = "D:/Automation/luban-common/data/swagger_ent_admin.json"
     url42 = "http://192.168.13.178:8182/ent-admin/v3/api-docs/%E4%B8%9A%E5%8A%A1%E6%8E%A5%E5%8F%A3"
+    url43 = "http://192.168.26.131:3000/swagger/json"
 
 
 
@@ -688,10 +695,12 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url32))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url33))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url34))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url36))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url37))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url35))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url36,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url37,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url38))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url39,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url40))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url41))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url42))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url42,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url43))
