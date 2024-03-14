@@ -1,32 +1,6 @@
-pds : http://app.lbuilder.cn
-ac : http://ac.myluban.com
-base_url : http://service.lbuilder.cn
-iworks_web: http://lbuilder.cn
-iworks_web_old: http://iworks.lbuilder.cn
-center_web: http://center.lbuilder.cn
+base_url : http://192.168.13.130:8182/gateway
 weixin_robot: ""
-center:
-  username: lb91247
-  password: 264f0c676e143da03019f1698304c468
 iworksApp :
   username : test
   password : 96e79218965eb72c92a549dd5a325612
   clientVersion: 2.1.0
-project :
-  projPath : data/system_assert_projRevit.pds
-  projType: "Revit"
-  projTypeInt: 4
-  floor : 标高 1
-  compClass : 墙
-  subClass : 基本墙
-  handle : fe026e86-efaa-4330-b57c-b8b36d57aab6-000516e6
-  handleName : CW 102-50-100p
-  projGuid : "8764c510-57b7-44c3-bddf-266d86c26380-0000c160"
-  projModel : "SLSG"
-  bimModelType : GCMX
-  type : 8
-  productid : 93
-dwgFile :
-  filePath : data/autotest.dwg
-processInspectionFile:
-  filePath: data/processInspection.xml

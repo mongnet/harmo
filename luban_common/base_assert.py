@@ -265,7 +265,7 @@ class Assertions:
             assert False, f"断言失败,{actual_value} 不等于None" if not msg else f"{msg},校验值:{actual_value} 不等于None"
 
     @classmethod
-    @allure.step("校验为空")
+    @allure.step("校验为空（None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空）")
     def assert_isEmpty(self, actual_value, msg=None):
         """
         校验值为空,当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空
@@ -279,7 +279,7 @@ class Assertions:
             assert False, f"校验值不为空,值为:{actual_value}" if not msg else f"{msg},校验值为:{actual_value}"
 
     @classmethod
-    @allure.step("校验不为空")
+    @allure.step("校验不为空（None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空）")
     def assert_isNotEmpty(self, actual_value, msg=None):
         """
         校验值不为空,当传入值为None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空

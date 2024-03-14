@@ -12,7 +12,7 @@ class {{class_name}}:
 
     {{# interfaces}}
     @allure.step("{{name_cn}}")
-    def {{name_en}}(self, item_fixture{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}}{{# body}}, bodyKwargs=None{{/ body}}{{# query_params}}, paramsKwargs = None{{/ query_params}}, **kwargs):
+    def {{name_en}}(self, item_fixture{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}}{{# body}}, body_kwargs=None{{/ body}}{{# query_params}}, query_kwargs = None{{/ query_params}}, **kwargs):
         """
         {{name_cn}}
         :param item_fixture: item fixture,
@@ -20,22 +20,22 @@ class {{class_name}}:
         :param {{{.}}}
         {{/ params_description_list}}
         {{# body}}
-        :param bodyKwargs: body if bodyKwargs is None else bodyKwargs
+        :param body_kwargs: body if body_kwargs is None else body_kwargs
         {{/ body}}
         """
         resource = f"{{project}}{{uri}}"
         {{# body}}
         body = {{{body}}}
-        payload = body if bodyKwargs is None else bodyKwargs
+        body_kwargs = body if body_kwargs is None else body_kwargs
         {{/ body}}
         {{# query_params}}
         params = {{{query_params}}}
-        query_params = params if paramsKwargs is None else paramsKwargs
+        query_kwargs = params if query_kwargs is None else query_kwargs
         {{/ query_params}}
         {{# cookie_params}}
         cookies_kwargs = {{{cookie_params}}}
         {{/ cookie_params}}
-        response = item_fixture.request("{{method}}", resource{{# body}}, payload = payload{{/ body}}{{# body_binary}}, files = {'file':open({{body_binary}}, 'rb')}{{/ body_binary}}{{# query_params}}, params = query_params{{/ query_params}}{{# cookie_params}}, cookies_kwargs = cookies_kwargs{{/ cookie_params}}, **kwargs)
+        response = item_fixture.request("{{method}}", resource{{# body}}, payload = body_kwargs{{/ body}}{{# body_binary}}, files = {'file':open({{body_binary}}, 'rb')}{{/ body_binary}}{{# query_params}}, params = query_kwargs{{/ query_params}}{{# cookie_params}}, cookies_kwargs = cookies_kwargs{{/ cookie_params}}, **kwargs)
         return response
 
     {{/ interfaces}}

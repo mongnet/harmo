@@ -29,9 +29,9 @@ class Test_{{class_name}}:
         body = {{{body_field_type}}}
             {{/ body}}
             {{# query_params}}
-        params = {{{query_params_field_type}}}
+        query_kwargs = {{{query_params_field_type}}}
             {{/ query_params}}
-        response = {{class_name}}().{{name_en}}({{token}}{{# body_binary}}, {{{.}}}{{/ body_binary}}{{# params_args_nobody}}, {{{.}}}{{/ params_args_nobody}}{{# params_kwargs_nobody}}, {{{.}}}{{/ params_kwargs_nobody}}{{# isbody}}{{# body}}, bodyKwargs = body{{/ body}}{{# query_params}}, paramsKwargs = params{{/ query_params}}{{/ isbody}})
+        response = {{class_name}}().{{name_en}}({{token}}{{# body_binary}}, {{{.}}}{{/ body_binary}}{{# params_args_nobody}}, {{{.}}}{{/ params_args_nobody}}{{# params_kwargs_nobody}}, {{{.}}}{{/ params_kwargs_nobody}}{{# isbody}}{{# body}}, body_kwargs = body{{/ body}}{{# query_params}}, query_kwargs = query_kwargs{{/ query_params}}{{/ isbody}})
         {{/ isbody}}
         {{^ isbody}}
         response = {{class_name}}().{{name_en}}({{token}}{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}})

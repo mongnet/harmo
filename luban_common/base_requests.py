@@ -97,7 +97,7 @@ class Send:
             try:
                 # 获取请求和响应数据
                 logging.info("开始分割线start: ".center(60, "#"))
-                logging.info("请求方法: " + method)
+                logging.info("请求方法: " + str(self.Response.request.method))
                 logging.info(list(kwargs.keys())[0]+": "+str(kwargs[list(kwargs.keys())[0]])) if kwargs!={} else None
                 logging.info("请求的Url: " + self.Response.url)
                 logging.info("持续时间: " + str(self.Response.elapsed.total_seconds()))
@@ -111,7 +111,7 @@ class Send:
                 res["response_header"] = json.loads(json.dumps(dict(self.Response.headers)))
                 res["request_header"] = json.loads(json.dumps(dict(self.Response.request.headers)))
                 res["request_url"] = self.Response.url
-                res["request_method"] = method
+                res["request_method"] = str(self.Response.request.method)
                 res["request_params"] = params
                 res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")
                 res["response_obj"] = self.Response
