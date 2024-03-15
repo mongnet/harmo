@@ -6,11 +6,13 @@
 import copy
 import json
 import logging
+import re
+
 import requests
 import urllib3
 from mimetypes import MimeTypes
 from typing import Optional
-from luban_common import base_utils
+from luban_common import base_utils, exceptions
 from luban_common.global_map import Global_Map
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -19,15 +21,19 @@ class HttpRequests(requests.Session):
     """
     发送请求类
     """
-    def __init__(self,host: str, header: Optional[dict]=None):
+    def __init__(self,base_url: str, header: Optional[dict]=None):
         """
         请求数据初始化
-        :param host：请求的地址前缀
+        :param base_url：请求的地址前缀
         :param envConf：环境配置信息
         :param header：请求头信息
         """
         super(HttpRequests, self).__init__()
-        self.host = host
+        # 基础url
+        if re.compile(r"(http)(s?)(://)").match(base_url):
+            self.base_url = base_url
+        else:
+            raise exceptions.ParserError("base url do yo mean http:// or https://!")
         self.session = requests.session()
         if header:
             self.header = json.loads(header) if not isinstance(header, dict) else header
@@ -43,7 +49,7 @@ class HttpRequests(requests.Session):
 
     def send_request(self, method: str, url: str, payload=None, header: Optional[dict]=None, flush_header=False, files=None, params: Optional[dict]=None, cookies_kwargs: Optional[dict]=None, timeout=60, **kwargs):
         """
-        封装request方法，要求传三个参数
+        封装request方法
         :param method：请求的方式post,get,delete,put等
         :param url：请求的url地址
         :param payload：请求的body数据，可以不传，默认为空
@@ -54,8 +60,8 @@ class HttpRequests(requests.Session):
         :param cookies_kwargs: cookie参数，接收一个字典数据
         :return: 对响应信息进行重组，响应信息中加入status_code和responsetime
         """
-        # url，组装请求地址
-        self.Url = url if url.startswith("http") else "".join([self.host,url])
+        # 拼接url
+        self.Url = url if re.compile(r"(http)(s?)(://)").match(url) else "".join([self.base_url,url])
         request_header = copy.deepcopy(self.header)
         # 添加header信息，有些接口请求时添加请求头,flush_header用来指定是否更新基线header
         if header is not None:
