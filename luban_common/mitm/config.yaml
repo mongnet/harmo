@@ -1,0 +1,24 @@
+Setting :
+  Status : doc
+  Url : http://192.168.2.57:9876/things/v1/login
+  User : testapi
+  PSW : 111111
+  weixin_robot : "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
+  Scope :
+    - 龙门吊-设备管理_测试脚本文件夹_1670811570
+  filterMethod :
+    - options
+  filterFile :
+    - .js
+    - .png
+    - .jpg
+    - .ico
+    - .html
+    - .htm
+    - .woff2
+    - .io
+    - .css
+  replaceDict :
+    null : ~
+    true : True
+    false : False

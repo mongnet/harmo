@@ -22,7 +22,7 @@ from luban_common import http_requests
 from pathlib2 import Path
 from bs4 import BeautifulSoup
 
-def getFileMD5(file_Path: str) -> str:
+def getFileMD5(file_Path: str) -> Path:
     '''
     传入文件路径，返回文件MD5
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -51,7 +51,7 @@ def getFileSize(file_Path: str) -> int:
     filesize = os.path.getsize(file)
     return filesize
 
-def getFileName(file_Path: str) -> str:
+def getFileName(file_Path: str) -> Path:
     '''
     传入文件路径，返回文件名称
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -61,15 +61,15 @@ def getFileName(file_Path: str) -> str:
     fileName = os.path.basename(file)
     return fileName
 
-def file_is_exist(file_path: str) -> str:
+def file_is_exist(file_path: str) -> Path:
     '''
     判断文件是否存在
     :param file_path:
     :return:
     '''
-    new_path = file_path.replace("\\","/")
-    if not Path(new_path).exists():
-        raise FileNotFoundError(f"请确认 {file_path} 文件路径是否正确！")
+    new_path = Path(file_path)
+    if not new_path.exists():
+        raise FileNotFoundError(f"请确认 {new_path} 文件路径是否正确！")
     return new_path
 
 def getStrMD5(String: str) -> str:
@@ -120,13 +120,13 @@ def FromBase64(String: str) -> str:
         String += '=' * missing_padding
     return str(base64.urlsafe_b64decode(String), 'utf-8')
 
-def toFileBase64(file: str) -> str:
+def toFileBase64(file_path: str) -> str:
     '''
     传入一个文件，返回文件的Base64编码
-    :param file: 文件
+    :param file_path: 文件
     :return: 返回Base64编码
     '''
-    file = file_is_exist(file)
+    file = file_is_exist(file_path)
     with open(file, 'rb') as f:
         image = f.read()
     return str(base64.b64encode(image), encoding='utf-8')
@@ -378,7 +378,7 @@ def TextLineContains(url, textKey, textValue, split_str_list: Optional[list]=Non
     :return: None:不包含textKey,1:不包含textValue,2:包含textKey和textValue
     '''
     # 请求服务器
-    req = base_requests.HttpRequests(url)
+    req = http_requests.HttpRequests(url)
     resp = req.send_request("GET", url, **kwargs)
     from luban_common.base_assert import Assertions
     Assertions.assert_code(resp, resp.get("status_code"), 200)
@@ -521,18 +521,17 @@ def gen_sign(timestamp, secret) -> str:
     sign = base64.b64encode(hmac_code).decode("utf-8")
     return sign
 
-def file_absolute_path(rel_path: str) -> str:
+def file_absolute_path(rel_path: str) -> Path:
     '''
     通过文件相对路径，返回文件绝对路径
     :param rel_path: 相对于项目根目录的路径，如data/check_lib.xlsx
     :return:
     '''
-    new_path = rel_path.replace("\\","/")
+    new_path = Path(rel_path)
     if os.path.isfile(new_path):
-        return new_path
-    _current_path = Config.project_root_dir  # os.path.abspath(os.path.dirname(__file__))
-    _file_path = os.path.join(_current_path, new_path)
-    return file_is_exist(_file_path)
+        return os.path.abspath(new_path)
+    else:
+        raise FileNotFoundError(f"请确认 {new_path} 文件路径是否正确！")
 
 def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict) -> None:
     '''
@@ -632,8 +631,10 @@ if __name__ == "__main__":
     # print(UnixToTime(unix=1662432740))
     # print(UnixToTime(unix=1494325882000))
     # print(UnixToTime(unix=getUnix(date='2019-12-31 18:31:22', day=2)))
-    # print(file_absolute_path('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
-    # print(file_is_exist(file_absolute_path('../data/Quality_check_lib.xls')))
+    print(file_absolute_path('../data/Quality_check_lib.xls'))
+    print(file_absolute_path('D:/Automation\\standard_polling/data/Quality_check_lib.xls'))
+    print(file_is_exist('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
+    print(getFileMD5('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
     # a = {"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}
     # alist = [{"name":"mongnet","ex1":False,"age":37},{"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}]
     # rep = {37:38,False:True,"wgj":"mong"}

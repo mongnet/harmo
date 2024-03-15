@@ -8,7 +8,11 @@
 import inspect
 import os
 import time
+from pathlib2 import Path
+
 import pytest
+import types
+from _pytest.python import Module
 from pytest_metadata.plugin import metadata_key
 from luban_common.global_map import Global_Map
 from luban_common.msg.robot import WeiXin
@@ -157,6 +161,26 @@ def pytest_configure(config):
             _global["weixin_robot"] = _robot
         Global_Map.sets(_global)
         Global_Map.sets(pytestini)
+
+# def pytest_collect_file(file_path: Path, parent):
+#     '''
+#     https://www.cnblogs.com/yoyoketang/p/16897902.html
+#     :param file_path:
+#     :param parent:
+#     :return:
+#     '''
+#     if file_path.suffix in (".yaml",".yml") and file_path.name.startswith("test"):
+#         py_module = Module.from_parent(parent, path=file_path)
+#         # 动态创建 module
+#         module = types.ModuleType(file_path.stem)
+#         # 解析 yaml 内容
+#         raw_dict = yaml_file.get_yaml_data(file_path)
+#         # 用例名称test_开头
+#         run = runner.RunYaml(raw_dict, module)
+#         run.run()  # 执行用例
+#         # 重写属性
+#         py_module._getobj = lambda: module
+#         return py_module
 
 def pytest_report_header(config):
     '''
