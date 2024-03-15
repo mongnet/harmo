@@ -24,7 +24,7 @@ filename = f'test_{time.strftime("%Y%m%d_%H%M%S", time.localtime())}.py'
 case_file = os.path.join(mitm_dir, filename)
 # 生成用例文件
 template = """import allure
-from utils.http_client import request
+from luban_common import base_requests
 @allure.title("")
 def test(env_vars):
 """
@@ -86,18 +86,19 @@ class Record:
             if body:
                 body_grammar = f"data={body}"
         return f"""
-    # 描述
-    # 数据
-    # 请求
-    response = request(
-        "{method}",
-        url = "{url}",
-        headers = {headers},
-        {body_grammar})
-    # 提取
-    # 断言
-    assert response.status_code < 400
-"""
+            # 描述
+            # 数据
+            # 请求
+            req = base_requests.Send(url)
+            resp = req.request(
+                method = "{method}",
+                url = "{url}",
+                headers = "{headers}",
+                {body_grammar})
+            # 提取
+            # 断言
+            assert resp.status_code < status_code
+        """
 
 
 # ==================================配置开始==================================
