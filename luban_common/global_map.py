@@ -103,4 +103,6 @@ class Global_Map:
             return None
 
 if __name__ == '__main__':
+    Global_Map.sets({"a":1,"b":2})
+    print(Global_Map.get())
     pass

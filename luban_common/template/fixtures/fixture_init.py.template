@@ -122,7 +122,7 @@ def Center_initialize(CenterToken,env_conf):
         if not Global_Map.get("is_local"):
             # 获取部署类型
             resource = '/pds/rs/centerLogin/deployType'
-            response = CenterToken.request('get', resource)
+            response = CenterToken.send_request('get', resource)
             Assertions.assert_code(response, response.get("status_code"), 200)
             deployType = True if response.get("Response_text") == "true" else False
             Global_Map.set("deployType",deployType)

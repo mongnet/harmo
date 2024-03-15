@@ -1690,12 +1690,13 @@ class Token:
     '''
     通用token登录类
     '''
-    def __init__(self,username,password,productId,envConf,loginType=None):
+
+    def __init__(self, username, password, productId, envConf, loginType=None):
         self.productId = productId
         self.username = username
         self.password = password
         self.header = envConf.get("headers").get("json_header")
-        self.Login = base_requests.Send(envConf.get('base_url'), envConf)
+        self.Login = base_requests.HttpRequests(envConf.get('base_url'), envConf)
         self.epid = ""
         self.token = ""
         self.loginType = "CENTER_WEB" if loginType is None else loginType

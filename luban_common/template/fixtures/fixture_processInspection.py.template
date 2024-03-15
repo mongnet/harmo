@@ -88,7 +88,7 @@ def processInspection_init(CenterToken):
             Global_Map.set("tags", i.split("=")[1])
             break
     # 验证表单是否可访问，并获取report FORMHOST
-    response = CenterToken.request("get", reportUrl)
+    response = CenterToken.send_request("get", reportUrl)
     Assertions.assert_code(response, response.get("status_code"), 200)
     for line in response.get("Response_text").splitlines():
         text = line.strip()
@@ -316,8 +316,8 @@ def processInspection_init(CenterToken):
             },
         "version": 1
     }
-    response = CenterToken.request('post', resource, payload=payload,
-                                   header={"access-token": Global_Map.get('reportToken')})
+    response = CenterToken.send_request('post', resource, payload=payload,
+                                        header={"access-token": Global_Map.get('reportToken')})
     Assertions.assert_code(response, response.get("status_code"), 200)
     Assertions.assert_code(response, response.get("code")[0], 200)
     formTemplateId = response.get("data_id")[0]

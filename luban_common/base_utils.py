@@ -18,7 +18,7 @@ import jsonpath
 from datetime import datetime, timedelta
 from typing import Union, Optional, List
 from luban_common.config import Config
-from luban_common import base_requests
+from luban_common import http_requests
 from pathlib2 import Path
 from bs4 import BeautifulSoup
 
@@ -346,8 +346,8 @@ def Search_html_tag(url: str, label: str, matchText: str, attribute=None) -> lis
     '''
     try:
         # 请求服务器
-        req = base_requests.Send(url)
-        resp = req.request("GET", url).get("response_obj")
+        req = http_requests.HttpRequests(url)
+        resp = req.send_request("GET", url).get("response_obj")
     except BaseException as e:
         assert False, f'请求连接地址出错，错误信息为:{e}'
     # 查询指定标签
@@ -378,8 +378,8 @@ def TextLineContains(url, textKey, textValue, split_str_list: Optional[list]=Non
     :return: None:不包含textKey,1:不包含textValue,2:包含textKey和textValue
     '''
     # 请求服务器
-    req = base_requests.Send(url)
-    resp = req.request("GET", url, **kwargs)
+    req = base_requests.HttpRequests(url)
+    resp = req.send_request("GET", url, **kwargs)
     from luban_common.base_assert import Assertions
     Assertions.assert_code(resp, resp.get("status_code"), 200)
     # 按行循环

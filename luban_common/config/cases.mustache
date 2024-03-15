@@ -6,7 +6,7 @@
 import pytest
 import allure
 from luban_common.base_assert import Assertions
-from utils import utils
+from luban_common import base_utils
 from swagger.{{project_directory}}.{{file_name}} import {{class_name}}
 
 @allure.feature("{{name}}")
@@ -22,7 +22,7 @@ class Test_{{class_name}}:
         {{name_cn}}
         """
         {{# body_binary}}
-        string_binary = utils.file_absolute_path("data/WBS.xlsx")
+        string_binary = base_utils.file_absolute_path("your_file")
         {{/ body_binary}}
         {{# isbody}}
             {{# body}}

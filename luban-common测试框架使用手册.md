@@ -1805,12 +1805,13 @@ class Token:
     '''
     通用token登录类
     '''
-    def __init__(self,username,password,productId,envConf,loginType=None):
+
+    def __init__(self, username, password, productId, envConf, loginType=None):
         self.productId = productId
         self.username = username
         self.password = password
         self.header = envConf.get("headers").get("json_header")
-        self.Login = base_requests.Send(envConf.get('base_url'), envConf)
+        self.Login = base_requests.HttpRequests(envConf.get('base_url'), envConf)
         self.epid = ""
         self.token = ""
         self.loginType = "CENTER_WEB" if loginType is None else loginType
@@ -1890,26 +1891,27 @@ from luban_common import base_utils
 from luban_common import base_requests
 from luban_common.global_map import Global_Map
 
+
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     '''
     收集测试结果并发送到测试平台
     '''
     # 当没有获取到平台配置信息时，不执行
     if Global_Map.get("testplatform") and Global_Map.get("testplatform").get("host"):
-        owner = base_requests.Send(Global_Map.get("testplatform").get("host"))
+        owner = base_requests.HttpRequests(Global_Map.get("testplatform").get("host"))
         # 定义测试结果
         total = terminalreporter._numcollected
         passed = len([i for i in terminalreporter.stats.get("passed", []) if i.when != "teardown"])
         failed = len([i for i in terminalreporter.stats.get("failed", []) if i.when != "teardown"])
         error = len([i for i in terminalreporter.stats.get("error", []) if i.when != "teardown"])
         skipped = len([i for i in terminalreporter.stats.get("skipped", []) if i.when != "teardown"])
-        total_times = round(time.time() - terminalreporter._sessionstarttime,2)
+        total_times = round(time.time() - terminalreporter._sessionstarttime, 2)
         current_time = base_utils.getUnix(scope="ms")
         # 增加cd数据
         body = {
             "projectName": Global_Map.get("testplatform").get("projectName"),
             "total": total,
-            "pass" : passed,
+            "pass": passed,
             "failed": failed,
             "error": error,
             "skip": skipped,
@@ -1917,7 +1919,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
             "duration": total_times
         }
         resource = "/addcddata"
-        owner.request("post",resource,body)
+        owner.request("post", resource, body)
 ```
 
 ### 4.6 基于parametrize的yaml用例参数化
@@ -1947,17 +1949,17 @@ class Test_example:
     '''
     测试示例
     '''
-    @allure.story("复用原有swagger接口方法")
+    @allure.story("使用swagger接口方法的用例")
     @pytest.mark.parametrize("case", get_yaml_cases(yamlpath="data/caseConfig.yaml"))
     def test_swagger(self, CenterToken,case):
         '''
-        复用原有swagger接口方法
+        使用swagger接口方法的用例
         '''
         response = Org().treeNodesUsingGET(CenterToken)
         Assertions.validate_response(response,validate_list=case.get("Validate"))
 
     @allure.story("脱离swagger,直接使用yaml文件")
-    @pytest.mark.parametrize("case", get_yaml_cases(yamlpath="data/caseConfig2.yaml"))
+    @pytest.mark.parametrize("case", get_yaml_cases(yamlpath="data/caseConfig.yaml"))
     def test_yaml(self, CenterToken,case):
         '''
         脱离swagger,直接使用yaml文件
@@ -1981,7 +1983,7 @@ caseConfig.yaml 测试用例内容如下：
 Config:
   lb_driver: chrome
 TestDataCollections:
-  - CaseName : 添加公司节点
+  - CaseName : 脱离swagger,直接使用yaml文件
     Tag : smoking
     Request:
       Url : ${base_url}/builder/org/nodes
@@ -1994,8 +1996,24 @@ TestDataCollections:
         address: ${lb_driver}
         example: ${example()}
         time: ${time.time()}
+        welcome: '{% raw %}hello ${var} world {% endraw %}'
+        welcomeReplace: ${"hello world" | replace ("world", "luban") | upper}
       Query :
           Type: ${nodeType}
+    Validate :
+      - assert_code : ['status_code',200]
+      - assert_code : ['resp.code',200]
+      - assert_equal_value : ['resp.result[1].name','初始化分公司']
+      - assert_equal_value : ['$..[1].name','初始化分公司']
+  - CaseName : 使用swagger接口方法的用例
+    Tag : smoking
+    Query :
+      nodeType: ${center.username}
+      contactPerson: ${lbuilder[1]}
+      mobile: ${generate_random_mail()}
+      address: ${lb_driver}
+      example: ${example()}
+      time: ${time.time()}
     Validate :
       - assert_code : ['status_code',200]
       - assert_code : ['resp.code',200]
@@ -2005,9 +2023,11 @@ TestDataCollections:
 
 使用方法解析：
 
-> 1. 支持直接调用函数，调用方式为 ${函数}，支持系统内置函数、luban_common.base_utils 框架内置函数、`expand_function.py` 自定义扩展函数
+> 1. 支持直接调用函数，调用方式为 ${函数名()}，如：${time.time()} ，支持系统内置函数、luban_common.base_utils 框架内置函数、`expand_function.py` 自定义扩展函数
 > 2. 支持获取变量值，调用方式为 ${变量名}，支持获取 Global_Map 中的变量，如：${center.username} 、${lbuilder[1]}、${lb_driver}
-> 3. 支持在 yaml 中通过 Config 来指定私有变量，然后通过${变量名}来获取
+> 3. 支持在 yaml 中通过 Config 来指定私有变量，然后通过${变量名}来获取，当出现同名变量时，取Config 中的变量
+> 4. 如果你不想变量被执行，可使用 '{% raw %}hello ${var} world {% endraw %}' ，这是标准的Jinja2语法
+> 5. Request中的url，可以不指定${base_url}，如果不指定或获取不到base_url时，会自动把fixture的base_url拼接到url上
 
 Validate 中编写断言的形式如下：
 
@@ -2030,7 +2050,7 @@ Validate 中编写断言的形式如下：
 
 #### 4.6.2 response对象取值语法
 
-支持获取 response  对象的信息，如：
+支持直接获取 response  对象的信息，如：
 
 ```yaml
 - assert_code : ['status_code',200]
@@ -2067,7 +2087,31 @@ resp 是 response 的简写，表示通过jmespath获取response 响应体中的
 
 
 
-#### 4.6.5 自定义拓展函数
+#### 4.6.5 支持jinja2 模板过滤器语法
+
+通过 jinja2 我们可以修改变量的显示，对变量进行格式化、运算等，语法格式如下:
+
+```python
+${ var | filterA | filterB | ... }
+```
+
+jinja2 会将传入的变量 var 传递给第一个过滤器 fiterA；
+将过滤器 filterA 的输出作为输入，传递给第二个过滤器 filterB；
+以此类推，最后将过滤器 filterN的输出作为模板的输出。例如：
+
+```python
+# 字符串
+${"hello world" | replace ("world", "luban") | upper}
+# 输出结果为：HELLO LUBAN
+
+# 变量
+${lb_driver | replace ("chrome", "FIREFOX") | lower}
+# 输出结果为：firefox
+```
+
+
+
+#### 4.6.6 自定义拓展函数
 
 自定义拓展函数 `expand_function.py` 放在项目根目录下，做为拓展函数使用，默认支持 `python` 系统内置函数和 `luban_common.base_utils ` 框架内置的函数，如果不够用，可以拓展在  `expand_function.py` 中，在获取 `yaml` 用例时会获取和执行 `yaml` 中填写的函数，如：
 

@@ -7,7 +7,7 @@
 
 import time
 from luban_common import base_utils
-from luban_common import base_requests
+from luban_common import http_requests
 from luban_common.global_map import Global_Map
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
@@ -16,7 +16,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     '''
     # 当没有获取到平台配置信息时，不执行
     if Global_Map.get("testplatform") and Global_Map.get("testplatform").get("host"):
-        owner = base_requests.Send(Global_Map.get("testplatform").get("host"))
+        owner = http_requests.HttpRequests(Global_Map.get("testplatform").get("host"))
         # 定义测试结果
         total = terminalreporter._numcollected
         passed = len([i for i in terminalreporter.stats.get("passed", []) if i.when != "teardown"])
@@ -37,4 +37,4 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
             "duration": total_times
         }
         resource = "/addcddata"
-        owner.request("post",resource,body)
+        owner.send_request("post", resource, body)

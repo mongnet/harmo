@@ -5,7 +5,7 @@
 # @File : fixture_login.py
 
 import pytest
-from luban_common import base_requests
+from luban_common import http_requests
 from business import public_login
 from luban_common.global_map import Global_Map
 
@@ -33,7 +33,7 @@ def lbbv(iworks_app_cas):
     获取LBBV登录凭证
     :return:
     '''
-    LBBV = base_requests.Send(Global_Map.get('LBBV'))
+    LBBV = http_requests.HttpRequests(Global_Map.get('LBBV'))
     yield LBBV
 
 @pytest.fixture(scope='session')
@@ -42,7 +42,7 @@ def bimco(iworks_app_cas):
     获取BimCO登录凭证
     :return:
     '''
-    BimCO = base_requests.Send(Global_Map.get('bimco'))
+    BimCO = http_requests.HttpRequests(Global_Map.get('bimco'))
     yield BimCO
 
 @pytest.fixture(scope='session')
@@ -51,7 +51,7 @@ def process(iworks_app_cas):
     获取Process登录凭证
     :return:
     '''
-    Process = base_requests.Send(Global_Map.get('LBprocess'))
+    Process = http_requests.HttpRequests(Global_Map.get('LBprocess'))
     yield Process
 
 @pytest.fixture(scope='session')
@@ -60,7 +60,7 @@ def pds_common(iworks_app_cas):
     获取PDSCommon登录凭证
     :return:
     '''
-    PDSCommon = base_requests.Send(Global_Map.get('pdscommon'))
+    PDSCommon = http_requests.HttpRequests(Global_Map.get('pdscommon'))
     yield PDSCommon
 
 @pytest.fixture(scope='session')
@@ -69,7 +69,7 @@ def pds_doc(iworks_app_cas):
     获取pdsdoc登录凭证
     :return:
     '''
-    PDSDoc = base_requests.Send(Global_Map.get('pdsdoc'))
+    PDSDoc = http_requests.HttpRequests(Global_Map.get('pdsdoc'))
     yield PDSDoc
 
 @pytest.fixture(scope='session')
@@ -78,7 +78,7 @@ def builder_common_business_data(iworks_app_cas):
     获取BusinessData登录凭证
     :return:
     '''
-    builderCommonBusinessData = base_requests.Send(Global_Map.get('BuilderCommonBusinessdata'))
+    builderCommonBusinessData = http_requests.HttpRequests(Global_Map.get('BuilderCommonBusinessdata'))
     yield builderCommonBusinessData
 
 @pytest.fixture(scope='session')

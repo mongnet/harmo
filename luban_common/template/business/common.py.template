@@ -43,7 +43,7 @@ class Common:
         # UUID为空时，调用上传地址对文件进行上传
         if response.get('data_fileUUID')[0] is None:
             uploadUrl = response.get('data_uploadUrls')[0]
-            response = token.request("POST", uploadUrl, files={'file': open(filepath, 'rb')})
+            response = token.send_request("POST", uploadUrl, files={'file': open(filepath, 'rb')})
             Assertions.assert_code(response, response.get("status_code"), 200)
             fileUUID = response.get('uuid')[0]
         else:

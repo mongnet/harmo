@@ -4,10 +4,10 @@ TestDataCollections:
   - CaseName : 添加公司节点
     Tag : smoking
     Query :
-      parentId: '1'
+      parentId: ${time.time()}
       name: 'testapi公司'
-      nodeType: 'CMP'
-      contactPerson: 'testapi联系人'
+      nodeType: '{% raw %}raw hello ${var} world {% endraw %}'
+      contactPerson: ${lb_driver | replace ("chrome", "FIREFOX") | lower}
       mobile: ${generate_random_mail()}
       address: ${lb_driver}
     Validate :
@@ -21,7 +21,7 @@ TestDataCollections:
       name: 'testapi部门'
       nodeType: 'DEPT'
       contactPerson: 'testapi联系人'
-      mobile: '15800000001'
+      mobile: ${generate_random_mobile()}
       address: 'address联系地址'
     Validate :
       - assert_code : ['status_code',200]

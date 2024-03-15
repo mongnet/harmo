@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 # @TIME    : 2018/7/31 17:18
 # @Author  : hubiao
-# @File    : base_requests.py
+# @File    : http_requests.py
 import copy
 import json
 import logging
 import requests
 import urllib3
-from luban_common.global_map import Global_Map
-urllib3.disable_warnings()
 from mimetypes import MimeTypes
-from luban_common import base_utils
 from typing import Optional
+from luban_common import base_utils
+from luban_common.global_map import Global_Map
 
-class Send:
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+class HttpRequests(requests.Session):
     """
     发送请求类
     """
@@ -25,6 +26,7 @@ class Send:
         :param envConf：环境配置信息
         :param header：请求头信息
         """
+        super(HttpRequests, self).__init__()
         self.host = host
         self.session = requests.session()
         if header:
@@ -39,7 +41,7 @@ class Send:
             }
         self.pdsUrl = Global_Map.get("pds")
 
-    def request(self, method: str, url: str, payload=None, header: Optional[dict]=None, flush_header=False, files=None, params: Optional[dict]=None, cookies_kwargs: Optional[dict]=None,timeout=60,**kwargs):
+    def send_request(self, method: str, url: str, payload=None, header: Optional[dict]=None, flush_header=False, files=None, params: Optional[dict]=None, cookies_kwargs: Optional[dict]=None, timeout=60, **kwargs):
         """
         封装request方法，要求传三个参数
         :param method：请求的方式post,get,delete,put等
@@ -159,18 +161,18 @@ class Send:
         """
         try:
             # 保存cas和CASTGC Cookie，在cas地址进行302跳转时使用
-            if r.status_code == 200 and "Cookie" in r.request.headers.keys() and "CASTGC"in r.request.headers.get("Cookie") and self.pdsUrl in r.request.url:
+            if r.status_code == 200 and "Cookie" in r.send_request.headers.keys() and "CASTGC"in r.send_request.headers.get("Cookie") and self.pdsUrl in r.send_request.url:
                 # 保存cas和CASTGC Cookie，在cas地址进行302跳转时使用
-                Global_Map.set("CasCookie", r.request.headers.get("Cookie"))
+                Global_Map.set("CasCookie", r.send_request.headers.get("Cookie"))
             # 如果响应码是302，且location是cas地址的跳转时，要加上cas的cookie并跳转这个location，如果取到的CasCookie为False时不跳转
             elif r.status_code == 302 and "Location" in r.headers.keys() and self.pdsUrl in r.headers.get("Location") and Global_Map.get("CasCookie"):
                 header = self.header
                 header.update({"cookie":Global_Map.get("CasCookie")})
-                self.session.request(method=r.request.method, url=r.headers.get("Location"), headers=header,
+                self.session.request(method=r.send_request.method, url=r.headers.get("Location"), headers=header,
                                      timeout=60, verify=False)
         except BaseException as e:
             logging.error("302异常开始分割线start: ".center(60, "#"))
-            logging.error("302跳转Url: " + r.request.url)
+            logging.error("302跳转Url: " + r.send_request.url)
             logging.error("302跳转出现异常: " + str(e))
             logging.error("302异常结束分割线end: ".center(60, "#"))
 
