@@ -22,7 +22,7 @@ from luban_common import http_requests
 from pathlib2 import Path
 from bs4 import BeautifulSoup
 
-def getFileMD5(file_Path: str) -> Path:
+def getFileMD5(file_Path: str) -> str:
     '''
     传入文件路径，返回文件MD5
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -530,8 +530,9 @@ def file_absolute_path(rel_path: str) -> Path:
     new_path = Path(rel_path)
     if os.path.isfile(new_path):
         return os.path.abspath(new_path)
-    else:
-        raise FileNotFoundError(f"请确认 {new_path} 文件路径是否正确！")
+    _current_path = Config.project_root_dir  # os.path.abspath(os.path.dirname(__file__))
+    _file_path = os.path.join(_current_path, new_path)
+    return file_is_exist(_file_path)
 
 def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict) -> None:
     '''
