@@ -5,6 +5,8 @@
 # @File    : analysis_swagger.py
 import json
 import os
+from urllib.parse import urlparse
+
 import jsonpath
 import requests
 import copy
@@ -94,13 +96,22 @@ class AnalysisSwaggerJson():
         # 定义接口分组格式
         http_interface_group = {"config": {"name": "","name_en": "","host": "", "base_url": "", "version": ""},"groups": []}
         paths = res.get("paths")  # 取接口地址返回的path数据,包括了请求的路径
-        self.basePath = res.get("basePath") if res.get("basePath") else ""  # 获取接口的根路径
         self.version = res.get("openapi") if res.get("openapi") else res.get("swagger")
         # swagger
         if self.version.startswith("3"):
             self.components = res.get("components").get("schemas")  # body参数
         else:
             self.components = res.get("definitions")  # body参数
+        # 获取根路径
+        __basePath = jsonpath.jsonpath(res, '$..servers[?(@.url)]..url')
+        if __basePath:
+            web_old = urlparse(__basePath[0])
+            if len(web_old.path) == 1:
+                self.basePath = ""
+            else:
+                self.basePath =web_old.path
+        else:
+            self.basePath = res.get("basePath") if res.get("basePath") else ""  # 获取接口的根路径
         # 第一错，swagger文档是ip地址，使用https协议会错误,注意接口地址的请求协议
         host = "http://" + res.get("host") if res.get("host") else ""
         title = res.get("info").get("title")  # 获取接口的标题
@@ -131,6 +142,7 @@ class AnalysisSwaggerJson():
                 startswith_equal_path_list = []
                 if isinstance(uri_list,list):
                     file_name = ""
+                    uri_list = [self.basePath+uri for uri in uri_list if self.basePath]
                     for uri in uri_list:
                         k1 = uri.split("?")[0].replace("{", "").replace("}", "").split("/")[1:]
                         # print("k1:",k1)
@@ -139,14 +151,12 @@ class AnalysisSwaggerJson():
                             k2 = i.split("?")[0].replace("{", "").replace("}", "").split("/")[1:]
                             coincide_list.append(k2)
                             k1 = k1 if not list(sorted(set(k1).intersection(set(k2)), key=k1.index)) else list(sorted(set(k1).intersection(set(k2)), key=k1.index))
-                            # print(k1)
-                            # Todo url中没有相同项时,导致file_name为第一个接口的url
                         # 获取path中从头开始，匹配的path目录
                         startswith_equal_path_list = base_utils.coincide_list(coincide_list)
-                        file_name = "_".join(k1).replace("-", "_").title().replace("_", "")
+                        file_name = "_".join(k1).replace("-", "_")
                         break
-                    group["class_name"] = file_name
-                    group["file_name"] = file_name.capitalize()
+                    group["class_name"] = file_name.title().replace("_", "")
+                    group["file_name"] = file_name.lower()
                 for uri, value in list(tag_value.items()):
                     for method in list(value.keys()):
                         params = value[method]
@@ -188,7 +198,7 @@ class AnalysisSwaggerJson():
             "name_cn": "",
             "name_en": "",
             "uri": "",
-            "basePath": "",
+            "interface_basePath": "",
             "method": "",
             "produces": "",
             "headers": {},
@@ -217,7 +227,7 @@ class AnalysisSwaggerJson():
         name = params.get("summary").replace("/", "_") if params.get("summary") else params.get("operationId")
         http_interface["name_cn"] = name
         # 通过url生成测试方法名，path中相同的前部分会被去掉
-        repuris = [u.replace("{", "").replace("}", "").replace("_", "") for u in uri.split("/")[len(startswith_equal_path_list)+1 if len(uri.split("/")) > 2 else len(startswith_equal_path_list):]]
+        repuris = [u.replace("{", "").replace("}", "").replace("_", "") for u in uri.split("/")]
         # 原序去重、去空
         sort_repuri = [repuris for repuris in list(set(repuris)) if repuris != '']
         sort_repuri.sort(key=repuris.index)
@@ -232,7 +242,7 @@ class AnalysisSwaggerJson():
         http_interface["name_en"] = name_en
         http_interface["method"] = method.upper()
         http_interface["uri"] = uri
-        http_interface["basePath"] = self.basePath
+        http_interface["interface_basePath"] = self.basePath
         # 调试用
         # if name != "创建Acl":
         #     return

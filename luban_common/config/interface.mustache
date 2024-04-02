@@ -23,7 +23,7 @@ class {{class_name}}:
         :param body_kwargs: body if body_kwargs is None else body_kwargs
         {{/ body}}
         """
-        resource = f"{{project}}{{uri}}"
+        resource = f"{{interface_basePath}}{{uri}}"
         {{# body}}
         body = {{{body}}}
         body_kwargs = body if body_kwargs is None else body_kwargs

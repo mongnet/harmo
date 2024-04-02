@@ -8,6 +8,8 @@ import re
 import chevron
 from cleo.commands.command import Command
 from cleo.helpers import argument, option
+from luban_common import base_utils
+
 from luban_common.global_map import Global_Map
 from pathlib2 import Path
 
@@ -37,7 +39,7 @@ class CasesCommand(Command):
         option(
             "project",
             "p",
-            description="项目名或 basePath 地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选",
+            description="项目名或 basePath 地址，如指定会替换basePath地址并把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选",
             flag=False
         ),
         option(
@@ -177,11 +179,12 @@ class CasesCommand(Command):
                                 if self.option("project"):
                                     # add project
                                     if self.option("project").startswith("/"):
-                                        interfaces = chevron.render(mustache, {**group, **{"project":self.option("project")}})
+                                        base_utils.recursion_replace_dict_key_value(group, {
+                                            "interface_basePath": self.option("project")})
                                     else:
-                                        interfaces = chevron.render(mustache, {**group, **{"project": "".join(["/",self.option("project")])}})
-                                else:
-                                    interfaces = chevron.render(mustache, group)
+                                        base_utils.recursion_replace_dict_key_value(group, {
+                                            "interface_basePath": ''.join(["/", self.option("project")])})
+                                interfaces = chevron.render(mustache, group)
                                 interface_file = path/f'{group["file_name"]}.py'
                                 interfaces = interfaces.replace("'$", "").replace("$'", "").replace("$", "")
                                 for match in replace_text.get("matchs"):

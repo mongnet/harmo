@@ -536,7 +536,7 @@ def file_absolute_path(rel_path: str) -> Path:
 
 def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict) -> None:
     '''
-    递归替换字典值
+    递归替换字典，根据value值替换value的值
     example:
         source = {"ex": null,"state": false,"age": 38}
         replaceDict = {"null": None,"false": False}
@@ -557,6 +557,33 @@ def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict) ->
             else:
                 for checkValue, replaceValue in replaceDict.items():
                     if str(value) == str(checkValue):
+                        source[key] = replaceValue
+    else:
+        pass
+
+def recursion_replace_dict_key_value(source: Union[dict,list], replaceDict: dict) -> None:
+    '''
+    递归替换字典，根据key名替换key的值
+    example:
+        source = {"ex": null,"state": false,"age": 38}
+        replaceDict = {"ex": None,"state": False}
+        result = {"ex": None,"state": False,"age": 38}
+    :param source: 需要替换的字典或字典组成的列表
+    :param replaceDict: 要检查并替换的字段，key为要检查的key名，value为需要替换的值
+    :return:
+    '''
+    if not isinstance(replaceDict,dict):
+        raise TypeError("replaceDict 必需是dict类型")
+    if isinstance(source, list):
+        for item in source:
+            recursion_replace_dict_key_value(item,replaceDict)
+    elif isinstance(source, dict):
+        for key, value in source.items():
+            if isinstance(value, dict) or isinstance(value, list):
+                recursion_replace_dict_key_value(value, replaceDict)
+            else:
+                for checkey, replaceValue in replaceDict.items():
+                    if str(key) == str(checkey):
                         source[key] = replaceValue
     else:
         pass
@@ -632,17 +659,23 @@ if __name__ == "__main__":
     # print(UnixToTime(unix=1662432740))
     # print(UnixToTime(unix=1494325882000))
     # print(UnixToTime(unix=getUnix(date='2019-12-31 18:31:22', day=2)))
-    print(file_absolute_path('../data/Quality_check_lib.xls'))
-    print(file_absolute_path('D:/Automation\\standard_polling/data/Quality_check_lib.xls'))
-    print(file_is_exist('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
-    print(getFileMD5('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
-    # a = {"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}
-    # alist = [{"name":"mongnet","ex1":False,"age":37},{"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}]
-    # rep = {37:38,False:True,"wgj":"mong"}
-    # print(recursion_replace_dict_value(a,rep))
-    # print(recursion_replace_dict_value(alist,rep))
+    # print(file_absolute_path('../data/Quality_check_lib.xls'))
+    # print(file_absolute_path('D:/Automation\\standard_polling/data/Quality_check_lib.xls'))
+    # print(file_is_exist('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
+    # print(getFileMD5('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
+    source = {"ex": 1, "state": "false", "age": 38, "shool":{"name":"wgj"}}
+    replaceDict = {"ex": None, "state": False, "shool": 38, "age":20, "name":"hubiao"}
+    a = {"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}
+    alist = [{"name":"mongnet","ex1":False,"age":37},{"name": "hubiao", "age": 37, "age2": "37", "ex": "null",  "ex2": False, "shool":{"name":"wgj"}}]
+    rep = {37:38,False:True,"wgj":"mong"}
+    # recursion_replace_dict_value(a,rep)
+    # recursion_replace_dict_value(alist,rep)
     # print(a)
     # print(alist)
+    recursion_replace_dict_key_value(source,replaceDict)
+    recursion_replace_dict_key_value(alist,replaceDict)
+    print(source)
+    print(alist)
     # TextLineContains(f"http://etlview.lbuilder.cn/center-new/config.js", "serviceUrl", f"http://etlview.lbuilder.cn/api","etlview config.js 配置未修改")
 
 
