@@ -94,7 +94,7 @@ class AnalysisSwaggerJson():
 
     def __analysis(self, swaggerUrl: str, res: dict):
         # 定义接口分组格式
-        http_interface_group = {"config": {"name": "","name_en": "","host": "", "base_url": "", "version": ""},"groups": []}
+        http_interface_group = {"config": {"name": "","name_en": "", "base_url": "", "version": ""},"groups": []}
         paths = res.get("paths")  # 取接口地址返回的path数据,包括了请求的路径
         self.version = res.get("openapi") if res.get("openapi") else res.get("swagger")
         # swagger
@@ -105,20 +105,20 @@ class AnalysisSwaggerJson():
         # 获取根路径
         __basePath = jsonpath.jsonpath(res, '$..servers[?(@.url)]..url')
         if __basePath:
-            web_old = urlparse(__basePath[0])
-            if len(web_old.path) == 1:
+            server_url = urlparse(__basePath[0])
+            if len(server_url.path) == 1:
                 self.basePath = ""
             else:
-                self.basePath =web_old.path
+                self.basePath =server_url.path
+            self.base_url = f"{server_url.scheme}://{server_url.netloc}"
         else:
             self.basePath = res.get("basePath") if res.get("basePath") else ""  # 获取接口的根路径
-        # 第一错，swagger文档是ip地址，使用https协议会错误,注意接口地址的请求协议
-        host = "http://" + res.get("host") if res.get("host") else ""
+            server_url = urlparse(swaggerUrl)
+            self.base_url = f"{server_url.scheme}://{server_url.netloc}"
         title = res.get("info").get("title")  # 获取接口的标题
         http_interface_group["config"]["name"] = title  # 在初始化用例集字典更新值
-        http_interface_group["config"]["name_en"] = swaggerUrl.split("/")[3].lower().replace("-", "_") if swaggerUrl.startswith("http") else swaggerUrl.split("/")[1].lower().replace("-", "_")
-        http_interface_group["config"]["host"] = host
-        http_interface_group["config"]["base_url"] = self.basePath
+        http_interface_group["config"]["name_en"] = self.basePath.replace("/","")
+        http_interface_group["config"]["base_url"] = self.base_url
         http_interface_group["config"]["version"] = self.version
         if isinstance(paths, dict):  # 判断接口返回的paths数据类型是否dict类型
             # 获取全部path的tag名称,按tag分组

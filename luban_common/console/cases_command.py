@@ -25,17 +25,23 @@ class CasesCommand(Command):
         argument(
             "swagger-url-json",
             description="swagger url 地址（必须要是json地址），必填"
-        ),
-        argument(
-            "project-directory",
-            description="生成的接口方法存放的目录，通常为接口项目目录，必填"
-        ),
-        argument(
-            "case-directory",
-            description="生成的测试用例存放的目录，通常为用例存放目录，必填"
         )
     ]
     options = [
+        option(
+            "project-directory",
+            "d",
+            description="生成的接口方法存放的目录，通常为接口项目目录，可选",
+            default=None,
+            flag=False
+        ),
+        option(
+            "case-directory",
+            "c",
+            description="生成的测试用例存放的目录，通常为用例存放目录，可选",
+            default=None,
+            flag=False
+        ),
         option(
             "project",
             "p",
@@ -70,6 +76,16 @@ class CasesCommand(Command):
     ]
 
     def handle(self):
+        # get replace config file
+        replace_text = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
+        # get header set header
+        __headers = self.option("header")
+        __header = {}
+        if __headers:
+            for h in __headers:
+                __tem_header = h.split(":",1)
+                if len(__tem_header) == 2 and len(__tem_header[0].strip()) > 0 and len(__tem_header[1].strip()) > 0:
+                    __header.update({__tem_header[0].strip():__tem_header[1].strip()})
         excludes = ["None", "null", "false", "true", "undefined"]
         if self.option("project") is not None:
             if self.option("project").lower() in [exclude.lower() for exclude in excludes]:
@@ -82,46 +98,48 @@ class CasesCommand(Command):
                 f'Destination <fg=yellow>{self.option("token")}</> '
                 "token option cannot be None,null,false,true,undefined"
             )
-        swagger_directory = self.argument("project-directory").split("/")[1:] if self.argument("project-directory").startswith("/") else self.argument("project-directory").split("/")
-        for case in range(len(swagger_directory)):
-            if len(swagger_directory[case]) == 0:
-                continue
-            ret = re.findall(f'[:*?"<>|]',swagger_directory[case])
-            if ret:
-                raise RuntimeError(
-                    f'Destination <fg=yellow>{self.argument("project-directory")}</> '
-                    "The swagger directory Contains illegal characters, "
-                    f"Illegal characters: {ret}"
-                )
-        case_directory = self.argument("case-directory").split("/")[1:] if self.argument("case-directory").startswith("/") else self.argument("case-directory").split("/")
-        for case in range(len(case_directory)):
-            if len(case_directory[case]) == 0:
-                continue
-            ret = re.findall(f'[:*?"<>|]',case_directory[case])
-            if ret:
-                raise RuntimeError(
-                    f'Destination <fg=yellow>{self.argument("project-directory")}</> '
-                    "The case directory Contains illegal characters, "
-                    f"Illegal characters: {ret}"
-                )
-        replace_text = yaml_file.get_yaml_data(f"{os.path.dirname(os.path.realpath(__file__))}/../config/parameConfig.yaml")
-        swaggerIsEmpty = True
-        caseIsEmpty = True
+        if self.option("project-directory") is not None:
+            swagger_directory = self.option("project-directory").split("/")[1:] if self.option("project-directory").startswith("/") else self.option("project-directory").split("/")
+            for case in range(len(swagger_directory)):
+                if len(swagger_directory[case]) == 0:
+                    continue
+                ret = re.findall(f'[:*?"<>|]',swagger_directory[case])
+                if ret:
+                    raise RuntimeError(
+                        f'Destination <fg=yellow>{self.option("project-directory")}</> '
+                        "The swagger directory Contains illegal characters, "
+                        f"Illegal characters: {ret}"
+                    )
+        else:
+            swagger_directory = None
+        if self.option("case-directory") is not None:
+            case_directory = self.option("case-directory").split("/")[1:] if self.option("case-directory").startswith("/") else self.option("case-directory").split("/")
+            for case in range(len(case_directory)):
+                if len(case_directory[case]) == 0:
+                    continue
+                ret = re.findall(f'[:*?"<>|]',case_directory[case])
+                if ret:
+                    raise RuntimeError(
+                        f'Destination <fg=yellow>{self.option("case-directory")}</> '
+                        "The case directory Contains illegal characters, "
+                        f"Illegal characters: {ret}"
+                    )
+        else:
+            case_directory = None
         js = AnalysisSwaggerJson()
-        __headers = self.option("header")
-        __header = {}
-        if __headers:
-            for h in __headers:
-                __tem_header = h.split(":",1)
-                if len(__tem_header) == 2 and len(__tem_header[0].strip()) > 0 and len(__tem_header[1].strip()) > 0:
-                    __header.update({__tem_header[0].strip():__tem_header[1].strip()})
         dataList = js.analysis_json_data(swaggerUrl=self.argument("swagger-url-json"),header=__header)
+        caseIsEmpty = True
+        swaggerIsEmpty = True
         for data in dataList:
             if not isinstance(data,dict):
                 raise RuntimeError(
                     f'Destination <fg=yellow>{self.argument("swagger-url-json")}</>'
                     "The data must be dict"
                 )
+            if swagger_directory is None:
+                swagger_directory = [data.get("config").get("name_en")]
+            if case_directory is None:
+                case_directory = [data.get("config").get("name_en")]
             # Generate swagger script
             Global_Map().set("prompt", False)
             Global_Map().set("replace", False)
