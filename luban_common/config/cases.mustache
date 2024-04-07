@@ -16,6 +16,7 @@ class Test_{{class_name}}:
     """
 
     {{# interfaces}}
+    @pytest.mark.skip("default skip")
     @allure.title("{{name_cn}}")
     def test_{{name_en}}(self, {{token}}):
         """

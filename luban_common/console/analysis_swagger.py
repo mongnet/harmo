@@ -142,10 +142,10 @@ class AnalysisSwaggerJson():
                 startswith_equal_path_list = []
                 if isinstance(uri_list,list):
                     file_name = ""
+                    # 避免文件名重复
                     uri_list = [self.basePath+uri for uri in uri_list if self.basePath]
                     for uri in uri_list:
                         k1 = uri.split("?")[0].replace("{", "").replace("}", "").split("/")[1:]
-                        # print("k1:",k1)
                         coincide_list = []
                         for i in uri_list:
                             k2 = i.split("?")[0].replace("{", "").replace("}", "").split("/")[1:]
@@ -153,7 +153,7 @@ class AnalysisSwaggerJson():
                             k1 = k1 if not list(sorted(set(k1).intersection(set(k2)), key=k1.index)) else list(sorted(set(k1).intersection(set(k2)), key=k1.index))
                         # 获取path中从头开始，匹配的path目录
                         startswith_equal_path_list = base_utils.coincide_list(coincide_list)
-                        file_name = "_".join(k1).replace("-", "_")
+                        file_name = "_".join(startswith_equal_path_list).replace("-", "_")
                         break
                     group["class_name"] = file_name.title().replace("_", "")
                     group["file_name"] = file_name.lower()
@@ -466,27 +466,30 @@ class AnalysisSwaggerJson():
             http_interface["params_description_list"] = params_description
 
         # 处理responses
-        responses = params.get("responses")
-        for key, value in responses.items():
-            schema = value.get("schema")
-            if schema:
-                ref = schema.get("$ref")
-                if ref:
-                    param_key = schema.get("originalRef") if schema.get("originalRef") else ref.split("/")[-1]
-                    res = self.components.get(param_key).get("properties")
-                    i = 0
-                    for k, v in res.items():
-                        if "example" in v.keys():
-                            http_interface["validate"].append({"eq": []})
-                            http_interface["validate"][i]["eq"].append({k:v.get("example")})
-                            http_interface["validate"][i]["eq"].append({"description":v.get("description")})
-                            # http_interface["validate"][i]["eq"].append("content." + k)
-                            # http_interface["validate"][i]["eq"].append(v.get("example"))
-                            # http_interface["validate"][i]["eq"].append(v.get("description"))
-                            i += 1
-            #     else:
-            #         if len(http_interface["validate"]) != 1:
-            #             http_interface["validate"].append({"eq": []})
+        # responses = params.get("responses")
+        # for key, value in responses.items():
+        #     schema = value.get("schema")
+        #     description = value.get("description")
+        #     if description == "OK":
+        #         if schema:
+        #             ref = schema.get("$ref")
+        #             if ref:
+        #                 param_key = schema.get("originalRef") if schema.get("originalRef") else ref.split("/")[-1]
+        #                 res = self.components.get(param_key).get("properties")
+        #                 i = 0
+        #                 for k, v in res.items():
+        #                     if "example" in v.keys():
+        #                         print("res",res)
+        #                         http_interface["validate"].append({"eq": []})
+        #                         http_interface["validate"][i]["eq"].append({k:v.get("example")})
+        #                         http_interface["validate"][i]["eq"].append({"description":v.get("description")})
+        #                         # http_interface["validate"][i]["eq"].append("content." + k)
+        #                         # http_interface["validate"][i]["eq"].append(v.get("example"))
+        #                         # http_interface["validate"][i]["eq"].append(v.get("description"))
+        #                         i += 1
+                #     else:
+                #         if len(http_interface["validate"]) != 1:
+                #             http_interface["validate"].append({"eq": []})
             # else:
             #     if len(http_interface["validate"]) != 1:
             #         http_interface["validate"].append({"eq": []})
