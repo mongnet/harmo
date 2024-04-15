@@ -176,7 +176,7 @@ class AnalysisSwaggerJson():
                         interface_group["name"] = "_".join([interface_group.get("name"),group.get("name")])
                         interface_group["interfaces"].extend(group.get("interfaces"))
                         continue
-                # 校验同一个分组中是否有相同的name_en，如有相同的会导致方法同名
+                # 校验同一个分组中是否有相同的name_en，如有会导致方法同名
                 repetition = {"方法名 "+key: "重复了 "+str(value)+" 次" for key, value in dict(Counter(jsonpath.jsonpath(group.get("interfaces"),"$..name_en"))).items() if value > 1}
                 if repetition:
                     assert False, f"生成的接口方法名出现重名：{repetition}"
@@ -213,7 +213,6 @@ class AnalysisSwaggerJson():
             "query_params_kwargs": [],
             "path_params": {},
             "path_params_args": [],
-            "path_params_kwargs": [],
             "cookie_params": {},
             "cookie_params_args": [],
             "cookie_params_kwargs": [],
@@ -429,12 +428,10 @@ class AnalysisSwaggerJson():
         # 把 path_params 的 key 组装成新的 path_params_url ,生成用例时添加成测试方法的参数
         if "path_params" in http_interface.keys() and http_interface["path_params"]:
             args = []
-            kwargs = []
             http_interface["path_params_field_type"] = copy.deepcopy(http_interface["path_params"])
             for key, value in http_interface["path_params"].items():
-                self.__wash_body(key, http_interface["path_params"], args, kwargs, parameters_form="path")
+                args.append(key)
             http_interface["path_params_args"] = list(set(args))
-            http_interface["path_params_kwargs"] = list(set(kwargs))
         # 把 cookie_params 的 key 组装成新的 cookie_params_url ,生成用例时添加成测试方法的参数
         if "cookie_params" in http_interface.keys() and http_interface["cookie_params"]:
             args = []
@@ -455,9 +452,9 @@ class AnalysisSwaggerJson():
             http_interface["body_params_kwargs"] = (list(set(self.kwargs)) if http_interface["body_params_kwargs"]==[] else http_interface["body_params_kwargs"])
         # 把 args、kwargs 组装在一起，方便后续调用
         http_interface["params_args"] = list(set(http_interface["path_params_args"] + http_interface["cookie_params_args"] + http_interface["query_params_args"] + http_interface["formData_params_args"] + http_interface["body_params_args"]))
-        http_interface["params_kwargs"] = list(set(http_interface["path_params_kwargs"]+http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"]+ http_interface["formData_params_kwargs"] + http_interface["body_params_kwargs"]))
+        http_interface["params_kwargs"] = list(set(http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"]+ http_interface["formData_params_kwargs"] + http_interface["body_params_kwargs"]))
         http_interface["params_args_nobody"] = list(set(http_interface["path_params_args"] + http_interface["cookie_params_args"] + http_interface["query_params_args"]  + http_interface["formData_params_args"]))
-        http_interface["params_kwargs_nobody"] = list(set(http_interface["path_params_kwargs"]+http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"] + http_interface["formData_params_kwargs"]))
+        http_interface["params_kwargs_nobody"] = list(set(http_interface["cookie_params_kwargs"] + http_interface["query_params_kwargs"] + http_interface["formData_params_kwargs"]))
         # 把 params_description 组装成 params_description_list 生成用例时,生成字段备注使用
         if "params_description" in http_interface.keys():
             params_description = []
@@ -655,7 +652,7 @@ class AnalysisSwaggerJson():
                 if self.default_parame[arg].startswith("$") and self.default_parame[arg].endswith("$"):
                     kwarg = self.default_parame[arg]
                 else:
-                    # 如果是字符串常量必须要加引号
+                    # 如果是字符串常量须要加引号
                     kwarg = f'"{self.default_parame[arg]}"'
             list_kwargs.append(arg + "=" + kwarg)
         # 当类型为boolean时，默认设置为False
@@ -694,6 +691,8 @@ if __name__ == "__main__":
     url42 = "http://192.168.13.178:8182/ent-admin/v3/api-docs/%E4%B8%9A%E5%8A%A1%E6%8E%A5%E5%8F%A3"
     url43 = "https://sg.luban.fit/x-auth-server/swagger/json"
     url44 = "http://192.168.13.172:19900/auth/v3/api-docs/%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3"
+    url45 = "http://192.168.13.172:19902/ent-admin-user/v3/api-docs/swagger-config"
+    url46 = "http://192.168.13.172:18000/process/v3/api-docs"
 
 
 
@@ -721,4 +720,6 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url41))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url42,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url43))
-    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url44))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url44))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url45))
+    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url46))

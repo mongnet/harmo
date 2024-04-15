@@ -137,9 +137,9 @@ class CasesCommand(Command):
                     "The data must be dict"
                 )
             if swagger_directory is None:
-                swagger_directory = [data.get("config").get("name_en")]
+                swagger_directory = [data.get("config").get("name_en").replace("-","_")]
             if case_directory is None:
-                case_directory = [data.get("config").get("name_en")]
+                case_directory = [data.get("config").get("name_en").replace("-","_")]
             # Generate swagger script
             Global_Map().set("prompt", False)
             Global_Map().set("replace", False)

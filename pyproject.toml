@@ -36,6 +36,7 @@ pytest-playwright = "^0.4.3"
 sqlalchemy = "^2.0.23"
 jsonschema = "^4.20.0"
 genson = "^1.2.2"
+pyjwt = "^2.8.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.4"

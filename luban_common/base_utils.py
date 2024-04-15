@@ -8,10 +8,9 @@ import calendar
 import hashlib
 import hmac
 import os
-import random
-import re
+import secrets
+import string
 import uuid
-import requests
 import subprocess
 import time
 import jsonpath
@@ -240,8 +239,7 @@ def generate_random_str(randomlength: int = 8) -> str:
     :param randomlength: 默认生成的字符串长度为8位
     :return: 返回随机字符串
     '''
-    base_str = 'ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789'
-    return "".join(random.choice(base_str) for i in range(randomlength))
+    return "".join(secrets.choice(string.ascii_letters + string.digits) for i in range(randomlength))
 
 def generate_random_mail() -> str:
     '''
@@ -249,7 +247,7 @@ def generate_random_mail() -> str:
     :return: 返回随机邮件地址
     '''
     postfix = ["163.com", "126.com", "qq.com", "yahoo.com.cn"]
-    return generate_random_str() + "@" + random.choice(postfix)
+    return generate_random_str() + "@" + secrets.choice(postfix)
 
 def generate_random_mobile() -> str:
     '''
@@ -261,7 +259,25 @@ def generate_random_mobile() -> str:
               "170", "172", "173", "174", "176", "177", "178", "180", "181", "182", "183", "184", "185", "186", "187",
               "188", "189",
               "191","198", "199"]
-    return random.choice(prefix) + "".join(random.choice("0123456789") for i in range(8))
+    return secrets.choice(prefix) + ''.join(secrets.choice(string.digits) for _ in range(8))
+
+def generate_random_serial_numbers(length: int,num: int) -> list:
+    """
+    生成随机流水号
+    :param length: 流水号长度
+    :param num: 流水号数量
+    :return: 包含 num 个长度为 length 的随机数字列表
+    """
+    if length <= 0:
+        raise ValueError("流水号长度必须大于0。")
+    if num <= 0:
+        raise ValueError("流水号数量必须大于0。")
+    random_digits = []
+    for _ in range(num):
+        # 生成一个指定长度的随机数字字符串
+        random_number = ''.join(secrets.choice(string.digits) for _ in range(length))
+        random_digits.append(random_number)
+    return random_digits
 
 def dict_generator(indict, pre=None):
     '''

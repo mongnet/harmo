@@ -92,7 +92,7 @@ class SwaggerCommand(Command):
                     "The data must be dict"
                 )
             if swagger_directory is None:
-                swagger_directory = [data.get("config").get("name_en")]
+                swagger_directory = [data.get("config").get("name_en").replace("-","_")]
             # Generate swagger script
             Global_Map().set("prompt", False)
             Global_Map().set("replace", False)

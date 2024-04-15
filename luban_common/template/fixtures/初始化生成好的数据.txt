@@ -1,19 +1,10 @@
-下面是初始化时会保存在Global_Map中的数据，可直接引用，引用方式为 Global_Map.get("变量名")，
-如：Global_Map.get("rootid")，就可获取到集团节点id，因为生成这些数据需要消耗一些时间，所以在
-调试时，可把 pytest.ini 中的 is_local 设置为 True ，这样就可跳过初始化，使用已存在的数据进行
-调试，但一定要确保至少完整执行过一次代码，或也可在 config/global/ 下创建yaml文件配置好这些变量的值，
-框架在执行时会获取 config/global/ 下全部的yaml文件数据并存放在Global_Map中
+下面是初始化时会保存在Global_Map中的数据，引用方式为 Global_Map.get("变量名")，如：Global_Map.get("cmp_node_id")，就可获取到分公司id
 
-epid: 企业id
-enterpriseName: 企业名称
-deployType: 是否云部署，true为云部署
-rootid: 集团节点id
-orgid: 分公司节点id
-postId: 岗位id
-roleId: 角色id
-infraDeptId: 基建项目id
-infraBidId: 基建标段id
-deptid: 房建项目id
-bidid: 房建标段id
-itemid: 房建单项id
-unitid: 房建单位id
+ent_node_id: 企业id
+cmp_node_id: 分公司id
+supplier_node_id: 供应商id
+proj_node_id: 项目id
+section_node_id: 标段id
+role_id: 角色id
+post_id: 职务id
+user_id: 用户id

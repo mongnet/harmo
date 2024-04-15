@@ -28,7 +28,7 @@ defaultParame:
  parentNodeId: "" # 父节点，如果父节点为项目部传空字符串
  prevNodeId: -1 # 排序时的上一个节点id, 没有则传-1
 
-# 替换脚本文件内容，会用到 body 请求体中，比如有些排序参数，没有指定参数时需要有默认处理方式，用替换方式简单、快速、直接
+# 替换脚本文件内容，应用到 body 请求体中，比如有些排序参数，没有指定参数时需要有默认处理方式，用替换方式简单、快速、直接
 matchs:
  -
   name: "排序"
@@ -42,6 +42,10 @@ matchs:
   name: "文件列表"
   match: "'uuid': uuid}]"
   replace: "'uuid': uuid}] if uuid is not None else []"
+ -
+  name: "文件列表"
+  match: "'fileSize': fileSize, 'fileMd5': fileMd5, 'id': id}]"
+  replace: "'fileSize': fileSize, 'fileMd5': fileMd5, 'id': id}] if fileUuid is not None else []"
  -
   name: "缩略图文件列表"
   match: "'thumbnailUuid': thumbnailUuid}]"
@@ -62,3 +66,19 @@ matchs:
   name: "质检表单"
   match: "[{'inspectionCode': inspectionCode, 'inspectionId': inspectionId, 'inspectionName': inspectionName}]"
   replace: "[{'inspectionCode': inspectionCode, 'inspectionId': inspectionId, 'inspectionName': inspectionName}] if inspectionId is not None else []"
+ -
+  name: "参建单位"
+  match: "'contactName': contactName, 'contactPhone': contactPhone}]"
+  replace: "'contactName': contactName, 'contactPhone': contactPhone}] if supplierId is not None else []"
+ -
+  name: "流程节点过期规则"
+  match: "'entityType': entityType, 'entityTypeId': entityTypeId, 'tag': tag}]"
+  replace: "'entityType': entityType, 'entityTypeId': entityTypeId, 'tag': tag}] if supplierId is not None else []"
+ -
+  name: "流程节点属性"
+  match: "'assigneeEntityType': assigneeEntityType, 'assigneeEntityTypeId': assigneeEntityTypeId}]"
+  replace: "'assigneeEntityType': assigneeEntityType, 'assigneeEntityTypeId': assigneeEntityTypeId}] if supplierId is not None else []"
+ -
+  name: "参建单位"
+  match: "'key': key, 'value': value, 'fullData': fullData}]"
+  replace: "'key': key, 'value': value, 'fullData': fullData}] if supplierId is not None else []"

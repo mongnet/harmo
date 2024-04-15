@@ -33,7 +33,7 @@ class HttpRequests(requests.Session):
         if re.compile(r"(http)(s?)(://)").match(base_url):
             self.base_url = base_url
         else:
-            raise exceptions.ParserError("base url do yo mean http:// or https://!")
+            raise exceptions.ParserError("base url do you mean http:// or https://!")
         self.session = requests.session()
         if header:
             self.header = json.loads(header) if not isinstance(header, dict) else header
