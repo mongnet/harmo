@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "luban_common"
-version = "3.3.12"
+version = "3.3.13"
 description = "鲁班API基础库"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
 readme = ["README.md"]
 homepage = "https://github.com/mongnet/luban_common"
 repository = "https://github.com/mongnet/luban_common"
-keywords = ["api", "Testing", "pytest", "luban_common"]
+keywords = ["api", "swagger", "pytest", "luban_common"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -26,20 +26,20 @@ pytest-metadata = "3.0.0"
 jinja2 = "^3.1.2"
 jmespath = "^1.0.1"
 pytest-html = "^4.1.1"
-pytest = "^7.4.3"
+pytest = "^8.2.0"
 requests = "^2.31.0"
 jsonpath = "^0.82.2"
 allure-pytest = "^2.13.2"
 beautifulsoup4 = "^4.12.2"
 playwright = "^1.40.0"
-pytest-playwright = "^0.4.3"
+pytest-playwright = "^0.4.4"
 sqlalchemy = "^2.0.23"
 jsonschema = "^4.20.0"
 genson = "^1.2.2"
 pyjwt = "^2.8.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^7.4"
+pytest = "^8.2"
 
 [tool.poetry.scripts]
 luban = "luban_common.console:main"
@@ -47,13 +47,13 @@ luban = "luban_common.console:main"
 [[tool.poetry.source]]
 name = "aliyun"
 url = "http://mirrors.aliyun.com/pypi/simple/"
-priority = "default"
+priority = "primary"
 
 [tool.poetry.plugins."pytest11"]
 "plugin" = "luban_common.plugin"
 "fixture" = "luban_common.fixture"
 
 [build-system]
-requires = ["poetry>=1.3"]
+requires = ["poetry>=1.8"]
 build-backend = "poetry.masonry.api"
 

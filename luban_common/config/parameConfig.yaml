@@ -73,12 +73,16 @@ matchs:
  -
   name: "流程节点过期规则"
   match: "'entityType': entityType, 'entityTypeId': entityTypeId, 'tag': tag}]"
-  replace: "'entityType': entityType, 'entityTypeId': entityTypeId, 'tag': tag}] if supplierId is not None else []"
+  replace: "'entityType': entityType, 'entityTypeId': entityTypeId, 'tag': tag}] if key is not None else []"
  -
   name: "流程节点属性"
   match: "'assigneeEntityType': assigneeEntityType, 'assigneeEntityTypeId': assigneeEntityTypeId}]"
-  replace: "'assigneeEntityType': assigneeEntityType, 'assigneeEntityTypeId': assigneeEntityTypeId}] if supplierId is not None else []"
+  replace: "'assigneeEntityType': assigneeEntityType, 'assigneeEntityTypeId': assigneeEntityTypeId}] if key is not None else []"
  -
-  name: "参建单位"
-  match: "'key': key, 'value': value, 'fullData': fullData}]"
-  replace: "'key': key, 'value': value, 'fullData': fullData}] if supplierId is not None else []"
+  name: "实体变更列表"
+  match: "'fullData': fullData}]"
+  replace: "'fullData': fullData}] if fullData is not None else []"
+ -
+  name: "files列表"
+  match: "'empty': empty}]"
+  replace: "'empty': empty}] if empty is not None else []"
