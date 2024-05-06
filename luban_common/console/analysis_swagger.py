@@ -5,6 +5,7 @@
 # @File    : analysis_swagger.py
 import json
 import os
+import re
 from urllib.parse import urlparse
 
 import jsonpath
@@ -12,6 +13,7 @@ import requests
 import copy
 from collections import Counter
 from typing import Optional
+from pathlib import Path
 from luban_common import base_utils
 from luban_common.operation import yaml_file
 
@@ -42,24 +44,24 @@ class AnalysisSwaggerJson():
         self.url = swaggerUrl
         try:
             http_interface_groups =[]
-            if self.url.startswith("http"):
+            if re.compile(r"(http)(s?)(://)").match(self.url):
                 if header:
                     self.header.update(json.loads(header) if not isinstance(header, dict) else header)
                 response = requests.get(self.url, headers=self.header)
                 assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
                 swagger_res = response.json()
-            elif self.url.endswith(".json"):
+            elif Path(self.url).is_file() and self.url.endswith(".json"):
                 swaggerfile = open(base_utils.file_absolute_path(self.url),'r',encoding='utf-8-sig')
                 swagger_res = json.loads(swaggerfile.read())
             else:
-                raise ValueError(f"error: 不是一个有效的swagger地址或文件")
+                raise ValueError(f"error: 不是一个有效的swagger地址或文件(swagger地址必须以http或http开头,文件必须以.json结尾)")
             if isinstance(swagger_res,dict):
                 if swagger_res.get("urls"):
                     print(f"这是一个 swagger-groups, 共有 {len(swagger_res.get('urls'))} 个group")
                     for i in swagger_res.get("urls"):
                         print(f"正在处理第 {swagger_res.get('urls').index(i)+1} 个")
                         if isinstance(i, dict) and i.get("url"):
-                            response = requests.get(self.url.split(f"{swagger_res.get('configUrl')}",1)[0] + i.get("url"), headers=header)
+                            response = requests.get(self.url.split(f"{swagger_res.get('configUrl')}",1)[0] + i.get("url"), headers=self.header)
                             assert response.status_code == 200, f"连接请求失败，HTTP状态码为{response.status_code}"
                             res = response.json()
                             if res.get("paths"):
@@ -77,7 +79,7 @@ class AnalysisSwaggerJson():
                 for i in swagger_res:
                     print(f"正在处理第 {swagger_res.index(i)+1} 个")
                     if isinstance(i,dict) and i.get("url"):
-                        response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"), headers=header)
+                        response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"), headers=self.header)
                         assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
                         res = response.json()
                         if res.get("paths"):
@@ -133,8 +135,6 @@ class AnalysisSwaggerJson():
             for tag_name,tag_value in tags.items():
                 # 调试用
                 # if tag_name != "aclMgr":
-                #     continue
-                # if tag_name != "统一认证":
                 #     continue
                 group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
                 # 生成 class_name 和 file_name
@@ -245,7 +245,6 @@ class AnalysisSwaggerJson():
         # 调试用
         # if name != "创建Acl":
         #     return
-        # print(name)
         # swagger 3.0 当请求有 body 传参时，没有 in: "body"了，现使用 requestBody 标示请求体
         if params.get("requestBody"):
             requestBody_schema = jsonpath.jsonpath(params.get("requestBody"), "$..schema")
