@@ -27,7 +27,7 @@ def getFileMD5(file_Path: str) -> str:
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
     :return: MD5值
     '''
-    file = file_is_exist(file_Path)
+    file = file_absolute_path(file_Path)
     try:
         fileObjct = open(file, 'rb')
         m = hashlib.md5()
@@ -46,7 +46,7 @@ def getFileSize(file_Path: str) -> int:
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
     :return: 文件大小
     '''
-    file = file_is_exist(file_Path)
+    file = file_absolute_path(file_Path)
     filesize = os.path.getsize(file)
     return filesize
 
@@ -56,7 +56,7 @@ def getFileName(file_Path: str) -> Path:
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
     :return: 文件名
     '''
-    file = file_is_exist(file_Path)
+    file = file_absolute_path(file_Path)
     fileName = os.path.basename(file)
     return fileName
 
@@ -125,7 +125,7 @@ def toFileBase64(file_path: str) -> str:
     :param file_path: 文件
     :return: 返回Base64编码
     '''
-    file = file_is_exist(file_path)
+    file = file_absolute_path(file_path)
     with open(file, 'rb') as f:
         image = f.read()
     return str(base64.b64encode(image), encoding='utf-8')

@@ -54,7 +54,7 @@ class HttpRequests(requests.Session):
         :param payload：请求的body数据，可以不传，默认为空
         :param header：header信息
         :param flush_header: 刷新header，默认临时刷新，只对当前请求有效，当传True时会刷新整个session，后续请求都会用新header
-        :param files：上传文件时的文件信息
+        :param files：上传文件时的文件信息，files={'file': 'data\签章文件.pdf'}
         :param params: URL传参，接收一个字典数据
         :param cookies_kwargs: cookie参数，接收一个字典数据
         :return: 对响应信息进行重组，响应信息中加入status_code和responsetime
@@ -76,22 +76,28 @@ class HttpRequests(requests.Session):
             else:
                 raise TypeError("cookies_kwargs 必须是dict类型")
         # 默认上传文件时不指定Content-Type,files会自动添加Content-Type,人为指定容易出错
-        if files is not None:
-            # 指定header时跳过删除类型
-            if header is None:
-                del request_header["Content-Type"]
+        if files:
             # 上传文件时在框架中直接判断文件是否存在，调用时可只传文件路径即可
-            if isinstance(files,dict) and "file" in files.keys():
-                pass
+            if isinstance(files, dict) and "file" in files.keys():
+                filepath = base_utils.file_absolute_path(files.get("file"))
+                # 默认上传使用multipart/form-data
+                if isinstance(header, dict) and 'application/octet-stream' in header.values():
+                    payload = open(filepath, 'rb')
+                    files = None
+                else:
+                    files = {'file': (base_utils.getFileName(filepath), open(filepath, 'rb'))}
             else:
                 filename = base_utils.getFileName(files)
                 fileType = MimeTypes().guess_type(files)[0]
                 if fileType is None:
-                    files = {"file": (filename,open(files, "rb"))}
+                    files = {"file": (filename, open(files, "rb"))}
                 else:
                     files = {"file": (filename, open(files, "rb"), fileType)}
+            # 指定header时跳过删除类型
+            if header is None:
+                del request_header["Content-Type"]
         # 判断payload不为str时，dumps成str类型
-        if isinstance(payload,list) or (not isinstance(payload,str) and payload):
+        elif isinstance(payload,list) or (not isinstance(payload,str) and payload):
             payload = json.dumps(payload)
         res = {}
         try:
