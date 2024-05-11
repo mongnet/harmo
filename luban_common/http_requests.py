@@ -46,7 +46,7 @@ class HttpRequests(requests.Session):
             }
         self.casUrl = Global_Map.get("cas")
 
-    def send_request(self, method: str, url: str, payload=None, header: Optional[dict]=None, flush_header=False, files=None, params: Optional[dict]=None, cookies_kwargs: Optional[dict]=None, timeout=60, **kwargs):
+    def send_request(self, method: str, url: str, payload=None, header: Optional[dict]=None, flush_header=False, files: Optional[dict]=None, params: Optional[dict]=None, cookies_kwargs: Optional[dict]=None, timeout=60, **kwargs):
         """
         封装request方法
         :param method：请求的方式post,get,delete,put等
@@ -80,19 +80,13 @@ class HttpRequests(requests.Session):
             # 上传文件时在框架中直接判断文件是否存在，调用时可只传文件路径即可
             if isinstance(files, dict) and "file" in files.keys():
                 filepath = base_utils.file_absolute_path(files.get("file"))
-                # 默认上传使用multipart/form-data
                 if isinstance(header, dict) and 'application/octet-stream' in header.values():
                     payload = open(filepath, 'rb')
                     files = None
                 else:
                     files = {'file': (base_utils.getFileName(filepath), open(filepath, 'rb'))}
             else:
-                filename = base_utils.getFileName(files)
-                fileType = MimeTypes().guess_type(files)[0]
-                if fileType is None:
-                    files = {"file": (filename, open(files, "rb"))}
-                else:
-                    files = {"file": (filename, open(files, "rb"), fileType)}
+                raise TypeError("files参数格式错误,files必须为dict类型，且必须包含file")
             # 指定header时跳过删除类型
             if header is None:
                 del request_header["Content-Type"]
