@@ -12,7 +12,7 @@ class {{class_name}}:
 
     {{# interfaces}}
     @allure.step("{{name_cn}}")
-    def {{name_en}}(self, item_fixture{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}}{{# body}}, body_kwargs=None{{/ body}}{{# query_params}}, query_kwargs=None{{/ query_params}}, base_url=None, **kwargs):
+    def {{name_en}}(self, item_fixture{{# params_args}}, {{{.}}}{{/ params_args}}{{# params_kwargs}}, {{{.}}}{{/ params_kwargs}}{{# body}}, body_kwargs=None{{/ body}}{{# query_params}}, query_kwargs=None{{/ query_params}}, **kwargs):
         """
         {{name_cn}}
         :param item_fixture: item fixture
@@ -22,9 +22,8 @@ class {{class_name}}:
         {{# body}}
         :param body_kwargs: body if body_kwargs is None else body_kwargs
         {{/ body}}
-        :param base_url: reset base_url
         """
-        resource = base_url+f"{{interface_basePath}}{{uri}}" if base_url else f"{{interface_basePath}}{{uri}}"
+        resource = f"{{interface_basePath}}{{uri}}"
         {{# body}}
         body = {{{body}}}
         body_kwargs = body if body_kwargs is None else body_kwargs

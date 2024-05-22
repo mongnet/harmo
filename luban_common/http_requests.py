@@ -57,10 +57,20 @@ class HttpRequests(requests.Session):
         :param files：上传文件时的文件信息，files={'file': 'data\签章文件.pdf'}
         :param params: URL传参，接收一个字典数据
         :param cookies_kwargs: cookie参数，接收一个字典数据
+        :param timeout: 超时时间，默认60s
         :return: 对响应信息进行重组，响应信息中加入status_code和responsetime
         """
-        # 拼接url
-        self.Url = url if re.compile(r"(http)(s?)(://)").match(url) else "".join([self.base_url,url])
+        # 拼接url，默认使用初始化的self.base_url，但如果指定了base_url，就使用base_url
+        base_url = kwargs.get("base_url", None)
+        if re.compile(r"(http)(s?)(://)").match(url):
+            self.Url = url
+        elif base_url:
+            if re.compile(r"(http)(s?)(://)").match(base_url):
+                self.Url = "".join([base_url,url])
+            else:
+                raise exceptions.ParserError("base url do you mean http:// or https://!")
+        else:
+            self.Url = "".join([self.base_url,url])
         request_header = copy.deepcopy(self.header)
         # 添加header信息，有些接口请求时添加请求头,flush_header用来指定是否更新基线header
         if header is not None:
