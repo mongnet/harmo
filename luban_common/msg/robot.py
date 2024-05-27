@@ -78,7 +78,7 @@ class WeiXin:
             print("markdown消息发送失败")
 
     @classmethod
-    def send_message_card(self,hookkey,title,url="#",content=None,picurl="http://www.lubansoft.com/uploads/1540977656.jpg"):
+    def send_message_card(self,hookkey,title,url="#",content=None,picurl=None):
         """
         图文消息
         :param hookkey: webhook的key
@@ -198,6 +198,6 @@ if __name__ == "__main__":
                             >
                             >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
     send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=markdown_content)
-    send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页",url="http://")
+    send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页",url="http://",picurl="http://www.lubansoft.com/uploads/1540977656.jpg")
     send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
     send.send_image(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="../../data/20201222101200.png")

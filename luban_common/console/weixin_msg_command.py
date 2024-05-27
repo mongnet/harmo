@@ -36,6 +36,13 @@ class WeixinMsgCommand(Command):
             default=None
         ),
         option(
+            "option",
+            "o",
+            description="消息类型，三种消息类型text、card、markdown",
+            flag=False,
+            default="text"
+        ),
+        option(
             "url",
             "u",
             description="点击后跳转的链接",
@@ -43,11 +50,11 @@ class WeixinMsgCommand(Command):
             default=None
         ),
         option(
-            "option",
-            "o",
-            description="消息类型，三种消息类型text、card、markdown",
+            "picurl",
+            "p",
+            description="图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图 1068*455，小图150*150",
             flag=False,
-            default="text"
+            default=None
         ),
 
     ]
@@ -57,10 +64,10 @@ class WeixinMsgCommand(Command):
             mlist = None if self.option("mobilelist") is None else str(self.option("mobilelist")).split("|")
             send.send_message_text(hookkey=self.argument("hookkey"),content=self.argument("content"),mentioned_mobile_list=mlist)
         elif self.option("option") == "card":
-            send.send_message_card(hookkey=self.argument("hookkey"), content=self.argument("content"),title=self.option("title"),url=self.option("url"))
+            send.send_message_card(hookkey=self.argument("hookkey"), content=self.argument("content"),title=self.option("title"),url=self.option("url"),picurl=self.option("picurl"))
         elif self.option("option") == "markdown":
             send.send_message_markdown(hookkey=self.argument("hookkey"),content=self.argument("content"))
         else:
-            raise TypeError("只支持 text、card、markdown 类型")
+            raise TypeError("消息类型只支持 text、card、markdown 三种类型")
 
 
