@@ -7,4 +7,5 @@ proj_node_id: 项目id
 section_node_id: 标段id
 role_id: 角色id
 post_id: 职务id
-user_id: 用户id
+normal_user_id: 普通用户id
+process_template_id: 浏览模板id

@@ -1,11 +1,13 @@
 base_url : https://autotest.sg.luban.fit/service
 weixin_robot: ""
 manager :
-  username : luban
-  password : 111111
+  username : admin
+  password : autotest
   deviceType : WEB
-  scope : luban
-front :
+  scope : autotest
+normal :
   realname : 冒烟测试用户
-  username : zhangsan10028
-  password : RhYi1aA.
+  username : test
+  password : test
+  deviceType : WEB
+  scope : autotest

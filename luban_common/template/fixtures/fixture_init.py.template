@@ -6,6 +6,7 @@
 # @File : fixture_init.py
 import time
 
+import allure
 import jsonpath
 import pytest
 from luban_common import base_utils
@@ -18,226 +19,442 @@ from swagger.ent_admin_org.ent_admin_org_cmp_org import EntAdminOrgCmpOrg
 from swagger.ent_admin_org.ent_admin_org_project import EntAdminOrgProject
 from swagger.ent_admin_org.ent_admin_org_section import EntAdminOrgSection
 from swagger.ent_admin_org.ent_admin_org_supplier import EntAdminOrgSupplier
+from swagger.ent_admin_user.ent_admin_user import EntAdminUser
 from swagger.ent_admin_user.ent_admin_user_admin_user import EntAdminUserAdminUser
+from swagger.ent_admin_user.ent_admin_user_biz import EntAdminUserBiz
 from swagger.ent_admin_user.ent_admin_user_post import EntAdminUserPost
-from swagger.ent_admin_user.ent_admin_user_user import EntAdminUserUser
+from swagger.process.process_template import ProcessTemplate
 
+def gen_random_key():
+    """
+    根据uuid随机创建任务key，必须是字母或者下划线开头
+    """
+    key_list = []
+    for i in range(100):
+        key = base_utils.gen_uuid(True)
+        # 必须是字母或者下划线开头
+        if key[0].isalpha():
+            key_list.append(key)
+    return key_list
+
+def readXml(filepath,random_key):
+    """
+    filepath  文件路径
+    """
+    flow_digits = base_utils.generate_random_serial_numbers(5,5)
+    with open(base_utils.file_absolute_path(filepath), 'r', encoding='utf-8') as file:
+        contents = file.read()
+        # 创建关键字字典
+        keys_dict = {'key0': random_key[0], 'key1': random_key[1], 'key2': random_key[2], 'key3': random_key[3],
+                     'key4': random_key[4], 'key5': random_key[5], 'key6': random_key[6], 'flow0': flow_digits[0],
+                     'flow1': flow_digits[1], 'flow2': flow_digits[2], 'flow3': flow_digits[3], 'flow4': flow_digits[4]}
+        # 循环替换关键字
+        for key, value in keys_dict.items():
+            contents = contents.replace(key, value)
+    return contents
+def designatedAll_body_init(name,tagId):
+    """
+    创建流程模版:包含4个节点，发起人自己>指定审批人>上一步指定(职位)>上一步指定（角色）
+    """
+    create_random_key = gen_random_key()
+    filepath = r'data\process\template\template_designatedAll.txt'
+    contents = readXml(filepath,create_random_key)
+    body = {
+        "name": name,
+        "tagId": tagId,
+        "remark": "描述",
+        "tagIds": [tagId],
+        "flowNodeList": [{
+            "name": "第一步发起人自己",
+            "key": "task_" + create_random_key[1],
+            "assigneeType": 1,
+            "copyType": 1
+        }, {
+            "assigneeEntityType": "user",
+            "assigneeEntityTypeId": Global_Map.get('normal_user_id'),
+            "name": "第二步指定审批人",
+            "key": "task_" + create_random_key[2],
+            "assigneeType": 2,
+            "copyType": 1
+        }, {
+            "assigneeEntityType": "post",
+            "assigneeEntityTypeId": Global_Map.get('post_id'),
+            "name": "第三步指定职务",
+            "key": "task_" + create_random_key[3],
+            "assigneeType": 3,
+            "copyType": 1
+        }, {
+            "assigneeEntityType": "role",
+            "assigneeEntityTypeId": Global_Map.get('role_id'),
+            "name": "第四步指定角色",
+            "key": "task_" + create_random_key[4],
+            "assigneeType": 3,
+            "copyType": 1
+        }],
+        "xml": contents,
+        "json": f'''{{\"edges\":[{{\"source\":\"start_{create_random_key[0]}\",\"target\":\"task_{create_random_key[1]}\"}},{{\"source\":\"task_{create_random_key[1]}\",\"target\":\"task_{create_random_key[2]}\"}},{{\"source\":\"task_{create_random_key[2]}\",\"target\":\"task_{create_random_key[3]}\"}},{{\"source\":\"task_{create_random_key[3]}\",\"target\":\"task_{create_random_key[4]}\"}},{{\"source\":\"task_{create_random_key[4]}\",\"target\":\"end_{create_random_key[5]}\"}}],\"nodes\":[{{\"id\":\"start_{create_random_key[0]}\",\"type\":\"initiator\",\"data\":{{\"auditorType\":1,\"title\":\"发起人\"}}}},{{\"id\":\"task_{create_random_key[1]}\",\"type\":\"审批\",\"data\":{{\"title\":\"第一步发起人自己\",\"describe\":\"备注内容\",\"auditorType\":1,\"carbonCopyVal\":1}}}},{{\"id\":\"task_{create_random_key[2]}\",\"type\":\"审批\",\"data\":{{\"title\":\"第二步指定审批人\",\"describe\":\"描述内容\",\"personnel\":[{{\"id\":\"{Global_Map.get('normal_user_id')}\",\"name\":\"冒烟测试用户\"}}],\"personnelType\":\"user\",\"auditorType\":2}}}},{{\"id\":\"task_{create_random_key[3]}\",\"type\":\"审批\",\"data\":{{\"title\":\"第三步指定职务\",\"describe\":\"描述内容\",\"personnel\":[{{\"id\":\"{Global_Map.get('post_id')}\",\"name\":\"冒烟测试用职务\"}}],\"personnelType\":\"post\",\"auditorType\":3}}}},{{\"id\":\"task_{create_random_key[4]}\",\"type\":\"审批\",\"data\":{{\"title\":\"第四步指定角色\",\"describe\":\"描述内容\",\"personnel\":[{{\"id\":\"{Global_Map.get('role_id')}\",\"name\":\"冒烟测试用角色\"}}],\"personnelType\":\"role\",\"auditorType\":3}}}},{{\"id\":\"end_{create_random_key[5]}\",\"type\":\"end\"}}]}}''',
+        "globalData": f'''{{\"edges\":[{{\"source\":\"start_{create_random_key[0]}\",\"target\":\"task_{create_random_key[1]}\"}},{{\"source\":\"task_{create_random_key[1]}\",\"target\":\"task_{create_random_key[2]}\"}},{{\"source\":\"task_{create_random_key[2]}\",\"target\":\"task_{create_random_key[3]}\"}},{{\"source\":\"task_{create_random_key[3]}\",\"target\":\"task_{create_random_key[4]}\"}},{{\"source\":\"task_{create_random_key[4]}\",\"target\":\"end_{create_random_key[5]}\"}}],\"preNodeAssign\":{{\"task_{create_random_key[3]}\":{{\"personnelType\":\"post\",\"personnel\":[{{\"id\":\"{Global_Map.get('post_id')}\",\"name\":\"冒烟测试用职务\"}}],\"auditorType\":3}},\"task_{create_random_key[4]}\":{{\"personnelType\":\"role\",\"personnel\":[{{\"id\":\"{Global_Map.get('role_id')}\",\"name\":\"冒烟测试用角色\"}}],\"auditorType\":3}}}}}}''',
+    }
+    return body
+
+# 购买的产品套餐列表，"center" 是基础服务，所以默认认为是有购买的
+Package = ["center"]
+# 需要排除的 mark 列表，比如mark关键字、环境相关mark等一些必须要运行的mark
+excludeMark = ["parametrize","xfail","run","dependency","repeat","slow","optionalhook","skip","skipif","importskip","flaky","tryfirst","trylast","timeout","incremental","filterwarnings","usefixtures","allure_label","allure_display_name","cloud","enterprise","configCheck","no_getway"]
+# 已购，但无可用授权的产品套餐
+noPackage = []
+# 数字平台授权，合并产品成菜单后的处理方式，根据菜单名来判断企业是否有对应产品，从而判断是否执行对应用例，key为center后台菜单名，value为定义的mark名称
+product_dict = {
+    "workbench": "工作台",
+    "builder": "项目管理",
+    "cmp": "企业管理",
+    "center": "系统管理",
+    "bi": "指挥中心",
+    "config": "配置管理",
+    "app": "app"
+}
+Global_Map.set("product_dict",product_dict)
+
+def pytest_collection_finish():
+    '''
+    获取 marker_all 中有，但 excludeMark 中没有的 marker
+    '''
+    difference_marker =list(set(Global_Map.get("marker_all")).difference(excludeMark)) if Global_Map.get("marker_all") else []
+    Global_Map.set("difference_marker", difference_marker)
+
+def pytest_runtest_call(item):
+    '''
+    1.过滤未购买、已无可用授权数量的用例
+    2.基建和房建同时存在时，过滤房建用例
+    :param item:
+    :return:
+    '''
+    # 获取当前用例全部mark
+    markers = [marker.name for marker in item.iter_markers()]
+    # 过滤掉必须排除的mark后，当前用例剩余的mark
+    mark = list(set(markers).difference(set(excludeMark)))
+    isPackage = list(set(Package).intersection(mark))
+    if not isPackage and mark:
+        pytest.skip(f"未购买 {mark} 产品套餐 {item.name} 用例不用执行")
+    elif list(set(noPackage).intersection(mark)):
+        pytest.fail(f"{mark} 产品套餐已无可用授权数量 {item.name} 用例无法执行，请释放 {mark} 套餐授权后重试")
 
 @pytest.fixture(scope="session",autouse=True)
-def initialize(token,env_conf):
+def initialize(token,process_token):
     '''
     数据初始化
     :return:
     '''
-    # 获取企业组织节点
     try:
-        org_response = EntAdminOrgCmpOrg().cmp_org_all_node_list_get(token, onlyCmp=None, query_kwargs={'onlyCmp': 'false'})
-        Assertions.assert_code(org_response, org_response.get("status_code"), 200)
-        Assertions.assert_code(org_response, org_response.get("code")[0], 200)
-        org_list = jsonpath.jsonpath(org_response.get("source_response"), "$..[?(@.nodeType=='ENT')]..id")
-        if org_list:
-            ent_node_id = org_list[0]
-            Global_Map.set('ent_node_id', ent_node_id)
-        else:
-            raise Exception("未找到企业组织节点")
-        # 新建企业组织节点
-        org_list = jsonpath.jsonpath(org_response.get("source_response"), "$..[?(@.nodeType=='CMP')]")
-        org_name = '冒烟测试用公司组织节点'
-        if org_list:
-            for org in org_list:
-                # 如果存在，则复用
-                if org_name == org.get('name'):
-                    Global_Map.set('cmp_node_id', org.get('id'))
-        if not Global_Map.get('cmp_node_id'):
-            response = EntAdminOrgCmpOrg().cmp_org_create_node_post(token, name=org_name, parentId=Global_Map.get('ent_node_id'), nodeType="CMP")
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            Assertions.assert_isNotEmpty(response.get("data")[0])
-            Global_Map.set('cmp_node_id', response.get("data")[0])
-            org_response = EntAdminOrgCmpOrg().cmp_org_all_node_list_get(token, onlyCmp=None, query_kwargs={'onlyCmp': 'false'})
-            Assertions.assert_code(org_response, org_response.get("status_code"), 200)
-            Assertions.assert_code(org_response, org_response.get("code")[0], 200)
-            Assertions.assert_in_value(jsonpath.jsonpath(org_response.get("source_response"), "$..[?(@.nodeType=='CMP')]..name"), org_name)
-        # 新建供应商
-        supplier_response = EntAdminOrgSupplier().supplier_supplier_list_post(token, cmpIds=[Global_Map.get('cmp_node_id')], pageNum=1, pageSize=50)
-        Assertions.assert_code(supplier_response, supplier_response.get("status_code"), 200)
-        Assertions.assert_code(supplier_response, supplier_response.get("code")[0], 200)
-        supplier_list = jsonpath.jsonpath(supplier_response.get("source_response"), "$..items[?(@.name)]")
-        supplier_name = '冒烟测试用供应商'
-        if supplier_list:
-            for supplier in supplier_list:
-                # 如果存在，则复用
-                if supplier_name == supplier.get('name'):
-                    Global_Map.set('supplier_node_id', supplier.get('id'))
-        if not Global_Map.get('supplier_node_id'):
-            response = EntAdminOrgSupplier().supplier_post(token, cmpIdList=[Global_Map.get('cmp_node_id')], name=supplier_name, mobile="13916829124", contactPerson="测试人", legalRepresentative="测试法人代表", unifiedSocialCreditCode="统一使用代码", unitType="GYSB")
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            Assertions.assert_isNotEmpty(response.get("data")[0])
-            Global_Map.set('supplier_node_id', response.get("data")[0])
-            supplier_response = EntAdminOrgSupplier().supplier_supplier_list_post(token, cmpIds=[Global_Map.get('cmp_node_id')], pageNum=1, pageSize=50)
-            Assertions.assert_code(supplier_response, supplier_response.get("status_code"), 200)
-            Assertions.assert_code(supplier_response, supplier_response.get("code")[0], 200)
-            Assertions.assert_in_value(jsonpath.jsonpath(supplier_response.get("source_response"), "$..items[?(@.name)].name"), supplier_name)
-        # 新建项目
-        proj_response = EntAdminOrgProject().project_proj_list_post(token, body_kwargs = {"cmpId":Global_Map.get('cmp_node_id'),"pageNum":1,"pageSize":20})
-        Assertions.assert_code(proj_response, proj_response.get("status_code"), 200)
-        Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
-        proj_list = jsonpath.jsonpath(proj_response.get("source_response"), "$..items[?(@.name)]")
-        proj_name = '冒烟测试用项目节点'
-        if proj_list:
-            for proj in proj_list:
-                # 如果存在，则复用
-                if proj_name == proj.get('name'):
-                    Global_Map.set('proj_node_id', proj.get('id'))
-        if not Global_Map.get('proj_node_id'):
-            response = EntAdminOrgProject().project_create_proj_post(token, name=proj_name, cmpOrgId=Global_Map.get('cmp_node_id'), builderContactName="测试人", builderContactPhone="13916829124", shortName="测试项目简称", status="ZJ", nature="XJ", haveSection=True,type="JIJIAN",code="项目编号XD",approvalType="HZ")
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            Assertions.assert_isNotEmpty(response.get("data")[0])
-            Global_Map.set('proj_node_id', response.get("data")[0])
-            proj_response = EntAdminOrgProject().project_proj_list_post(token, body_kwargs = {"cmpId":Global_Map.get('cmp_node_id'),"pageNum":1,"pageSize":20})
-            Assertions.assert_code(proj_response, proj_response.get("status_code"), 200)
-            Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
-            Assertions.assert_in_value(jsonpath.jsonpath(proj_response.get("source_response"), "$..items[?(@.name)]..name"), proj_name)
-        # 新建标段
-        section_response = EntAdminOrgSection().section_section_list_post(token, body_kwargs = {"projectId":Global_Map.get('proj_node_id'),"pageNum":1,"pageSize":20})
-        Assertions.assert_code(section_response, section_response.get("status_code"), 200)
-        Assertions.assert_code(section_response, section_response.get("code")[0], 200)
-        section_list = jsonpath.jsonpath(section_response.get("source_response"), "$..items[?(@.name)]")
-        section_name = '冒烟测试用标段节点'
-        if section_list:
-            for section in section_list:
-                # 如果存在，则复用
-                if section_name == section.get('name'):
-                    Global_Map.set('section_node_id', section.get('id'))
-        if not Global_Map.get('section_node_id'):
-            response = EntAdminOrgSection().section_create_section_post(token, name=section_name, projectId=Global_Map.get('proj_node_id'), shortName="测试标段简称", contactName="测试人", contactPhone="13916829124", baseBidBudget=100000, contractAmount=100000, contractCode="测试合同编号", startDate="2022-01-01", endDate="2022-01-01",type="SG",code="A001",supplierId=Global_Map.get('supplier_node_id'))
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            Assertions.assert_isNotEmpty(response.get("data")[0])
-            Global_Map.set('section_node_id', response.get("data")[0])
-            section_response = EntAdminOrgSection().section_section_list_post(token, body_kwargs = {"projectId":Global_Map.get('proj_node_id'),"pageNum":1,"pageSize":20})
-            Assertions.assert_code(section_response, section_response.get("status_code"), 200)
-            Assertions.assert_code(section_response, section_response.get("code")[0], 200)
-            Assertions.assert_in_value(jsonpath.jsonpath(section_response.get("source_response"), "$..items[?(@.name)]..name"), section_name)
-        # 新建角色
-        role_response = AclRole().role_list_post(token, body_kwargs = {"pageNum":1,"pageSize":20})
-        Assertions.assert_code(role_response, role_response.get("status_code"), 200)
-        Assertions.assert_code(role_response, role_response.get("code")[0], 200)
-        role_list = jsonpath.jsonpath(role_response.get("source_response"), "$..items[?(@.roleName)]")
-        role_name = '冒烟测试用角色'
-        if role_list:
-            for role in role_list:
-                # 如果存在，则复用
-                if role_name == role.get('roleName'):
-                    Global_Map.set('role_id', role.get('id'))
-        if not Global_Map.get('role_id'):
-            response = AclRole().role_createOrUpdate_post(token, roleName=role_name)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            Assertions.assert_isNotEmpty(response.get("source_response").get("data").get("id"))
-            Global_Map.set('role_id', response.get("source_response").get("data").get("id"))
-        # 角色功能授权
-        menu_response = AclModule().module_menu_list_post(token, roleId=Global_Map.get('role_id'))
-        Assertions.assert_code(menu_response, menu_response.get("status_code"), 200)
-        Assertions.assert_code(menu_response, menu_response.get("code")[0], 200)
-        menu_list = jsonpath.jsonpath(menu_response.get("source_response"), "$..sysMenuTypes[?(@.parentId!=-1)]..id")
-        if menu_list:
-            bind_response = AclModule().module_menu_bind_post(token, roleId=Global_Map.get('role_id'), sysModuleId="10000001", linkageSwitch=1, hasSelectedMenuIds=menu_list)
-            Assertions.assert_code(bind_response, bind_response.get("status_code"), 200)
-            Assertions.assert_code(bind_response, bind_response.get("code")[0], 200)
-        else:
-            raise Exception("未获取到功能菜单列表")
-        role_response = AclRole().role_list_post(token, body_kwargs = {"pageNum":1,"pageSize":20})
-        Assertions.assert_code(role_response, role_response.get("status_code"), 200)
-        Assertions.assert_code(role_response, role_response.get("code")[0], 200)
-        Assertions.assert_in_value(jsonpath.jsonpath(role_response.get("source_response"), "$..items[?(@.roleName)]..roleName"), role_name)
-        menu_response = AclModule().module_menu_list_post(token, roleId=Global_Map.get('role_id'))
-        Assertions.assert_code(menu_response, menu_response.get("status_code"), 200)
-        Assertions.assert_code(menu_response, menu_response.get("code")[0], 200)
-        Assertions.assert_dictOrList_eq(jsonpath.jsonpath(menu_response.get("source_response"), "$..sysMenuTypes[?(@.parentId!=-1)]..id"), menu_list)
-        # 新建职务
-        post_response = EntAdminUserPost().post_listAll_get(token)
-        Assertions.assert_code(post_response, post_response.get("status_code"), 200)
-        Assertions.assert_code(post_response, post_response.get("code")[0], 200)
-        post_list = jsonpath.jsonpath(post_response.get("source_response"), "$..data[?(@.id)]")
-        post_name = '冒烟测试用职务'
-        if post_list:
-            for post in post_list:
-                # 如果存在，则复用
-                if post_name == post.get('postName'):
-                    Global_Map.set('post_id', post.get('id'))
-        if not Global_Map.get('post_id'):
-            response = EntAdminUserPost().post_createOrUpdate_post(token, postName=post_name, memo="冒烟测试用职务", roleIds=[Global_Map.get('role_id')])
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            Assertions.assert_isNotEmpty(response.get("source_response").get("data").get("id"))
-            Global_Map.set('post_id', response.get("source_response").get("data").get("id"))
-            proj_response = EntAdminUserPost().post_listAll_get(token)
-            Assertions.assert_code(proj_response, proj_response.get("status_code"), 200)
-            Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
-            Assertions.assert_in_value(jsonpath.jsonpath(proj_response.get("source_response"), "$..data[?(@.id)]..postName"), post_name)
-        # 新建用户
-        user_response = EntAdminUserAdminUser().admin_user_post(token, pageSize=5000, pageNum=1, type=0, orgIds=[Global_Map.get('ent_node_id')])
-        Assertions.assert_code(user_response, user_response.get("status_code"), 200)
-        Assertions.assert_code(user_response, user_response.get("code")[0], 200)
-        user_list = jsonpath.jsonpath(user_response.get("source_response"), f"$..items[?(@.username=='{Global_Map.get('front').get('username')}')]")
-        user_name = Global_Map.get('front').get('username')
-        real_name = Global_Map.get('front').get('realname')
-        if user_list:
-            for user in user_list:
-                # 如果存在，则复用
-                if user_name == user.get('username'):
-                    Global_Map.set('user_id', user.get('id'))
-        if not Global_Map.get('user_id'):
-            response = EntAdminUserAdminUser().admin_user_add_user_post(token)
-            Assertions.assert_code(response, response.get("status_code"), 200)
-            Assertions.assert_code(response, response.get("code")[0], 200)
-            Assertions.assert_isNotEmpty(response.get("source_response").get("data").get("id"))
-            Global_Map.set('username', response.get("source_response").get("data").get("id"))
-            proj_response = EntAdminUserAdminUser().admin_user_post(token, pageSize=5000, pageNum=1, type=0, orgIds=[Global_Map.get('ent_node_id')])
-            Assertions.assert_code(proj_response, proj_response.get("status_code"), 200)
-            Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
-            Assertions.assert_in_value(jsonpath.jsonpath(proj_response.get("source_response"), "$..items[?(@.id)]..username"), post_name)
-        user_response = EntAdminUserAdminUser().admin_user_id_put(token, id=Global_Map.get('user_id'),email=base_utils.generate_random_mail(), mobile=base_utils.generate_random_mobile(), realName=real_name, username=Global_Map.get('front').get('username'), postId=Global_Map.get('post_id'), type=0, orgId=Global_Map.get('cmp_node_id'), roleIds=[Global_Map.get('role_id')])
-        Assertions.assert_code(user_response, user_response.get("status_code"), 200)
-        Assertions.assert_code(user_response, user_response.get("code")[0], 200)
-        user_response = EntAdminUserUser().user_project_section_post(token, linkageSwitch=1, authorizedProjIds=[Global_Map.get('proj_node_id')], userIds=[Global_Map.get('user_id')], authorizedSectionIds=[Global_Map.get('section_node_id')])
-        Assertions.assert_code(user_response, user_response.get("status_code"), 200)
-        Assertions.assert_code(user_response, user_response.get("code")[0], 200)
-        # 新建流程模板
-        # 新建字典
+        # 如 difference_marker 为空就不执行初始化
+        if Global_Map.get("difference_marker"):
+            with allure.step('获取企业组织节点'):
+                urser_response = EntAdminUserBiz().biz_user_get(token)
+                Assertions.assert_code(urser_response, urser_response.get("status_code"), 200)
+                Assertions.assert_code(urser_response, urser_response.get("code")[0], 200)
+                Assertions.assert_isNotEmpty(urser_response.get("source_response").get("data").get("userId"))
+                Global_Map.set('manager_user_id', urser_response.get("source_response").get("data").get("userId"))
+                org_response = EntAdminOrgCmpOrg().cmp_org_all_node_list_get(token, onlyCmp=None, query_kwargs={'onlyCmp': 'false'})
+                Assertions.assert_code(org_response, org_response.get("status_code"), 200)
+                Assertions.assert_code(org_response, org_response.get("code")[0], 200)
+                org_list = jsonpath.jsonpath(org_response.get("source_response"), "$..[?(@.nodeType=='ENT')]..id")
+                if org_list:
+                    ent_node_id = org_list[0]
+                    Global_Map.set('ent_node_id', ent_node_id)
+                else:
+                    raise Exception("未找到企业组织节点")
+            with allure.step('新建企业组织节点'):
+                org_list = jsonpath.jsonpath(org_response.get("source_response"), "$..[?(@.nodeType=='CMP')]")
+                org_name = '冒烟测试用公司组织节点'
+                if org_list:
+                    for org in org_list:
+                        # 如果存在，则复用
+                        if org_name == org.get('name'):
+                            Global_Map.set('cmp_node_id', org.get('id'))
+                if not Global_Map.get('cmp_node_id'):
+                    response = EntAdminOrgCmpOrg().cmp_org_create_node_post(token, name=org_name, parentId=Global_Map.get('ent_node_id'), nodeType="CMP")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    Assertions.assert_isNotEmpty(response.get("data")[0])
+                    Global_Map.set('cmp_node_id', response.get("data")[0])
+                    org_response = EntAdminOrgCmpOrg().cmp_org_all_node_list_get(token, onlyCmp=None, query_kwargs={'onlyCmp': 'false'})
+                    Assertions.assert_code(org_response, org_response.get("status_code"), 200)
+                    Assertions.assert_code(org_response, org_response.get("code")[0], 200)
+                    Assertions.assert_in_value(jsonpath.jsonpath(org_response.get("source_response"), "$..[?(@.nodeType=='CMP')]..name"), org_name)
+            with allure.step('新建供应商'):
+                supplier_response = EntAdminOrgSupplier().supplier_supplier_list_post(token, cmpIds=[Global_Map.get('cmp_node_id')], pageNum=1, pageSize=50)
+                Assertions.assert_code(supplier_response, supplier_response.get("status_code"), 200)
+                Assertions.assert_code(supplier_response, supplier_response.get("code")[0], 200)
+                supplier_list = jsonpath.jsonpath(supplier_response.get("source_response"), "$..items[?(@.name)]")
+                supplier_name = '冒烟测试用供应商'
+                if supplier_list:
+                    for supplier in supplier_list:
+                        # 如果存在，则复用
+                        if supplier_name == supplier.get('name'):
+                            Global_Map.set('supplier_node_id', supplier.get('id'))
+                if not Global_Map.get('supplier_node_id'):
+                    response = EntAdminOrgSupplier().supplier_post(token, cmpIdList=[Global_Map.get('cmp_node_id')], name=supplier_name, mobile="13916829124", contactPerson="测试人", legalRepresentative="测试法人代表", unifiedSocialCreditCode="统一使用代码", unitType="GYSB")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    Assertions.assert_isNotEmpty(response.get("data")[0])
+                    Global_Map.set('supplier_node_id', response.get("data")[0])
+                    supplier_response = EntAdminOrgSupplier().supplier_supplier_list_post(token, cmpIds=[Global_Map.get('cmp_node_id')], pageNum=1, pageSize=50)
+                    Assertions.assert_code(supplier_response, supplier_response.get("status_code"), 200)
+                    Assertions.assert_code(supplier_response, supplier_response.get("code")[0], 200)
+                    Assertions.assert_in_value(jsonpath.jsonpath(supplier_response.get("source_response"), "$..items[?(@.name)].name"), supplier_name)
+            with allure.step('新建项目'):
+                proj_response = EntAdminOrgProject().project_proj_list_post(token, body_kwargs = {"cmpId":Global_Map.get('cmp_node_id'),"pageNum":1,"pageSize":20})
+                Assertions.assert_code(proj_response, proj_response.get("status_code"), 200)
+                Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
+                proj_list = jsonpath.jsonpath(proj_response.get("source_response"), "$..items[?(@.name)]")
+                proj_name = '冒烟测试用项目节点'
+                if proj_list:
+                    for proj in proj_list:
+                        # 如果存在，则复用
+                        if proj_name == proj.get('name'):
+                            Global_Map.set('proj_node_id', proj.get('id'))
+                if not Global_Map.get('proj_node_id'):
+                    response = EntAdminOrgProject().project_create_proj_post(token, name=proj_name, cmpOrgId=Global_Map.get('cmp_node_id'), builderContactName="测试人", builderContactPhone="13916829124", shortName="测试项目简称", status="ZJ", nature="XJ", haveSection=True,type="JIJIAN",code="项目编号XD",approvalType="HZ")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    Assertions.assert_isNotEmpty(response.get("data")[0])
+                    Global_Map.set('proj_node_id', response.get("data")[0])
+                    proj_response = EntAdminOrgProject().project_proj_list_post(token, body_kwargs = {"cmpId":Global_Map.get('cmp_node_id'),"pageNum":1,"pageSize":20})
+                    Assertions.assert_code(proj_response, proj_response.get("status_code"), 200)
+                    Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
+                    Assertions.assert_in_value(jsonpath.jsonpath(proj_response.get("source_response"), "$..items[?(@.name)]..name"), proj_name)
+                token.header.update({"resId": Global_Map.get('cmp_node_id')})
+            with allure.step('新建标段'):
+                section_response = EntAdminOrgSection().section_section_list_post(token, body_kwargs = {"projectId":Global_Map.get('proj_node_id'),"pageNum":1,"pageSize":20})
+                Assertions.assert_code(section_response, section_response.get("status_code"), 200)
+                Assertions.assert_code(section_response, section_response.get("code")[0], 200)
+                section_list = jsonpath.jsonpath(section_response.get("source_response"), "$..items[?(@.name)]")
+                section_name = '冒烟测试用标段节点'
+                if section_list:
+                    for section in section_list:
+                        # 如果存在，则复用
+                        if section_name == section.get('name'):
+                            Global_Map.set('section_node_id', section.get('id'))
+                if not Global_Map.get('section_node_id'):
+                    response = EntAdminOrgSection().section_create_section_post(token, name=section_name, projectId=Global_Map.get('proj_node_id'), shortName="测试标段简称", contactName="测试人", contactPhone="13916829124", baseBidBudget=100000, contractAmount=100000, contractCode="测试合同编号", startDate="2022-01-01", endDate="2022-01-01",type="SG",code="A001",supplierId=Global_Map.get('supplier_node_id'))
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    Assertions.assert_isNotEmpty(response.get("data")[0])
+                    Global_Map.set('section_node_id', response.get("data")[0])
+                    section_response = EntAdminOrgSection().section_section_list_post(token, body_kwargs = {"projectId":Global_Map.get('proj_node_id'),"pageNum":1,"pageSize":20})
+                    Assertions.assert_code(section_response, section_response.get("status_code"), 200)
+                    Assertions.assert_code(section_response, section_response.get("code")[0], 200)
+                    Assertions.assert_in_value(jsonpath.jsonpath(section_response.get("source_response"), "$..items[?(@.name)]..name"), section_name)
+            with allure.step('新建职务'):
+                post_response = EntAdminUserPost().post_listAll_get(token)
+                Assertions.assert_code(post_response, post_response.get("status_code"), 200)
+                Assertions.assert_code(post_response, post_response.get("code")[0], 200)
+                post_list = jsonpath.jsonpath(post_response.get("source_response"), "$..data[?(@.id)]")
+                post_name = '冒烟测试用职务'
+                if post_list:
+                    for post in post_list:
+                        # 如果存在，则复用
+                        if post_name == post.get('postName'):
+                            Global_Map.set('post_id', post.get('id'))
+                if not Global_Map.get('post_id'):
+                    response = EntAdminUserPost().post_createOrUpdate_post(token, postName=post_name, memo="冒烟测试用职务")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    Assertions.assert_isNotEmpty(response.get("source_response").get("data").get("id"))
+                    Global_Map.set('post_id', response.get("source_response").get("data").get("id"))
+                    proj_response = EntAdminUserPost().post_listAll_get(token)
+                    Assertions.assert_code(proj_response, proj_response.get("status_code"), 200)
+                    Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
+                    Assertions.assert_in_value(jsonpath.jsonpath(proj_response.get("source_response"), "$..data[?(@.id)]..postName"), post_name)
+            with allure.step('新建用户'):
+                user_response = EntAdminUserAdminUser().admin_user_post(token, pageSize=5000, pageNum=1, type=0,
+                                                                        orgIds=[Global_Map.get('ent_node_id')])
+                Assertions.assert_code(user_response, user_response.get("status_code"), 200)
+                Assertions.assert_code(user_response, user_response.get("code")[0], 200)
+                user_list = jsonpath.jsonpath(user_response.get("source_response"),
+                                              f"$..items[?(@.username=='{Global_Map.get('normal').get('username')}')]")
+                user_name = Global_Map.get('normal').get('username')
+                real_name = Global_Map.get('normal').get('realname')
+                if user_list:
+                    for user in user_list:
+                        # 如果存在，则复用
+                        if user_name == user.get('username'):
+                            Global_Map.set('normal_user_id', user.get('id'))
+                if not Global_Map.get('normal_user_id'):
+                    response = EntAdminUserAdminUser().admin_user_add_user_post(token)
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    Assertions.assert_isNotEmpty(response.get("source_response").get("data").get("id"))
+                    Global_Map.set('username', response.get("source_response").get("data").get("id"))
+                    proj_response = EntAdminUserAdminUser().admin_user_post(token, pageSize=5000, pageNum=1, type=0,
+                                                                            orgIds=[Global_Map.get('ent_node_id')])
+                    Assertions.assert_code(proj_response, proj_response.get("status_code"), 200)
+                    Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
+                    Assertions.assert_in_value(
+                        jsonpath.jsonpath(proj_response.get("source_response"), "$..items[?(@.id)]..username"),post_name)
+                user_response = EntAdminUserAdminUser().admin_user_id_put(token, id=Global_Map.get('normal_user_id'),
+                                                                          email=base_utils.generate_random_mail(),
+                                                                          mobile=base_utils.generate_random_mobile(),
+                                                                          realName=Global_Map.get('normal').get(
+                                                                              'realname'),
+                                                                          username=Global_Map.get('normal').get(
+                                                                              'username'),
+                                                                          postId=Global_Map.get('post_id'), type=0,
+                                                                          orgId=Global_Map.get('ent_node_id'))
+                Assertions.assert_code(user_response, user_response.get("status_code"), 200)
+                Assertions.assert_code(user_response, user_response.get("code")[0], 200)
+            with allure.step('新建角色'):
+                role_response = AclRole().role_list_post(token, body_kwargs = {"pageNum":1,"pageSize":20})
+                Assertions.assert_code(role_response, role_response.get("status_code"), 200)
+                Assertions.assert_code(role_response, role_response.get("code")[0], 200)
+                role_list = jsonpath.jsonpath(role_response.get("source_response"), "$..items[?(@.roleName)]")
+                role_name = '冒烟测试用角色'
+                if role_list:
+                    for role in role_list:
+                        # 如果存在，则复用
+                        if role_name == role.get('roleName'):
+                            Global_Map.set('role_id', role.get('id'))
+                if not Global_Map.get('role_id'):
+                    response = AclRole().role_createOrUpdate_post(token, roleName=role_name, type="COMMON")
+                    Assertions.assert_code(response, response.get("status_code"), 200)
+                    Assertions.assert_code(response, response.get("code")[0], 200)
+                    Assertions.assert_isNotEmpty(response.get("source_response").get("data").get("id"))
+                    Global_Map.set('role_id', response.get("source_response").get("data").get("id"))
+            with allure.step('角色功能授权'):
+                menu_response = AclModule().module_menu_list_post(token, roleId=Global_Map.get('role_id'), type="web", bindType=0)
+                Assertions.assert_code(menu_response, menu_response.get("status_code"), 200)
+                Assertions.assert_code(menu_response, menu_response.get("code")[0], 200)
+                menu_list = jsonpath.jsonpath(menu_response.get("source_response"), "$..sysMenuTypes[?(@.parentId)]..id")
+                if menu_list:
+                    bind_response = AclModule().module_menu_bind_post(token, roleId=Global_Map.get('role_id'), linkageSwitch=1, hasSelectedMenuIds=menu_list, bindType=0)
+                    Assertions.assert_code(bind_response, bind_response.get("status_code"), 200)
+                    Assertions.assert_code(bind_response, bind_response.get("code")[0], 200)
+                else:
+                    raise Exception("未获取到功能菜单列表")
+                role_response = AclRole().role_list_post(token, body_kwargs = {"pageNum":1,"pageSize":20})
+                Assertions.assert_code(role_response, role_response.get("status_code"), 200)
+                Assertions.assert_code(role_response, role_response.get("code")[0], 200)
+                Assertions.assert_in_value(jsonpath.jsonpath(role_response.get("source_response"), "$..items[?(@.roleName)]..roleName"), role_name)
+                menu_response = AclModule().module_menu_list_post(token, roleId=Global_Map.get('role_id'), type="web", bindType=0)
+                Assertions.assert_code(menu_response, menu_response.get("status_code"), 200)
+                Assertions.assert_code(menu_response, menu_response.get("code")[0], 200)
+                Assertions.assert_dictOrList_eq(jsonpath.jsonpath(menu_response.get("source_response"), "$..sysMenuTypes[?(@.parentId)]..id"), menu_list)
+            with allure.step('角色人员管理'):
+                user_response = EntAdminUser().role_user_post(token, roleId=Global_Map.get('role_id'))
+                Assertions.assert_code(user_response, user_response.get("status_code"), 200)
+                Assertions.assert_code(user_response, user_response.get("code")[0], 200)
+                user_list = jsonpath.jsonpath(menu_response.get("source_response"), f"$..items[?(@.username=='{Global_Map.get('normal').get('username')}')]..username")
+                if not user_list:
+                    can_add_user = EntAdminUser().role_can_add_user_post(token, roleId=Global_Map.get('role_id'))
+                    Assertions.assert_code(can_add_user, can_add_user.get("status_code"), 200)
+                    Assertions.assert_code(can_add_user, can_add_user.get("code")[0], 200)
+                    user_list = jsonpath.jsonpath(can_add_user.get("source_response"), f"$..data[?(@.username=='{Global_Map.get('normal').get('username')}')]..username")
+                    if not user_list:
+                        assert False,f"可添加人员列表中未查询到 {Global_Map.get('normal').get('username')}"
+                    role_resource = EntAdminUser().user_role_resource_post(token, roleId=Global_Map.get('role_id'))
+                    Assertions.assert_code(role_resource, role_resource.get("status_code"), 200)
+                    Assertions.assert_code(role_resource, role_resource.get("code")[0], 200)
+                    node_list = jsonpath.jsonpath(role_resource.get("source_response"), f"$..authNodeList[?(@.id)]..id")
+                    user_create = EntAdminUser().role_user_create_post(token, roleId=Global_Map.get('role_id'),linkageSwitch=1, userIds=[Global_Map.get("normal_user_id")], resIds=node_list)
+                    Assertions.assert_code(user_create, user_create.get("status_code"), 200)
+                    Assertions.assert_code(user_create, user_create.get("code")[0], 200)
+                    # 验证人员管理用户添加成功
+                    user_response = EntAdminUser().role_user_post(token, roleId=Global_Map.get('role_id'))
+                    Assertions.assert_code(user_response, user_response.get("status_code"), 200)
+                    Assertions.assert_code(user_response, user_response.get("code")[0], 200)
+                    user_list = jsonpath.jsonpath(user_response.get("source_response"), f"$..items[?(@.username=='{Global_Map.get('normal').get('username')}')]..username")
+                    if not user_list:
+                        assert False,"人员管理用户添加失败"
+            with allure.step('获取企业购买的产品'):
+                # 获取web端菜单
+                menu_response = AclModule().module_menu_list_post(token, roleId=Global_Map.get('role_id'), type="web",
+                                                                  bindType=0)
+                Assertions.assert_code(menu_response, menu_response.get("status_code"), 200)
+                Assertions.assert_code(menu_response, menu_response.get("code")[0], 200)
+                modules_web_list = jsonpath.jsonpath(menu_response.get("source_response"), "$..sysMenuTypes[?(@.parentId=='-1')]..name")
+                # 获取app端菜单
+                menu_response = AclModule().module_menu_list_post(token, roleId=Global_Map.get('role_id'), type="app",
+                                                                  bindType=0)
+                Assertions.assert_code(menu_response, menu_response.get("status_code"), 200)
+                Assertions.assert_code(menu_response, menu_response.get("code")[0], 200)
+                modules_app_list = jsonpath.jsonpath(menu_response.get("source_response"), "$..sysMenuTypes[?(@.parentId=='-1')]..name")
+                if not modules_web_list:
+                    modules_web_list = []
+                if not modules_app_list:
+                    modules_app_list = []
+                modules_list = modules_web_list + modules_app_list
+                if modules_list:
+                    for key, name in product_dict.items():
+                        if name in modules_list:
+                            Package.append(key)
+                    if 'builder' in Package:
+                        Package.append("workbench")
+            with allure.step('新建流程模板'):
+                # 获取process token
+                template_response = ProcessTemplate().template_page_get(process_token, pageNum=1, pageSize=50, all=True)
+                Assertions.assert_code(template_response, template_response.get("status_code"), 200)
+                Assertions.assert_code(template_response, template_response.get("code")[0], 200)
+                template_list = jsonpath.jsonpath(template_response.get("source_response"), "$..items[?(@.name)]")
+                template_name = '冒烟测试用流程模板'
+                if template_list:
+                    for template in template_list:
+                        # 如果存在，则复用
+                        if template_name == template.get('name'):
+                            Global_Map.set('process_template_id', template.get('id'))
+                            Global_Map.set('process_procDefId_id', template.get("procDefId"))
+                # 获取标签
+                tag_response = ProcessTemplate().template_tag_list_get(process_token)
+                Assertions.assert_code(tag_response, tag_response.get("status_code"), 200)
+                Assertions.assert_code(tag_response, tag_response.get("code")[0], 200)
+                tag_list = jsonpath.jsonpath(tag_response.get("source_response"), "$..data[?(@.name=='质量')]")
+                if tag_list:
+                    Global_Map.set('process_tag_id', tag_list[0].get('id'))
+                else:
+                    raise Exception('没有质量标签')
+                # 新建流程模板
+                if not Global_Map.get('process_template_id'):
+                    template_response = ProcessTemplate().template_post(process_token, body_kwargs=designatedAll_body_init(name=template_name,tagId=Global_Map.get('process_tag_id')))
+                    Assertions.assert_code(template_response, template_response.get("status_code"), 200)
+                    Assertions.assert_code(template_response, template_response.get("code")[0], 200)
+                    Assertions.assert_isNotEmpty(template_response.get("source_response").get("data").get("id"))
+                    Assertions.assert_isNotEmpty(template_response.get("source_response").get("data").get("procDefId"))
+                    Global_Map.set('process_template_id', template_response.get("source_response").get("data").get("id"))
+                    Global_Map.set('process_procDefId_id', template_response.get("source_response").get("data").get("procDefId"))
+            # 新建字典
         yield
     # 确保清理代码一定执行
     finally:
-        # 数据清理
-        # 删除字典
-        # 删除流程模板
-        # 删除用户
-        if Global_Map.get('user_id'):
-            # 清除用户的 角色/职务/邮箱 绑定
-            EntAdminUserAdminUser().admin_user_id_put(token, id=Global_Map.get('user_id'), mobile=base_utils.generate_random_mobile(), realName=real_name, username=Global_Map.get('front').get('username'), type=0, orgId=Global_Map.get('cmp_node_id'))
-            # 清除用户的 标段/项目 绑定
-            EntAdminUserUser().user_project_section_post(token, linkageSwitch=1, userIds=[Global_Map.get('user_id')], authorizedProjIds=[], authorizedSectionIds=[])
-        # 删除角色
-        if Global_Map.get('role_id'):
-            AclRole().role_delete_post(token, ids=[Global_Map.get('role_id')])
-        # 删除职务
-        if Global_Map.get('post_id'):
-            EntAdminUserPost().post_delete_get(token, ids=[Global_Map.get('post_id')])
-        # 删除标段
-        if Global_Map.get('section_node_id'):
-            EntAdminOrgSection().section_delete_section_post(token, sectionIds=[Global_Map.get('section_node_id')])
-        # 删除项目
-        if Global_Map.get('proj_node_id'):
-            EntAdminOrgProject().project_delete_proj_post(token, ids=[Global_Map.get('proj_node_id')])
-        # 删除供应商
-        if Global_Map.get('supplier_node_id'):
-            EntAdminOrgSupplier().supplier_delete_supplier_post(token, ids=[Global_Map.get('supplier_node_id')])
-        # 删除企业组织节点
-        if Global_Map.get('cmp_node_id'):
-            EntAdminOrgCmpOrg().cmp_org_delete_node_post(token, id=Global_Map.get('cmp_node_id'))
+        # 如 difference_marker 为空就不执行初始化
+        if Global_Map.get("difference_marker"):
+            # 数据清理
+            pass
+            # 删除流程模板
+            if Global_Map.get('process_template_id'):
+                ProcessTemplate().template_del_id_post(process_token, id=Global_Map.get('process_template_id'))
+            # 删除用户
+            if Global_Map.get('normal_user_id'):
+                # 清除用户的 角色/职务/邮箱 绑定
+                EntAdminUserAdminUser().admin_user_id_put(token, id=Global_Map.get('normal_user_id'), mobile=base_utils.generate_random_mobile(), realName=real_name, username=Global_Map.get('normal').get('username'), type=0, orgId=Global_Map.get('ent_node_id'))
+                # 清除用户的 标段/项目 绑定
+                EntAdminUser().role_user_delete_post(token, roleId=Global_Map.get('role_id'), userIds=[Global_Map.get("normal_user_id")])
+            # 删除角色
+            if Global_Map.get('role_id'):
+                AclRole().role_delete_post(token, ids=[Global_Map.get('role_id')], header={"resId":Global_Map.get('cmp_node_id')})
+            # 删除职务
+            if Global_Map.get('post_id'):
+                EntAdminUserPost().post_delete_get(token, ids=[Global_Map.get('post_id')])
+            # 删除标段
+            if Global_Map.get('section_node_id'):
+                EntAdminOrgSection().section_delete_section_post(token, sectionIds=[Global_Map.get('section_node_id')])
+            # 删除项目
+            if Global_Map.get('proj_node_id'):
+                EntAdminOrgProject().project_delete_proj_post(token, ids=[Global_Map.get('proj_node_id')])
+            # 删除供应商
+            if Global_Map.get('supplier_node_id'):
+                EntAdminOrgSupplier().supplier_delete_supplier_post(token, ids=[Global_Map.get('supplier_node_id')])
+            # 删除企业组织节点
+            if Global_Map.get('cmp_node_id'):
+                EntAdminOrgCmpOrg().cmp_org_delete_node_post(token, id=Global_Map.get('cmp_node_id'))
 
 def pytest_sessionfinish(session):
     """

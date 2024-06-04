@@ -134,7 +134,7 @@ class AnalysisSwaggerJson():
             # 相同tag的接口放一起，生成在同一文件中
             for tag_name,tag_value in tags.items():
                 # 调试用
-                # if tag_name != "aclMgr":
+                # if tag_name != "设置权重值":
                 #     continue
                 group = {"name": "", "file_name": "", "class_name": "", "interfaces": []}
                 # 生成 class_name 和 file_name
@@ -164,7 +164,8 @@ class AnalysisSwaggerJson():
                         if not "deprecated" in value.keys():
                             group["name"] = tag_name
                             interface = self.__wash_params(params, uri, method, group, startswith_equal_path_list)
-                            group["interfaces"].append(interface)
+                            if interface:
+                                group["interfaces"].append(interface)
                         else:
                             print(f'warning: {uri} 接口已被弃用')
                             break
@@ -177,9 +178,10 @@ class AnalysisSwaggerJson():
                         interface_group["interfaces"].extend(group.get("interfaces"))
                         continue
                 # 校验同一个分组中是否有相同的name_en，如有会导致方法同名
-                repetition = {"方法名 "+key: "重复了 "+str(value)+" 次" for key, value in dict(Counter(jsonpath.jsonpath(group.get("interfaces"),"$..name_en"))).items() if value > 1}
-                if repetition:
-                    assert False, f"生成的接口方法名出现重名：{repetition}"
+                if group.get("interfaces"):
+                    repetition = {"方法名 "+key: "重复了 "+str(value)+" 次" for key, value in dict(Counter(jsonpath.jsonpath(group.get("interfaces"),"$..name_en"))).items() if value > 1}
+                    if repetition:
+                        assert False, f"生成的接口方法名出现重名：{repetition}"
                 http_interface_group["groups"].append(group)
         else:
             return f"error: paths不是一个dict类型，现在的类型为：{type(paths)}，paths的内容为:{paths}"
@@ -243,7 +245,7 @@ class AnalysisSwaggerJson():
         http_interface["uri"] = uri
         http_interface["interface_basePath"] = self.basePath
         # 调试用
-        # if name != "创建Acl":
+        # if name != "导出Excel":
         #     return
         # swagger 3.0 当请求有 body 传参时，没有 in: "body"了，现使用 requestBody 标示请求体
         if params.get("requestBody"):
@@ -263,7 +265,6 @@ class AnalysisSwaggerJson():
                     del http_interface["body"]
                     http_interface.update({"body": bady})
                     print(f"warning: {uri} 为post接口,但请求体是空对象,请确认接口定义是否正确")
-                    # TODO post接口 body 为空对象
         #请求参数，未解析的参数字典
         parameters = params.get("parameters")
         if not parameters:  # 确保参数字典存在
@@ -591,19 +592,30 @@ class AnalysisSwaggerJson():
             # 处理body为array时的情况
             if schema.get("type") == "array" and ephemeral_key is None:
                 del http_interface["body"]
-                body = "_".join(base_utils.get_all_value(schema, filter_key=["description"]))
-                http_interface.update({"body": f"${body}$"})
-                http_interface["body_params_kwargs"].append(f"${body}=None$")
-                http_interface["params_description"].update({f"${body}$": f"${body}$"})
+                schema_list = [str(x) for x in base_utils.get_all_value(schema, filter_key=["description"]) if isinstance(x,int)]
+                body = "_".join(schema_list)
+                if body:
+                    http_interface["body_params_kwargs"].append(f"${body}=None$")
+                    http_interface["params_description"].update({f"${body}$": f"${body}$"})
+                    http_interface.update({"body": f"${body}$"})
+                else:
+                    http_interface["body_params_kwargs"].append(f"$body=None$")
+                    http_interface["params_description"].update({f"$body$": f"$None$"})
+                    http_interface.update({"body": f"$body$"})
             # 处理body为string时的情况
             elif schema.get("type") == "string" and ephemeral_key is None:
-                body = "_".join(base_utils.get_all_value(schema, filter_key=["description"]))
-                if "binary" in base_utils.get_all_value(schema, filter_key=["description"]):
+                schema_list = [str(x) for x in base_utils.get_all_value(schema, filter_key=["description"]) if isinstance(x,int)]
+                body = "_".join(schema_list)
+                if "binary" in schema_list:
                     http_interface.update({"body_binary": f"${body}$"})
-                else:
+                if body:
+                    http_interface["body_params_kwargs"].append(f"${body}=None$")
+                    http_interface["params_description"].update({f"${body}$": f"${body}$"})
                     http_interface.update({"body": f"${body}$"})
-                http_interface["body_params_kwargs"].append(f"${body}=None$")
-                http_interface["params_description"].update({f"${body}$": f"${body}$"})
+                else:
+                    http_interface["body_params_kwargs"].append(f"$body=None$")
+                    http_interface["params_description"].update({f"$body$": f"$None$"})
+                    http_interface.update({"body": f"$body$"})
 
     def __recursion(self, data):
         """
@@ -692,6 +704,7 @@ if __name__ == "__main__":
     url44 = "http://192.168.13.172:19900/auth/v3/api-docs/%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3"
     url45 = "http://192.168.13.172:19902/ent-admin-user/v3/api-docs/swagger-config"
     url46 = "http://192.168.13.172:18000/process/v3/api-docs"
+    url47 = "http://192.168.13.178:8864/sphere/v3/api-docs"
 
 
 
@@ -721,4 +734,5 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url43))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url44))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url45))
-    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url46))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url46))
+    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url47))

@@ -3,17 +3,70 @@
 # @Author : hubiao
 # @Email : 250021520@qq.com
 # @File : fixture_login.py
+import time
 
 import pytest
+from luban_common import http_requests
+from luban_common.base_assert import Assertions
+
 from business import public_login
 from luban_common.global_map import Global_Map
+
+from swagger.ent_admin_basic_data.ent_admin_basic_data_token_process import EntAdminBasicDataTokenProcess
 
 @pytest.fixture(scope='session')
 def token():
     '''
-    数据管理平台获取登录凭证
+    数据管理平台获取管理员登录凭证
     :return:
     '''
     resule = public_login.Token(Global_Map.get('manager').get('username'), Global_Map.get('manager').get('password'),Global_Map.get('manager').get('scope'),Global_Map.get('manager').get('deviceType'))
     yield  resule.login()
-    resule.logout()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
+@pytest.fixture(scope='session')
+def process_token(token):
+    '''
+    工作流平台获取登录凭证
+    :return:
+    '''
+    process_token = http_requests.HttpRequests(Global_Map.get("base_url"))
+    if Global_Map.get("difference_marker"):
+        token_response = EntAdminBasicDataTokenProcess().token_process_get(token)
+        Assertions.assert_code(token_response, token_response.get("status_code"), 200)
+        Assertions.assert_code(token_response, token_response.get("code")[0], 200)
+        process_token.header.update({"access-token": token_response.get("data")[0]})
+    yield  process_token
+
+@pytest.fixture(scope='session')
+def normal_token():
+    '''
+    数据管理平台获取普通用户登录凭证
+    :return:
+    '''
+    resule = public_login.Token(Global_Map.get('normal').get('username'), Global_Map.get('normal').get('password'),Global_Map.get('normal').get('scope'),Global_Map.get('normal').get('deviceType'))
+    yield  resule.login()
+    if Global_Map.get("difference_marker"):
+        resule.logout()
+@pytest.fixture(scope='session')
+def normal_process_token(normal_token):
+    '''
+    工作流平台获取登录凭证
+    :return:
+    '''
+    process_token = http_requests.HttpRequests(Global_Map.get("base_url"))
+    if Global_Map.get("difference_marker"):
+        token_response = EntAdminBasicDataTokenProcess().token_process_get(normal_token)
+        Assertions.assert_code(token_response, token_response.get("status_code"), 200)
+        Assertions.assert_code(token_response, token_response.get("code")[0], 200)
+        process_token.header.update({"access-token": token_response.get("data")[0]})
+    yield  process_token
+
+@pytest.fixture(scope='session')
+def no_token():
+    '''
+    数据管理平台获取普通用户登录凭证
+    :return:
+    '''
+    resule = public_login.Direct(Global_Map.get('signature_url'))
+    yield  resule.http_instance

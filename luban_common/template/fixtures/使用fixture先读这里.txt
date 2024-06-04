@@ -1,9 +1,8 @@
 1. 约定自定义fixture的名称规则为 fixture_业务名.py 的形式，每个产品、独立业务独立fixture文件，不要掺杂在一起，不方便后续的集成
-2. fixture 有 yield 返回值的，必须返回成字典格式，比如： yield {"signature_fileId": up_response.get('data_fileId')}
-3. fixture文件夹中不要设置自动执行，因为有些业务是有前后依赖的，比如有些接口要考虑没有购买服务的情况
-4. 是否有套餐权限在 fixture_init.py 初始化脚本中已经处理好了，不需要大家关心
-5. 不要随意修改 fixture_init.py ，如果需要请加在自己业务的 fixture_业务名.py 中
-6. fixture_init.py 中初始化好了一部分数据，各自系统需要统一使用这里面已初始化好的数据，不要再自己新建，方便数据管理
-7. 在测试运行结束后会把 Global_Map 中的数据全部写回到 config/global/_global_map_temp.yaml 中方便查看过程数据
-8. 在执行时会获取 config/global/ 下全部的yaml文件数据(不包含_global_map_temp.yaml)并存放在Global_Map中
-9. 初始化会消耗一些时间，所以在调试时，建议把 pytest.ini 中的 is_local 设置为 True ，这样就可跳过初始化，使用已存在的数据进行调试，但一定要确保至少完整执行过一次代码，或也可在 config/global/ 下创建yaml文件并配置好这些变量的值
+2. fixture文件夹中不要设置自动执行，因为有些业务是有前后依赖的，比如有些接口要考虑没有购买服务的情况
+3. 是否有套餐权限在 fixture_init.py 初始化脚本中已经处理好了，不需要大家关心
+4. 不要随意修改 fixture_init.py ，如果需要请加在自己业务的 fixture_业务名.py 中
+5. fixture_init.py 中初始化好了一部分数据，各自系统需要统一使用这里面已初始化好的数据，不要再自己新建，方便数据管理
+6. 在测试运行结束后会把 Global_Map 中的数据全部写回到 config/global/_global_map_temp.yaml 中方便查看过程数据
+7. 在执行时会获取 config/global/ 下全部的yaml文件数据(不包含_global_map_temp.yaml)并存放在Global_Map中
+8. 初始化会消耗一些时间，所以在调试时，建议把 pytest.ini 中的 is_local 设置为 True ，这样就可跳过初始化，使用已存在的数据进行调试，但一定要确保至少完整执行过一次代码，或也可在 config/global/ 下创建yaml文件并配置好这些变量的值
