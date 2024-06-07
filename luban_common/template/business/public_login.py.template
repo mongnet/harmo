@@ -18,13 +18,21 @@ class Token:
     '''
     通用token登录类，所有标准版本token登录可使用这个类来登录
     '''
-    def __init__(self,username,password,scope,deviceType):
+    def __init__(self,username=None,password=None,scope=None,deviceType=None,base_url=None):
+        '''
+        初始化
+        :param username: 用户名
+        :param password: 密码
+        :param scope: 作用域
+        :param deviceType: 登录设备类型
+        :param base_url: 基础URL
+        '''
         self.scope = scope
         self.username = username
         self.password = password
         self.header = Global_Map.get("headers").get("json_header")
-        self.http_instance = http_requests.HttpRequests(Global_Map.get("base_url"))
-        self.token = ""
+        self.base_url = base_url if base_url else Global_Map.get("base_url")
+        self.http_instance = http_requests.HttpRequests(self.base_url)
         self.deviceType = deviceType
 
     def getToken(self):
@@ -34,11 +42,11 @@ class Token:
         response = Auth().login_post(self.http_instance,account=self.username,password=self.password,scope=self.scope,deviceType=self.deviceType)
         Assertions.assert_code(response,response.get("status_code"), 200)
         Assertions.assert_code(response,response.get("code")[0], 200)
-        if len(response.get("source_response").get("data")) > 0:
-            self.refreshToken = response.get("source_response").get("data").get("refreshToken")
-            self.token = response.get("source_response").get("data").get("token")
-            Global_Map.set("refreshToken", self.refreshToken)
-            Global_Map.set("token", self.token)
+        Assertions.assert_isNotEmpty(response.get("source_response").get("data"))
+        self.refreshToken = response.get("source_response").get("data").get("refreshToken")
+        self.token = response.get("source_response").get("data").get("token")
+        Global_Map.set("refreshToken", self.refreshToken)
+        Global_Map.set("token", self.token)
         self.http_instance.header.update({"access-token":self.token})
 
     def logout(self):
@@ -50,7 +58,17 @@ class Token:
         Assertions.assert_code(response,response.get("code")[0], 200)
 
     def login(self):
-        self.getToken()
+        # 如 difference_marker 为空就不执行登录
+        if Global_Map.get("difference_marker"):
+            # 判断用户是否有套餐权限
+            # product = [key for key, value in Global_Map.get("productId").items() if value == self.productId]
+            # if set(product) <= set(Global_Map.get("Package")):
+            #     pass
+            # elif Global_Map.get("noPackage") and set(product) <= set(Global_Map.get("Package")):
+            #     pytest.fail(f"{product} 产品套餐已无可用授权数量，用例无法执行，请释放套餐授权后重试")
+            # else:
+            #     pytest.skip(f"未购买 {product} 产品套餐，用例不用执行")
+            self.getToken()
         return self.http_instance
 
 class OpenAPI:

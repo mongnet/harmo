@@ -7,6 +7,7 @@ import base64
 import calendar
 import hashlib
 import hmac
+import ipaddress
 import os
 import secrets
 import string
@@ -617,6 +618,68 @@ def coincide_list(lists: list) -> list:
         else:
             break
     return match
+
+def get_match_text(url, textKey: str, split_str_list: Optional[list]=None, **kwargs) -> list:
+    """
+    获取匹配文本
+    :param url: 请求地址
+    :param textKey: 匹配关键字
+    :param split_str_list: 匹配关键字前需要分割的字符串列表
+    :param kwargs:
+    :return:
+    """
+    # 请求服务器
+    req = http_requests.HttpRequests(url)
+    resp = req.send_request("GET", url, **kwargs)
+    from luban_common.base_assert import Assertions
+    Assertions.assert_code(resp, resp.get("status_code"), 200)
+    match_list = []
+    # 按行循环
+    for line in resp.get("response_obj").text.splitlines():
+        # 清除前后空格
+        textLine = line.strip()
+        if isinstance(split_str_list,list):
+            for split_str in split_str_list:
+                for comma in textLine.split(f"{split_str}"):
+                    if not comma.startswith("/") and comma.isprintable() and comma:
+                        if comma.__contains__(textKey):
+                            match_list.append(comma)
+        else:
+            if not textLine.startswith("/") and textLine.isprintable() and textLine:
+                if textLine.__contains__(textKey):
+                    match_list.append(textLine)
+    return match_list
+
+def is_private_ip(ip: str) -> bool:
+    '''
+    判断是否为私有IP地址
+    :param ip:
+    :return:
+    '''
+    private_ip_ranges = [
+        ipaddress.ip_network('10.0.0.0/8'),
+        ipaddress.ip_network('172.16.0.0/12'),
+        ipaddress.ip_network('192.168.0.0/16'),
+        ipaddress.ip_network('169.254.0.0/16')
+    ]
+    try:
+        ip_addr = ipaddress.ip_address(ip)
+        return any(ip_addr in private_ip for private_ip in private_ip_ranges)
+    except ValueError:
+        return False
+
+def is_internal_url(url: str) -> bool:
+    '''
+    判断是否为内部URL
+    :param url:
+    :return:
+    '''
+    from urllib.parse import urlparse
+    parsed_url = urlparse(url)
+    hostname = parsed_url.hostname
+    if not hostname:
+        return False
+    return is_private_ip(hostname)
 
 if __name__ == "__main__":
     pass

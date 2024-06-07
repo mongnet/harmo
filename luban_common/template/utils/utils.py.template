@@ -35,3 +35,35 @@ def upFiles(item_fixture, resource, filePath):
         return response
     except Exception as e:
         raise FileNotFoundError(f"上传文件失败，错误原因:{e}")
+
+def generate_token(private_key,iss,app,sub,tenantId,algorithm="RS256", **kwargs):
+    """
+      :param private_key: 私钥
+      :param algorithm: 签名算法
+      :param iss: 签发人
+      :param app: 应用
+      :param sub: 用户
+      :param tenantId: 租户
+      :param kwargs: 其他参数
+      :return:
+      """
+    data = {
+        "tenantId": tenantId
+    }
+    payload = {
+        "iss": iss,
+        "app": app,
+        "iat": datetime.datetime.utcnow(),
+        "sub": sub,
+        "name": app,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(seconds=60000),
+        "aud": None,
+        "act": "ALL",
+        "meta": {
+            "pname": app,
+            "tid": tenantId
+        },
+        "res": None,
+        "data": {**data, **kwargs}
+    }
+    return jwt.encode(payload, private_key, algorithm=algorithm)

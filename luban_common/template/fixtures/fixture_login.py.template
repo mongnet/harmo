@@ -20,14 +20,14 @@ def token():
     数据管理平台获取管理员登录凭证
     :return:
     '''
-    resule = public_login.Token(Global_Map.get('manager').get('username'), Global_Map.get('manager').get('password'),Global_Map.get('manager').get('scope'),Global_Map.get('manager').get('deviceType'))
+    resule = public_login.Token(username=Global_Map.get('manager').get('username'), password=Global_Map.get('manager').get('password'),scope=Global_Map.get('manager').get('scope'),deviceType=Global_Map.get('manager').get('deviceType'))
     yield  resule.login()
     if Global_Map.get("difference_marker"):
         resule.logout()
 @pytest.fixture(scope='session')
 def process_token(token):
     '''
-    工作流平台获取登录凭证
+    管理员工作流平台获取登录凭证
     :return:
     '''
     process_token = http_requests.HttpRequests(Global_Map.get("base_url"))
@@ -44,14 +44,14 @@ def normal_token():
     数据管理平台获取普通用户登录凭证
     :return:
     '''
-    resule = public_login.Token(Global_Map.get('normal').get('username'), Global_Map.get('normal').get('password'),Global_Map.get('normal').get('scope'),Global_Map.get('normal').get('deviceType'))
+    resule = public_login.Token(username=Global_Map.get('normal').get('username'), password=Global_Map.get('normal').get('password'),scope=Global_Map.get('normal').get('scope'),deviceType=Global_Map.get('normal').get('deviceType'))
     yield  resule.login()
     if Global_Map.get("difference_marker"):
         resule.logout()
 @pytest.fixture(scope='session')
 def normal_process_token(normal_token):
     '''
-    工作流平台获取登录凭证
+    普通用户工作流平台获取登录凭证
     :return:
     '''
     process_token = http_requests.HttpRequests(Global_Map.get("base_url"))
@@ -65,8 +65,8 @@ def normal_process_token(normal_token):
 @pytest.fixture(scope='session')
 def no_token():
     '''
-    数据管理平台获取普通用户登录凭证
+    不用token
     :return:
     '''
-    resule = public_login.Direct(Global_Map.get('signature_url'))
+    resule = public_login.Token(base_url=Global_Map.get('signature_url'))
     yield  resule.http_instance
