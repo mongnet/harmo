@@ -1591,12 +1591,12 @@ luban new centerApi
 `luban swagger`：生成 `swagger` 接口命令，可快速生成接口方法，格式如下：
 
 ```python
-luban swagger [-p [<...>]] <swagger-url-json> <project-directory>
+luban swagger <swagger-url-json> [options]
 ```
 
 > **swaggger-url-json**：swagger url 地址（必须要是json地址），必填参数
 
-> **project-directory**：生成到指定的目录，必填参数
+> **-d**：接口文件生成到的目录，一般为接口所属项目名称，会在 swagger 目录下生成指定的目录，也会做为 case 脚本中的引用文件路径，可选参数
 
 > **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
@@ -1628,22 +1628,22 @@ luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder 
 注：必须要在项目根目录下执行，会在对应的 `swagger` 和 `testcases` 目录下同时生成swagger接口方法和对应测试用例，如果指定了 `-p` 参数时会在 `testcases` 目录下生成对应的项目目录，并把测试用例放在里面
 
 ```python
-luban swaggerCase [-p [<...>]] [-b] [-t <...>] [-s] <swagger-url-json> <project-directory> <case-directory>
+luban swaggerCase <swagger-url-json> [options]
 ```
 
 > **swaggger-url-json**：swagger url 地址（必须要是json地址），必填参数
 
-> **project-directory**：接口文件生成到的目录，一般为接口所属项目名称，会在 swagger 目录下生成指定的目录，也会做为 case 脚本中的引用文件路径，必填参数
+> **-d**：接口文件生成到的目录，一般为接口所属项目名称，会在 swagger 目录下生成指定的目录，也会做为 case 脚本中的引用文件路径，可选参数
 
-> **case-directory**：用例生成到的目录，一般为用例分类，会在 testcases 目录下生成指定的目录，必填参数
+> **-c**：用例生成到的目录，一般为用例分类，会在 testcases 目录下生成指定的目录，可选参数
 
 > **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
-> **-b**：是否生成请求体，当接口有请求体时，默认生成请求体，可选项
+> **-b**：当接口有请求体时，是否生成请求体，**默认不生成请求体**，可选项
 
 > **-t**：生成的默认 token fixture 名称，默认为 `token`，可选参数
 
-> **-s**：是否生成 swagger 脚本，默认生成 swagger 脚本，可选项
+> **-s**：是否生成 swagger 脚本，**默认不生成 swagger 脚本**，可选项
 
 > **-H**：指定header信息，可选参数
 
@@ -1672,7 +1672,7 @@ luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center 
 `luban weixin`：发送 `企业微信机器人` 消息命令，格式如下：
 
 ```python
-luban weixin [-m <...>] [-t <...>] [-u <...>] [-o <...>] <hookkey> <content>
+luban weixin <hookkey> <content> [options]
 ```
 
 > **hookkey**：webhook连接中的key，必填参数

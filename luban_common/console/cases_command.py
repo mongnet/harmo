@@ -51,7 +51,8 @@ class CasesCommand(Command):
         option(
             "body",
             "b",
-            description="是否生成请求体，当接口有请求体时，默认生成请求体，可选项"
+            description="是否生成请求体，当接口有请求体时，默认不生成请求体，可选项",
+            flag=True
         ),
         option(
             "token",
@@ -63,7 +64,8 @@ class CasesCommand(Command):
         option(
             "swagger",
             "s",
-            description="是否生成 swagger 接口方法，默认生成 swagger 接口方法，可选"
+            description="是否生成 swagger 接口方法，默认不生成 swagger 接口方法，可选",
+            flag=True
         ),
         option(
             "header",
@@ -143,7 +145,7 @@ class CasesCommand(Command):
             # Generate swagger script
             Global_Map().set("prompt", False)
             Global_Map().set("replace", False)
-            if not self.option("swagger"):
+            if self.option("swagger"):
                 for key, values in data.items():
                     if "groups" in key:
                         path = Path.cwd() / f'swagger/{"/".join(swagger_directory)}'
@@ -262,7 +264,7 @@ class CasesCommand(Command):
                             # file already exists.
                             self.line(f'<fg=red>test_{group["file_name"]}.py</> file already exists, Don"t replace')
                             continue
-                        group = {**group,**{"generated_time":datetime.now().strftime("%Y/%m/%d %H:%M"),"project_directory":".".join(swagger_directory),"token":self.option("token"),"isbody": [1] if not self.option("body") else None}}
+                        group = {**group,**{"generated_time":datetime.now().strftime("%Y/%m/%d %H:%M"),"project_directory":".".join(swagger_directory),"token":self.option("token"),"isbody": [1] if self.option("body") else None}}
                         # generate file
                         with open(f"{current_path}/../config/cases.mustache", "r") as mustache:
                             interfaces = chevron.render(mustache, group)
