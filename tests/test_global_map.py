@@ -1,6 +1,6 @@
 import allure
 import pytest
-from luban_common.global_map import Global_Map
+from harmo.global_map import Global_Map
 
 
 class TestGlobal_Map():

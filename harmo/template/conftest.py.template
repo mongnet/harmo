@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# TIME    : 2018/10/9 18:07
+# Author  : hubiao
+# File    : conftest.py
+
+from harmo.plugin import all_plugins
+
+pytest_plugins = all_plugins()

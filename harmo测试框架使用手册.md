@@ -2,7 +2,7 @@
 
 ## 一、介绍
 
-luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架。他的设计理念是把所有接口看成一个个的模块，像搭积木一样，把相关接口进行组装，行成场景测试用例；说到场景用例那肯定有单接口测试，单接口测试会直接通过框架来生成，无需人工参与或少量参与即可完成，我们的目标是把可标准化、重复性的工作让机器来完成，让测试人员更多的关注场景和其它异常类测试。
+harmo 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架。他的设计理念是把所有接口看成一个个的模块，像搭积木一样，把相关接口进行组装，行成场景测试用例；说到场景用例那肯定有单接口测试，单接口测试会直接通过框架来生成，无需人工参与或少量参与即可完成，我们的目标是把可标准化、重复性的工作让机器来完成，让测试人员更多的关注场景和其它异常类测试。
 
 ### 1.1 为什么创建这套框架
 
@@ -30,11 +30,11 @@ luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架�
 
 - 响应结果支持丰富的校验机制
 
-- 通过 `luban new` 创建项目脚手架命令，可快速构建一个完整的项目目录结构
+- 通过 `harmo new` 创建项目脚手架命令，可快速构建一个完整的项目目录结构
 
-- 通过 `luban swagger` 生成 `swagger` 接口命令，可快速生成接口方法
+- 通过 `harmo swagger` 生成 `swagger` 接口命令，可快速生成接口方法
 
-- 通过 `luban swaggerCase` 生成测试用例命令，可快速生成简单的测试用例
+- 通过 `harmo swaggerCase` 生成测试用例命令，可快速生成简单的测试用例
 
   
 
@@ -45,46 +45,46 @@ luban-common 是一款面向鲁班内部的 HTTP(S) 协议的通用测试框架�
 PyPI安装(版本稳定后会托管到PyPI上)
 
 ```python
-pip install luban-common
+pip install harmo
 ```
 
 本地安装
 
 ```python
-pip install luban_common-0.5.27-py3-none-any.whl
+pip install harmo-1.0.0-py3-none-any.whl
 ```
 
 从git安装
 
 ```python
-pip install git+https://github.com/mongnet/luban_common@master
+pip install git+https://github.com/mongnet/harmo@master
 ```
 
 ### 2.2 版本升级
 
-假如你之前已经安装过了 luban-common，现在需要升级到最新版本，那么你可以使用 `-U` 参数。
+假如你之前已经安装过了 harmo，现在需要升级到最新版本，那么你可以使用 `-U` 参数。
 
 ```python
-pip install -U luban-common
-pip install -U git+https://github.com/mongnet/luban_common@master
+pip install -U harmo
+pip install -U git+https://github.com/mongnet/harmo@master
 或
-pip install -U luban_common-0.5.27-py3-none-any.whl
+pip install -U harmo-1.0.0-py3-none-any.whl
 ```
 
 ### 2.3 安装验证
 
-运行如下命令，若正常显示版本号，则说明 luban-common 安装成功
+运行如下命令，若正常显示版本号，则说明 harmo 安装成功
 
 ```
-C:\Users\admin>luban -V
-Luban version 3.0.0
+C:\Users\admin>harmo -V
+harmo version 1.0.0
 ```
 
 
 
 ## 三、框架结构
 
-luban-common 框架项目结构如下：
+harmo 框架项目结构如下：
 
 ```python
 ├─config
@@ -843,6 +843,59 @@ Assertions.assert_isNotEmpty(reality_value)
 
 
 
+#### 3.4.17 校验字典或列表是否相等
+
+调用格式如下：
+
+```python
+Assertions.assert_dictOrList_eq(reality, expected)
+```
+
+> **reality**：实际字典或列表
+
+> **expected**：预期字典或列表
+
+例：
+
+```python
+from harmo.base_assert import Assertions
+
+list1 = [100, "abcd", "公众号：彪哥的测试之路", False, None]
+list2 = [100, "公众号：彪哥的测试之路", "abcd"]
+
+Assertions.assert_dictOrList_eq(list1, list2)
+
+# 输出
+AssertionError: 二个列表不相等, 第一个列表比第二个列表多了：[False, None]
+```
+
+
+
+#### 3.4.18 校验列表中是否有重复项
+
+调用格式如下：
+
+```python
+Assertions.assert_list_repetition(lists)
+```
+
+> **lists**：实际值
+
+例：
+
+```python
+from harmo.base_assert import Assertions
+
+list3 = ["89010001#89", "89010001#89", "89010001#89", "96003010#96"]
+
+Assertions.assert_list_repetition(list3)
+
+# 输出
+AssertionError: 列表中有重复项, 重复项为：{'89010001#89': 3}
+```
+
+
+
 ------
 
 ### 3.5 base_utils.py
@@ -1386,7 +1439,35 @@ file_absolute_path(rel_path)
 ```python
 from harmo import base_utils
 
-base_utils.file_absolute_path('../data/Quality_check_lib.xls')
+base_utils.file_absolute_path('data/Quality_check_lib.xls')
+```
+
+
+
+#### 3.5.27 递归替换字典值
+
+调用格式如下：
+
+```python
+recursion_replace_dict_value(source,replaceDict)
+```
+
+> **source**：需要替换的字典或字典组成的列表
+
+> **replaceDict**：要检查并替换的字段，key为要检查的值，value为需要替换的值
+
+例：
+
+```python
+from harmo import base_utils
+
+source = {"ex": null, "state": false, "age": 38}
+replaceDict = {"null": None, "false": False}
+
+base_utils.recursion_replace_dict_value(source, replaceDict)
+
+# 输出
+{"ex": None, "state": False, "age": 38}
 ```
 
 
@@ -1402,17 +1483,23 @@ base_utils.file_absolute_path('../data/Quality_check_lib.xls')
 调用格式如下：
 
 ```python
-Global_Map.set(key, value)
+Global_Map.set(key, value, mode)
 ```
 
 > **key**：变量名称
 
 > **value**：变量值
 
+> **mode**：设置模式，append 为追加模式，其它值时为覆盖模式
+
 ```python
 from harmo.global_map import Global_Map
 
+# 覆盖模式
 Global_Map.set("username", "hubiao")
+
+# 追加模式
+Global_Map.set("username", "hubiao", mode="append")
 ```
 
 
@@ -1430,7 +1517,7 @@ Global_Map.sets(dict_kwargs)
 ```python
 from harmo.global_map import Global_Map
 
-Global_Map.sets({"公众号": "彪哥的测试之路"})
+Global_Map.sets({"公众号": "彪哥的测试之路", "projId": 113692})
 ```
 
 
@@ -1483,16 +1570,16 @@ Global_Map().get("username", "age")
 
 ### 4.1 命令行工具
 
-在 luban-common 安装成功后，系统中会新增如下命令：
+在 harmo 安装成功后，系统中会新增如下命令：
 
 `luban` ：核心命令，不可单独执行，必须携带参数
 
 #### 4.1.1 新建项目
 
-`luban new`：可通过 `new` 快速构建一个完整的项目目录结构，格式如下：
+`harmo new`：可通过 `new` 快速构建一个完整的项目目录结构，格式如下：
 
 ```python
-luban new <name>
+harmo new <name>
 ```
 
 > **name**：项目名称
@@ -1500,82 +1587,98 @@ luban new <name>
 例：
 
 ```python
-luban new centerApi
+harmo new centerApi
 ```
 
 
 
 #### 4.1.2 通过Swagger生成接口文件
 
-`luban swagger`：生成 `swagger` 接口命令，可快速生成接口方法，格式如下：
+`harmo swagger`：生成 `swagger` 接口命令，可快速生成接口方法，格式如下：
 
 ```python
-luban swagger [-p [<...>]] <swagger-url-json> <project-directory>
+harmo swagger <swagger-url-json> [options]
 ```
 
 > **swaggger-url-json**：swagger url 地址（必须要是json地址），必填参数
 
-> **project-directory**：生成到指定的目录，必填参数
+> **-d**：接口文件生成到的目录，一般为接口所属项目名称，会在 swagger 目录下生成指定的目录，也会做为 case 脚本中的引用文件路径，可选参数
 
 > **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
+
+> **-H**：指定header信息，可选参数
 
 例：生成接口文件到swagger目录下的 `builder` 目录
 
 ```python
-luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder
+harmo swagger http://192.168.13.197:8989/builder/v2/api-docs builder
 ```
 
 例：生成接口文件到swagger目录下的 `builder` 目录，且指定项目名为 `builder` 
 
 ```python
-luban swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
+harmo swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder
+```
+
+例：指定多个header信息
+
+```python
+harmo swagger http://192.168.13.197:8989/builder/v2/api-docs builder -p builder -H "Authorization: Basic YWRtaW46MTExMTEx" -H "Accept-Language: zh-CN,zh;q=0.9"
 ```
 
 
 
 #### 4.1.3 通过Swagger生成Case（推荐）
 
-`luban swaggerCase`：生成测试用例命令，可快速生成简单测试用例，格式如下：
+`harmo swaggerCase`：生成测试用例命令，可快速生成简单测试用例，格式如下：
 注：必须要在项目根目录下执行，会在对应的 `swagger` 和 `testcases` 目录下同时生成swagger接口方法和对应测试用例，如果指定了 `-p` 参数时会在 `testcases` 目录下生成对应的项目目录，并把测试用例放在里面
 
 ```python
-luban swaggerCase [-p [<...>]] [-b] [-t <...>] [-s] <swagger-url-json> <project-directory> <case-directory>
+harmo swaggerCase <swagger-url-json> [options]
 ```
 
 > **swaggger-url-json**：swagger url 地址（必须要是json地址），必填参数
 
-> **project-directory**：接口文件生成到的目录，一般为接口所属项目名称，会在 swagger 目录下生成指定的目录，也会做为 case 脚本中的引用文件路径，必填参数
+> **-d**：接口文件生成到的目录，一般为接口所属项目名称，会在 swagger 目录下生成指定的目录，也会做为 case 脚本中的引用文件路径，可选参数
 
-> **case-directory**：用例生成到的目录，一般为用例分类，会在 testcases 目录下生成指定的目录，必填参数
+> **-c**：用例生成到的目录，一般为用例分类，会在 testcases 目录下生成指定的目录，可选参数
 
 > **-p**：项目名或**basePath**地址，如指定会把他和接口地址合并成新的接口地址（接口文件中的 resource 字段），可选参数
 
-> **-b**：是否生成请求体，当接口有请求体时，默认生成请求体，可选项
+> **-b**：当接口有请求体时，是否生成请求体，**默认不生成请求体**，可选项
 
 > **-t**：生成的默认 token fixture 名称，默认为 `token`，可选参数
 
-> **-s**：是否生成 swagger 脚本，默认生成 swagger 脚本，可选项
+> **-s**：是否生成 swagger 脚本，**默认不生成 swagger 脚本**，可选项
+
+> **-H**：指定header信息，可选参数
 
 例：生成接口文件到swagger目录下的 `builder` 目录，生成测试用例到 `center` 目录
 
 ```python
-luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center
+harmo swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center
 ```
 
 例：生成接口文件到swagger目录下的 `builder` 目录，生成测试用例到 `center` 目录，且指定项目名为 `builder` 
 
 ```python
-luban swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center -p builder
+harmo swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center -p builder
+```
+
+例：指定多个header信息
+
+```python
+harmo swaggerCase http://192.168.13.197:8989/builder/v2/api-docs builder center -p builder -H "Authorization: Basic YWRtaW46MTExMTEx" -H "Accept-Language: zh-CN,zh;q=0.9"
 ```
 
 
 
 #### 4.1.4 发送微信消息
 
-`luban weixin`：发送 `企业微信机器人` 消息命令，格式如下：
+`harmo weixin`：发送 `企业微信机器人` 消息命令，格式如下：
 
 ```python
-luban weixin [-m <...>] [-t <...>] [-u <...>] [-o <...>] <hookkey> <content>
+harmo weixin <hookkey> <content> [options]
 ```
 
 > **hookkey**：webhook连接中的key，必填参数
@@ -1595,19 +1698,19 @@ luban weixin [-m <...>] [-t <...>] [-u <...>] [-o <...>] <hookkey> <content>
 例：发送 `text` 消息
 
 ```python
-luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -m "13916829124"
+harmo weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -m "13916829124"
 ```
 
 例：发送 `card` 消息
 
 ```python
-luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "card" -t "测试开发" -u "http://demo.com"
+harmo weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "card" -t "测试开发" -u "http://demo.com"
 ```
 
 例：发送 `markdown` 消息
 
 ```python
-luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之路` " -o "markdown"
+harmo weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之路` " -o "markdown"
 ```
 
 
@@ -1642,40 +1745,52 @@ luban weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之
   pytest --lb-robot ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42
   ```
 
-  **注意**：
+- `--lb-msg-name`： 指定机器人消息标题
 
-  ​	`--lb-env` 参数是必须指定的参数
-  
-  ​	`--lb-robot` 参数指定后会替换 `--lb-env` 配置文件中的 robot ，且会忽略 `message_switch` 配置
-  
-  如果参数不常变，也可直接写在 `pytest.ini` 中，类似如下形式
-  
-```
-  [pytest]
-  addopts =
+  ```
+  pytest --lb-msg-name "彪哥有情提醒"
+  ```
+
+  ![image-20230613143927218](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20230613143927218.png)
+
+- `--lb-case-tag`： 运行指定 tag 的用例
+
+  ```python
+  # 单个tag
+  pytest --lb-case-tag smoking
+  # 多个tag
+  pytest --lb-case-tag smoking --lb-case-tag unit
+  ```
+
+**注意**
+
+  	`--lb-env` 参数是必须指定的参数
+
+  	`--lb-robot` 参数指定后会替换 `--lb-env` 配置文件中的 robot ，且会忽略 `message_switch` 配置
+
+如果参数不常变，也可直接写在 `pytest.ini` 中，类似如下形式
+
+```yaml
+[pytest]
+addopts =
       --lb-env=config/release/config.yaml
       --lb-driver=firefox
 ```
 
-  
+
 
 ### 4.3 pytest.ini配置
 
 在 `pytest.ini` 文件中新增如下配置：
 
 - `is_local` ：是否走本地初始化，为True时走本地配置文件，为False时走线上初始化数据，默认为False
-
 - `message_switch` ：消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为Flase
-
 - `success_message` ： 成功时是否发送消息通知，默认为False
-
 - `is_clear` ： 用例执行成功后是否清理数据，默认为True
-
 - 默认使用 `pytest-html` 插件生成报告，生成在当前执行目录的 `reports/report.html` 中
-
 - 其它，指定了 `pytest` 的最低版本号为 `7.0` ，只到 `testcases`、 `testsuites` 下搜索用例
 
-  
+
 
 ### 4.4 系统自带fixture
 
@@ -1725,7 +1840,7 @@ web框架时使用，暂未使用到
 
 ### 4.5 自定义fixture
 
-项目目录下的fixtures文件夹用来存放自定义fixture，测试启动时会自动匹配和加载fixtures文件夹下以 fixture 开头，且以 .py 结尾的文件，前提是这些文件中的函数要指定了 `@pytest.fixture` 。
+项目目录下的fixtures文件夹用来存放自定义fixture，测试启动时会自动匹配和加载fixtures文件夹下以 fixture 开头，且以 .py 结尾的文件，前提是这些文件中的函数要指定了 `@pytest.fixture`  ，或者他是 pytest 内置的 fixtrue 或插件。
 
 > **规范**：conftest中不要出现自定义的fixture，conftest中只要引入 pytest_plugins = all_plugins() 即可
 
@@ -1761,7 +1876,266 @@ def token(env_conf):
     resule.logout()
 ```
 
-这样一个自定义的 fixture 就定义完成了
+这样一个自定义的 登录功能的fixture 就定义完成了
+
+#### 4.5.2 内置fixture 扩展应用
+
+在 fixtures 文件夹下，新建fixture_platform.py
+
+如下代码实现了通过 `pytest` 内置的 `pytest_terminal_summary` 函数实现了在测试执行完成后，请求 `addcddata` 接口发送请求结果信息的功能：
+
+```python
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# @Time : 2023-6-12 18:18
+# @Author : hubiao
+# @Email : 250021520@qq.com
+# @公众号 : 彪哥的测试之路
+
+import time
+from harmo import base_utils
+from harmo import base_requests
+from harmo.global_map import Global_Map
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    '''
+    收集测试结果并发送到测试平台
+    '''
+    # 当没有获取到平台配置信息时，不执行
+    if Global_Map.get("testplatform") and Global_Map.get("testplatform").get("host"):
+        owner = base_requests.HttpRequests(Global_Map.get("testplatform").get("host"))
+        # 定义测试结果
+        total = terminalreporter._numcollected
+        passed = len([i for i in terminalreporter.stats.get("passed", []) if i.when != "teardown"])
+        failed = len([i for i in terminalreporter.stats.get("failed", []) if i.when != "teardown"])
+        error = len([i for i in terminalreporter.stats.get("error", []) if i.when != "teardown"])
+        skipped = len([i for i in terminalreporter.stats.get("skipped", []) if i.when != "teardown"])
+        total_times = round(time.time() - terminalreporter._sessionstarttime, 2)
+        current_time = base_utils.getUnix(scope="ms")
+        # 增加cd数据
+        body = {
+            "projectName": Global_Map.get("testplatform").get("projectName"),
+            "total": total,
+            "pass": passed,
+            "failed": failed,
+            "error": error,
+            "skip": skipped,
+            "createDate": current_time,
+            "duration": total_times
+        }
+        resource = "/addcddata"
+        owner.request("post", resource, body)
+```
+
+### 4.6 基于parametrize的yaml用例参数化
+
+#### 4.6.1 功能演示
+
+ `@pytest.mark.parametrize`  支持通过 `get_yaml_cases` 指定 `yaml` 文件进行用例参数化，实现方式如下
+
+```python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @TIME    : 2022-6-22 15:38
+# @Author  : hubiao
+# @Email : 250021520@qq.com
+# @公众号 : 彪哥的测试之路
+
+import pytest
+import allure
+from harmo.base_assert import Assertions
+from harmo.yaml_case import get_yaml_cases
+from harmo.global_map import Global_Map
+from swagger.builder.org import Org
+
+
+@allure.feature("测试示例")
+@pytest.mark.processInspection
+class Test_example:
+    '''
+    测试示例
+    '''
+
+    @allure.story("使用swagger接口方法的用例")
+    @pytest.mark.parametrize("case", get_yaml_cases(yamlpath="data/caseConfig.yaml"))
+    def test_swagger(self, CenterToken, case):
+        '''
+        使用swagger接口方法的用例
+        '''
+        response = Org().treeNodesUsingGET(CenterToken)
+        Assertions.validate_response(response, validate_list=case.get("Validate"))
+
+    @allure.story("脱离swagger,直接使用yaml文件")
+    @pytest.mark.parametrize("case", get_yaml_cases(yamlpath="data/caseConfig.yaml"))
+    def test_yaml(self, CenterToken, case):
+        '''
+        脱离swagger,直接使用yaml文件
+        '''
+        response = CenterToken.request(case.get("Request").get("Method"), case.get("Request").get("Url"))
+        Assertions.validate_response(response, validate_list=case.get("Validate"))
+
+
+if __name__ == '__main__':
+    pytest.main(["-s", "test_processInspection.py"])
+```
+
+> **yamlpath**：yaml文件的路，相对于项目目录
+>
+> **Assertions.validate_response**：用来校验响应信息，配合 yaml 文件中的 Validate 使用
+
+
+
+caseConfig.yaml 测试用例内容如下：
+
+```yaml
+Config:
+  lb_driver: chrome
+TestDataCollections:
+  - CaseName : 脱离swagger,直接使用yaml文件
+    Tag : smoking
+    Request:
+      Url : ${base_url}/builder/org/nodes
+      Method : GET
+      Body :
+        name: 'testapi部门'
+        nodeType: ${center.username}
+        contactPerson: ${lbuilder[1]}
+        mobile: ${generate_random_mail()}
+        address: ${lb_driver}
+        example: ${example()}
+        time: ${time.time()}
+        welcome: '{% raw %}hello ${var} world {% endraw %}'
+        welcomeReplace: ${"hello world" | replace ("world", "luban") | upper}
+      Query :
+          Type: ${nodeType}
+    Validate :
+      - assert_code : ['status_code',200]
+      - assert_code : ['resp.code',200]
+      - assert_equal_value : ['resp.result[1].name','初始化分公司']
+      - assert_equal_value : ['$..[1].name','初始化分公司']
+  - CaseName : 使用swagger接口方法的用例
+    Tag : smoking
+    Query :
+      nodeType: ${center.username}
+      contactPerson: ${lbuilder[1]}
+      mobile: ${generate_random_mail()}
+      address: ${lb_driver}
+      example: ${example()}
+      time: ${time.time()}
+    Validate :
+      - assert_code : ['status_code',200]
+      - assert_code : ['resp.code',200]
+      - assert_equal_value : ['resp.result[1].name','初始化分公司']
+      - assert_equal_value : ['$..[1].name','初始化分公司']
+```
+
+使用方法解析：
+
+> 1. 支持直接调用函数，调用方式为 ${函数名()}，如：${time.time()} ，支持系统内置函数、harmo.base_utils 框架内置函数、`expand_function.py` 自定义扩展函数
+> 2. 支持获取变量值，调用方式为 ${变量名}，支持获取 Global_Map 中的变量，如：${center.username} 、${lbuilder[1]}、${lb_driver}
+> 3. 支持在 yaml 中通过 Config 来指定私有变量，然后通过${变量名}来获取，当出现同名变量时，取Config 中的变量
+> 4. 如果你不想变量被执行，可使用 '{% raw %}hello ${var} world {% endraw %}' ，这是标准的Jinja2语法
+> 5. Request中的url，可以不指定${base_url}，如果不指定或获取不到base_url时，会自动把fixture的base_url拼接到url上
+
+Validate 中编写断言的形式如下：
+
+```yaml
+- assert_code : ['status_code',200]
+- assert_equal_value : ['resp.name','初始化分公司']
+- assert_equal_value : ['$..[1].name','初始化分公司']
+```
+
+> **assert_code**：断言类型，支持 `Assertions` 类中全部断言类型，这里写函数名即可
+>
+> **status_code**：断言的实际值，支持获取 `response ` 对象、jmespath、jsonpath取值方式
+>
+> **200**：断言预期值
+
+[^注意1]: 当函数不存在时渲染引擎会报错，所以需要确保调用的函数是存在的
+[^注意2]: 当变量不存在时，变量值会替换显示为空
+
+
+
+#### 4.6.2 response对象取值语法
+
+支持直接获取 response  对象的信息，如：
+
+```yaml
+- assert_code : ['status_code',200]
+- assert_equal_value : ['url','http://dome.cn/org/nodes']
+- assert_equal_value : ['ok',True]
+- assert_equal_value : ['headers.Server','nginx']
+- assert_equal_value : ['encoding','UTF-8']
+- assert_code : ['status_code','${code}']
+```
+
+
+
+#### 4.6.3 jmespath取值语法
+
+resp 是 response 的简写，表示通过jmespath获取response 响应体中的信息，然后用点分割表示路径，如：
+
+```yaml
+- assert_equal_value : ['resp.code',200]
+- assert_equal_value : ['resp.name','初始化分公司']
+- assert_equal_value : ['resp.result[1].name','初始化分公司']
+- assert_equal_value : ['resp.code','${code}']
+```
+
+
+
+#### 4.6.4 jsonpath取值语法
+
+获取方式直接为jsonpath语法，如：
+
+```yaml
+- assert_equal_value : ['$..name','初始化分公司']
+- assert_equal_value : ['$..[1].name','初始化分公司']
+```
+
+
+
+#### 4.6.5 支持jinja2 模板过滤器语法
+
+通过 jinja2 我们可以修改变量的显示，对变量进行格式化、运算等，语法格式如下:
+
+```python
+${ var | filterA | filterB | ... }
+```
+
+jinja2 会将传入的变量 var 传递给第一个过滤器 fiterA；
+将过滤器 filterA 的输出作为输入，传递给第二个过滤器 filterB；
+以此类推，最后将过滤器 filterN的输出作为模板的输出。例如：
+
+```python
+# 字符串
+${"hello world" | replace ("world", "luban") | upper}
+# 输出结果为：HELLO LUBAN
+
+# 变量
+${lb_driver | replace ("chrome", "FIREFOX") | lower}
+# 输出结果为：firefox
+```
+
+
+
+#### 4.6.6 自定义拓展函数
+
+自定义拓展函数 `expand_function.py` 放在项目根目录下，做为拓展函数使用，默认支持 `python` 系统内置函数和 `harmo.base_utils ` 框架内置的函数，如果不够用，可以拓展在  `expand_function.py` 中，在获取 `yaml` 用例时会获取和执行 `yaml` 中填写的函数，如：
+
+```python
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @Time : 2023-9-19 22:30
+# @Author : hubiao
+# @Email : 250021520@qq.com
+# @公众号 : 彪哥的测试之路
+# @File : expand_function.py
+
+def example():
+    return "test_example"
+```
 
 
 
@@ -1772,7 +2146,7 @@ def token(env_conf):
 定位到需要创建项目的目录，如：`E:\Automation` ，然后在命令行中输入如下命令并回车
 
 ```python
-luban new CenterAutomation
+harmo new CenterAutomation
 ```
 
 > **luban**：框架提供的命令入口
@@ -1818,6 +2192,7 @@ luban new CenterAutomation
 │   └─utils.py
 ├─.gitignore
 ├─conftest.py
+├─expand_function.py
 └─pytest.ini
 ```
 
@@ -1849,7 +2224,7 @@ luban new CenterAutomation
 
 > **fixtures**：存放自定义 `fixture`
 
-
+> **expand_function.py**：自定义拓展函数
 
 ### 5.2 执行测试
 
@@ -1882,7 +2257,7 @@ pytest --lb-env config/dev/config.yaml
 新建一个名称为 iworksweb 的测试项目，在 CMD 中进入需要新建项目的目录，并输入命令如下
 
 ```
-luban new iworksweb
+harmo new iworksweb
 ```
 
 看到 `Successfully Created iworksweb` 表示项目创建成功，生成的项目信息可参考“如何开始”，命令问题可查看“命令行工具”中命令的具体介绍
@@ -1897,10 +2272,10 @@ luban new iworksweb
 
 > 第2个是swagger对应的json地址，这个地址就是我们需要的地址
 
-在命令行中输入如下命令生成用例和接口方法，如果不知道 luban swaggerCase 怎么使用，可看前面的说明
+在命令行中输入如下命令生成用例和接口方法，如果不知道 harmo swaggerCase 怎么使用，可看前面的说明
 
 ```python
-luban swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan plan
+harmo swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan plan
 ```
 
 ![image-20210918145537477](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918145537477.png)

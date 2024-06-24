@@ -1,0 +1,14 @@
+@echo off
+setlocal
+echo Current Code Page: %chcp%
+echo Set Code UTF-8
+chcp 65001
+
+harmo swagger http://192.168.13.172:19904/acl/v3/api-docs/接口文档 -H "Authorization: Basic YWRtaW46MTExMTEx"
+harmo swagger http://192.168.13.172:19900/auth/v3/api-docs/接口文档
+harmo swagger http://192.168.13.172:19902/ent-admin-user/v3/api-docs/swagger-config
+harmo swagger http://192.168.13.172:19901/ent-admin-org/v3/api-docs/swagger-config
+harmo swagger http://192.168.13.172:18000/process/v3/api-docs
+harmo swagger http://192.168.13.172:19903/ent-admin-basic-data/v3/api-docs/swagger-config
+
+endlocal

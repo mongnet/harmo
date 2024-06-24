@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from luban_common.operation.yaml_file import get_yaml_data
+from harmo.operation.yaml_file import get_yaml_data
 
 
 class TestGet_yaml_data(TestCase):

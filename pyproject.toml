@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "luban_common"
-version = "4.0.4"
-description = "鲁班API基础库"
+name = "harmo"
+version = "1.0.4"
+description = "Harmony（和谐）的缩写"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"
 readme = ["README.md"]
-homepage = "https://github.com/mongnet/luban_common"
-repository = "https://github.com/mongnet/luban_common"
-keywords = ["api", "swagger", "pytest", "luban_common"]
+homepage = "https://github.com/mongnet/harmo"
+repository = "https://github.com/mongnet/harmo"
+keywords = ["api", "swagger", "pytest", "harmo"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -29,7 +29,7 @@ pytest-html = "^4.1.1"
 pytest = "^8.2.0"
 requests = "^2.31.0"
 jsonpath = "^0.82.2"
-allure-pytest = "^2.13.2"
+allure-pytest = "^2.13.5"
 beautifulsoup4 = "^4.12.2"
 playwright = "^1.40.0"
 pytest-playwright = "^0.4.4"
@@ -42,7 +42,7 @@ pyjwt = "^2.8.0"
 pytest = "^8.2"
 
 [tool.poetry.scripts]
-luban = "luban_common.console:main"
+harmo = "harmo.console:main"
 
 [[tool.poetry.source]]
 name = "aliyun"
@@ -50,8 +50,8 @@ url = "http://mirrors.aliyun.com/pypi/simple/"
 priority = "primary"
 
 [tool.poetry.plugins."pytest11"]
-"plugin" = "luban_common.plugin"
-"fixture" = "luban_common.fixture"
+"harmo_plugin" = "harmo.plugin"
+"harmo_fixture" = "harmo.fixture"
 
 [build-system]
 requires = ["poetry>=1.8"]

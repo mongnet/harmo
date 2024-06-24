@@ -1,0 +1,296 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# @TIME    : 2019/1/2 11:19
+# @Author  : hubiao
+# @File    : public_login.py
+import json
+
+import pytest
+from harmo import base_utils
+from harmo import http_requests
+from harmo.base_assert import Assertions
+from harmo.global_map import Global_Map
+
+from swagger.auth.auth import Auth
+
+
+class Token:
+    '''
+    通用token登录类，所有标准版本token登录可使用这个类来登录
+    '''
+    def __init__(self,username=None,password=None,scope=None,deviceType=None,base_url=None):
+        '''
+        初始化
+        :param username: 用户名
+        :param password: 密码
+        :param scope: 作用域
+        :param deviceType: 登录设备类型
+        :param base_url: 基础URL
+        '''
+        self.scope = scope
+        self.username = username
+        self.password = password
+        self.header = Global_Map.get("headers").get("json_header")
+        self.base_url = base_url if base_url else Global_Map.get("base_url")
+        self.http_instance = http_requests.HttpRequests(self.base_url)
+        self.deviceType = deviceType
+
+    def getToken(self):
+        '''
+        获取token接口
+        '''
+        response = Auth().login_post(self.http_instance,account=self.username,password=self.password,scope=self.scope,deviceType=self.deviceType)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        Assertions.assert_code(response,response.get("code")[0], 200)
+        Assertions.assert_isNotEmpty(response.get("source_response").get("data"))
+        self.refreshToken = response.get("source_response").get("data").get("refreshToken")
+        self.token = response.get("source_response").get("data").get("token")
+        Global_Map.set("refreshToken", self.refreshToken)
+        Global_Map.set("token", self.token)
+        self.http_instance.header.update({"access-token":self.token})
+
+    def logout(self):
+        '''
+        退出登录接口
+        '''
+        response = Auth().logout_post(self.http_instance)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        Assertions.assert_code(response,response.get("code")[0], 200)
+
+    def login(self):
+        # 如 difference_marker 为空就不执行登录
+        if Global_Map.get("difference_marker"):
+            # 判断用户是否有套餐权限
+            # product = [key for key, value in Global_Map.get("productId").items() if value == self.productId]
+            # if set(product) <= set(Global_Map.get("Package")):
+            #     pass
+            # elif Global_Map.get("noPackage") and set(product) <= set(Global_Map.get("Package")):
+            #     pytest.fail(f"{product} 产品套餐已无可用授权数量，用例无法执行，请释放套餐授权后重试")
+            # else:
+            #     pytest.skip(f"未购买 {product} 产品套餐，用例不用执行")
+            self.getToken()
+        return self.http_instance
+
+class OpenAPI:
+    '''
+    开放平台登录类
+    '''
+    def __init__(self,apikey,apisecret,env_conf):
+        self.apikey = apikey
+        self.apisecret = apisecret
+        self.username = env_conf.get("openapi").get("username")
+        self.OpenAPIToken = http_requests.HttpRequests(env_conf.get("openapi").get("host"))
+
+    def login(self):
+        '''
+        登录获取token
+        '''
+        resource = f"/rs/token/{self.apikey}/{self.apisecret}/{self.username}"
+        response = self.OpenAPIToken.send_request("get", resource)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        # 获取到响应的token并更新到header中
+        if isinstance(response.get("data"),list):
+            self.OpenAPIToken.header.update({"token": response.get("data")[0]})
+        else:
+            assert False,response.get("source_response") if response.get("source_response") else response.get("Response_text")
+        return self.OpenAPIToken
+
+class OpenApiMotorToken:
+    '''
+    开放平台motor token获取 motor 1.0
+    '''
+    def __init__(self,token):
+        self.token = token
+
+    def getMotorClientTokenUsingGET(self, token):
+        '''
+        获取访问motor模型的token
+        :param item_fixture: item fixture,
+        '''
+        resource = f'/auth-server/auth/motor/client_token'
+        response = token.send_request("GET", resource)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        Assertions.assert_code(response,response.get("code")[0], 200)
+        return response
+
+    def validateToken(self, item_fixture,WebToken):
+        '''
+        验证token是否有效
+        :param item_fixture: item fixture
+        '''
+        header = {"access_token": WebToken}
+        resource = f'/openapi/motor/v1.0/service/uc/auth/validateToken'
+        response = item_fixture.send_request("GET", resource, header=header, flush_header=True)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        Assertions.assert_code(response,response.get("code")[0], 200)
+        return response
+
+    def login(self):
+        '''
+        登录获取token
+        '''
+        GetToken = self.getMotorClientTokenUsingGET(self.token).get("data")[0]
+        self.validateToken(self.token,WebToken=GetToken)
+        return self.token
+
+class OpenApiMotorToken_V2:
+    '''
+    开放平台motor token获取 motor 2.0
+    '''
+    def __init__(self,token):
+        self.token = token
+
+    def getMotorClientTokenUsingGET(self, token):
+        '''
+        获取访问motor模型的token
+        :param item_fixture: item fixture,
+        '''
+        resource = f'/auth-server/auth/motor/client_token'
+        response = token.send_request("GET", resource)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        Assertions.assert_code(response,response.get("code")[0], 200)
+        # 验证token中是否包含epid
+        PAYLOAD = json.loads(base_utils.FromBase64(response.get("data")[0].split(".")[1]))
+        Assertions.assert_in_key(PAYLOAD,str("epId"))
+        return response
+
+    def validateToken(self, item_fixture,WebToken):
+        '''
+        验证token是否有效
+        :param item_fixture: item fixture
+        '''
+        header = {"access_token": WebToken}
+        resource = f'/openapi/rs/motor/v2/service/uc/auth/validateToken'
+        response = item_fixture.send_request("GET", resource, header=header, flush_header=True)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        Assertions.assert_code(response,response.get("code")[0], 200)
+        return response
+
+    def login(self):
+        '''
+        登录获取token
+        '''
+        GetToken = self.getMotorClientTokenUsingGET(self.token).get("data")[0]
+        self.validateToken(self.token,WebToken=GetToken)
+        return self.token
+
+
+class Bimapp:
+    '''
+    Bimapp 登录类
+    '''
+    def __init__(self,username,password):
+        self.username = base_utils.ToBase64(username)
+        self.password = password
+        self.token = ""
+        self.AcAddress = ""
+        self.BimappLogin = http_requests.HttpRequests(Global_Map.get("bimapp").get("host"))
+
+    def getCookie(self):
+        '''
+        获取cookie
+        '''
+        resource = "/login.htm"
+        response = self.BimappLogin.send_request("get", resource)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+
+    def getAcAddress(self):
+        '''
+        获取ac地址
+        '''
+        resource = "/getAcAddress.htm"
+        response = self.BimappLogin.send_request("get", resource)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        if response.get("Response_text") is not None:
+            self.AcAddress = response.get("Response_text")
+
+    def gettoken(self):
+        '''
+        获取token
+        '''
+        resource = f"{self.AcAddress}/rs/rest/user/login/{self.username}/{self.password}"
+        response = self.BimappLogin.send_request("get", resource)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        self.token = response.get('loginToken')[0]
+
+    def doLoginWithToken(self):
+        '''
+         token登录
+        '''
+        resource = f"/bimapp/doLoginWithToken.htm?token={self.token}"
+        response = self.BimappLogin.send_request("get", resource)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+
+
+    def login(self):
+        '''
+        登录
+        '''
+        self.getCookie()
+        self.getAcAddress()
+        self.gettoken()
+        self.doLoginWithToken()
+        return self.BimappLogin
+
+class Bussiness:
+    '''
+    Bussiness 登录类
+    '''
+    def __init__(self,username,password):
+        self.username = username
+        self.password = password
+        self.BussinessLogin = http_requests.HttpRequests(Global_Map.get("Bussiness").get("host"))
+
+    def login(self):
+        '''
+        Bussiness 登录
+        :param BussinessLogin:
+        :return:
+        '''
+        resource = "/login"
+        body = {"username":self.username,"password":self.password}
+        response = self.BussinessLogin.send_request("post", resource, body)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        Assertions.assert_code(response, response.get("rtcode")[0], 0)
+        return self.BussinessLogin
+
+class LubanSoft:
+    '''
+    lubansoft 登录类
+    '''
+    def __init__(self,username,password):
+        self.username = username
+        self.password = password
+        self.header = Global_Map.get("headers").get("soap_header")
+        self.lubansoftLogin = http_requests.HttpRequests(Global_Map.get("lubansoft").get("host"))
+
+    def login(self):
+        '''
+        lubansoft rest 登录
+        :return:
+        '''
+        resource = "/webservice/clientInfo/LBClient"
+        body = '''<?xml version="1.0" encoding="UTF-8"?>
+        <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:ns1="http://cloudnorm.webservice.lbapp.lubansoft.com/" xmlns:ns10="http://webservice.clientcomponent.lbapp.lubansoft.com/" xmlns:ns11="http://webservice.cloudcomponent.lbapp.lubansoft.com/" xmlns:ns12="http://webservice.lbim.lbapp.lubansoft.com/" xmlns:ns13="http://webservice.common.lbapp.lubansoft.com/" xmlns:ns14="http://webservice.costlib.lbapp.lubansoft.com/" xmlns:ns15="http://webservice.usergrade.lbapp.lubansoft.com/" xmlns:ns16="http://webservice.cloudautoset.lbapp.lubansoft.com/" xmlns:ns17="http://webservice.lbcert.lbapp.lubansoft.com/" xmlns:ns18="http://webservice.clientinfo.lbapp.lubansoft.com/" xmlns:ns19="http://webservice.onlineservice.lbapp.lubansoft.com/" xmlns:ns2="http://lbmsg.webservice.lbapp.lubansoft.com/" xmlns:ns20="http://webservice.localbim.lbapp.lubansoft.com/" xmlns:ns21="http://webservice.adimage.lbapp.lubansoft.com/" xmlns:ns22="http://webservice.banbankDrainage.lbapp.lubansoft.com/" xmlns:ns3="http://upgrade.webservice.lbapp.lubansoft.com/" xmlns:ns4="http://cloudpush.webservice.lbapp.lubansoft.com/" xmlns:ns5="http://common.webservice.lbapp.lubansoft.com/" xmlns:ns6="http://clientInfo.webservice.lbapp.lubansoft.com/" xmlns:ns7="http://validate.webservice.lbapp.lubansoft.com/" xmlns:ns8="http://LBUFS.webservice.lbapp.lubansoft.com/" xmlns:ns9="http://webservice.dataserver.LBUFS.lubansoft.com/">
+        <SOAP-ENV:Header><LBTag>Kick</LBTag><LBSessionId></LBSessionId></SOAP-ENV:Header>
+        <SOAP-ENV:Body>
+        <ns6:login>
+        <LBLoginParam>
+        <computerName>DESKTOP-S2CJPRR</computerName>
+        <hardwareCodes>0d80c194d531820c71de04a3998b435e-4ece03d1c7f03a151b241cbd455505ef</hardwareCodes>
+        <intranet_IP>172.16.21.178</intranet_IP>
+        <lubanNetVersion>4.9.0.5</lubanNetVersion>
+        <password>96e79218965eb72c92a549dd5a330112</password>
+        <platform>64</platform>
+        <productId>3</productId>
+        <softwareEnvironment>hostType=CAD;hostVer=2012;OSName=Windows 10;OSBit=64;OSVer=6-2;</softwareEnvironment>
+        <username>hubiao</username>
+        <version>30.2.1</version>
+        </LBLoginParam>
+        </ns6:login></SOAP-ENV:Body></SOAP-ENV:Envelope>'''
+        response = self.lubansoftLogin.send_request("post", resource, body)
+        Assertions.assert_code(response,response.get("status_code"), 200)
+        return self.lubansoftLogin
+
+if __name__ == '__main__':
+    pass
