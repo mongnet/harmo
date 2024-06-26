@@ -67,10 +67,10 @@ def file_is_exist(file_path: str) -> Path:
     :param file_path:
     :return:
     '''
-    new_path = Path(os.path.normpath(file_path))
-    if not new_path.exists():
+    new_path = os.path.normpath(file_path).replace('\\', '/') if os.sep == '/' else os.path.normpath(file_path)
+    if not os.path.exists(new_path):
         raise FileNotFoundError(f"请确认 {new_path} 文件路径是否正确！")
-    return new_path
+    return Path(new_path)
 
 def getStrMD5(String: str) -> str:
     '''
@@ -715,9 +715,9 @@ if __name__ == "__main__":
     # ToBa = ToBase64(name)
     # print(ToBa)
     # print(FromBase64(ToBa))
-    # print(toFileBase64("../data/20201222101200.png"))
-    # print(toFileBase64("../data/config1.yaml"))
-    # print(getFileSize("../data/20201222101200.png"))
+    print(toFileBase64("../data/20201222101200.png"))
+    print(toFileBase64("../data/config1.yaml"))
+    print(getFileSize("../data/20201222101200.png"))
     # print(UnixToTime(unix=1644844153000))
     # print(gen_uuid())
     # print(gen_uuid(True))
@@ -741,7 +741,7 @@ if __name__ == "__main__":
     print(file_absolute_path('../data/Quality_check_lib.xls'))
     print(file_absolute_path('D:/Automation\\standard_polling/data/Quality_check_lib.xls'))
     print(file_is_exist('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
-    # print(getFileMD5('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
+    print(getFileMD5('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
     source = {"ex": 1, "state": "false", "age": 38, "shool":{"name":"wgj"}}
     replaceDict = {"ex": None, "state": False, "shool": 38, "age":20, "name":"hubiao"}
     a = {"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}
