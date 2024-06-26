@@ -6,3 +6,4 @@
 6. 在测试运行结束后会把 Global_Map 中的数据全部写回到 config/global/_global_map_temp.yaml 中方便查看过程数据
 7. 在执行时会获取 config/global/ 下全部的yaml文件数据(不包含_global_map_temp.yaml)并存放在Global_Map中
 8. 初始化会消耗一些时间，所以在调试时，建议把 pytest.ini 中的 is_local 设置为 True ，这样就可跳过初始化，使用已存在的数据进行调试，但一定要确保至少完整执行过一次代码，或也可在 config/global/ 下创建yaml文件并配置好这些变量的值
+9. 自定义的fixture生成的数据不建议直接保存在 Global_Map 中，建议通过 yield 以字典形式返回，方便调用且不会形成干扰

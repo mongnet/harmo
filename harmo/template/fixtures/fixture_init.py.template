@@ -365,7 +365,7 @@ def initialize(token,process_token):
                     Assertions.assert_code(role_resource, role_resource.get("status_code"), 200)
                     Assertions.assert_code(role_resource, role_resource.get("code")[0], 200)
                     node_list = jsonpath.jsonpath(role_resource.get("source_response"), f"$..authNodeList[?(@.id)]..id")
-                    user_create = EntAdminUser().role_user_create_post(token, roleId=Global_Map.get('role_id'),linkageSwitch=1, userIds=[Global_Map.get("normal_user_id")], resIds=node_list)
+                    user_create = EntAdminUser().role_user_create_post(token, roleId=Global_Map.get('role_id'),linkageSwitch=0, userIds=[Global_Map.get("normal_user_id")], resIds=node_list)
                     Assertions.assert_code(user_create, user_create.get("status_code"), 200)
                     Assertions.assert_code(user_create, user_create.get("code")[0], 200)
                     # 验证人员管理用户添加成功

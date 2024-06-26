@@ -161,7 +161,7 @@ class AnalysisSwaggerJson():
                     for method in list(value.keys()):
                         params = value[method]
                         # deprecated字段标识：接口是否被弃用，暂时无法判断
-                        if not "deprecated" in value.keys():
+                        if "deprecated" not in value.keys():
                             group["name"] = tag_name
                             interface = self.__wash_params(params, uri, method, group, startswith_equal_path_list)
                             if interface:
@@ -245,7 +245,7 @@ class AnalysisSwaggerJson():
         http_interface["uri"] = uri
         http_interface["interface_basePath"] = self.basePath
         # 调试用
-        # if name != "导出Excel":
+        # if name != "资源下的组织节点列表(指挥中心)":
         #     return
         # swagger 3.0 当请求有 body 传参时，没有 in: "body"了，现使用 requestBody 标示请求体
         if params.get("requestBody"):
@@ -291,27 +291,40 @@ class AnalysisSwaggerJson():
                     properties = self.components.get(param_key).get("properties")
                     for key, value in properties.items():
                         if value.get("type") == "array":
-                            if "items" in value.keys() and "$ref" in value.get("items"):
+                            if "items" in value and "$ref" in value.get("items"):
                                 http_interface["query_params"].update({key: value.get("type")})
-                            elif "items" in value.keys():
+                            elif "items" in value:
                                 http_interface["query_params"].update({key: value.get("type")+"_"+value.get("items").get("type")})
                             else:
                                 http_interface["query_params"].update({key: value.get("type")})
                         else:
                             http_interface["query_params"].update({key: value.get("type")})
-                        if "description" in value.keys():
-                            http_interface["params_description"].update({key: value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        if "description" in value:
+                            http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            if each.get("schema"):
+                                http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                            else:
+                                http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
                 else:
                     name = each.get("name")
                     if each.get("schema"):
-                        if "items" in each.get("schema").keys():
+                        if "items" in each.get("schema"):
                             http_interface["query_params"].update({name: each.get("schema").get("type") + "_" + each.get("schema").get("items").get("type")})
                         else:
                             http_interface["query_params"].update({name: each.get("schema").get("type")})
                     else:
                         http_interface["query_params"].update({name: each.get("type")})
-                    if "description" in each.keys():
-                        http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                    if "description" in each:
+                        if each.get("schema"):
+                            http_interface["params_description"].update({name: each.get("schema").get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            http_interface["params_description"].update({name: each.get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                    else:
+                        if each.get("schema"):
+                            http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
             elif each.get("in") == "path":
                 if ref:
                     # 拆分这个ref，根据实际情况来取第几个/反斜杠
@@ -319,27 +332,40 @@ class AnalysisSwaggerJson():
                     properties = self.components.get(param_key).get("properties")
                     for key, value in properties.items():
                         if value.get("type") == "array":
-                            if "items" in value.keys() and "$ref" in value.get("items"):
+                            if "items" in value and "$ref" in value.get("items"):
                                 http_interface["path_params"].update({key: value.get("type")})
-                            elif "items" in value.keys():
+                            elif "items" in value:
                                 http_interface["path_params"].update({key: value.get("type")+"_"+value.get("items").get("type")})
                             else:
                                 http_interface["path_params"].update({key: value.get("type")})
                         else:
                             http_interface["path_params"].update({key: value.get("type")})
-                        if "description" in value.keys():
-                            http_interface["params_description"].update({key: value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        if "description" in value:
+                            http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            if each.get("schema"):
+                                http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                            else:
+                                http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
                 else:
                     name = each.get("name")
                     if each.get("schema"):
-                        if "items" in each.get("schema").keys():
+                        if "items" in each.get("schema"):
                             http_interface["path_params"].update({name: each.get("schema").get("type") + "_" + each.get("schema").get("items").get("type")})
                         else:
                             http_interface["path_params"].update({name: each.get("schema").get("type")})
                     else:
                         http_interface["path_params"].update({name: each.get("type")})
-                    if "description" in each.keys():
-                        http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                    if "description" in each:
+                        if each.get("schema"):
+                            http_interface["params_description"].update({name: each.get("schema").get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            http_interface["params_description"].update({name: each.get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                    else:
+                        if each.get("schema"):
+                            http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
             elif each.get("in") == "cookie":
                 if ref:
                     # 拆分这个ref，根据实际情况来取第几个/反斜杠
@@ -347,27 +373,40 @@ class AnalysisSwaggerJson():
                     properties = self.components.get(param_key).get("properties")
                     for key, value in properties.items():
                         if value.get("type") == "array":
-                            if "items" in value.keys() and "$ref" in value.get("items"):
+                            if "items" in value and "$ref" in value.get("items"):
                                 http_interface["cookie_params"].update({key: value.get("type")})
-                            elif "items" in value.keys():
+                            elif "items" in value:
                                 http_interface["cookie_params"].update({key: value.get("type")+"_"+value.get("items").get("type")})
                             else:
                                 http_interface["cookie_params"].update({key: value.get("type")})
                         else:
                             http_interface["cookie_params"].update({key: value.get("type")})
-                        if "description" in value.keys():
-                            http_interface["params_description"].update({key: value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        if "description" in value:
+                            http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            if each.get("schema"):
+                                http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                            else:
+                                http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
                 else:
                     name = each.get("name")
                     if each.get("schema"):
-                        if "items" in each.get("schema").keys():
+                        if "items" in each.get("schema"):
                             http_interface["cookie_params"].update({name: each.get("schema").get("type") + "_" + each.get("schema").get("items").get("type")})
                         else:
                             http_interface["cookie_params"].update({name: each.get("schema").get("type")})
                     else:
                         http_interface["cookie_params"].update({name: each.get("type")})
-                    if "description" in each.keys():
-                        http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                    if "description" in each:
+                        if each.get("schema"):
+                            http_interface["params_description"].update({name: each.get("schema").get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            http_interface["params_description"].update({name: each.get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                    else:
+                        if each.get("schema"):
+                            http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
             elif each.get("in") == "formData":
                 if ref:
                     # 拆分这个ref，根据实际情况来取第几个/反斜杠
@@ -375,32 +414,45 @@ class AnalysisSwaggerJson():
                     properties = self.components.get(param_key).get("properties")
                     for key, value in properties.items():
                         if value.get("type") == "array":
-                            if "items" in value.keys() and "$ref" in value.get("items"):
+                            if "items" in value and "$ref" in value.get("items"):
                                 http_interface["formData_params"].update({key: value.get("type")})
-                            elif "items" in value.keys():
+                            elif "items" in value:
                                 http_interface["formData_params"].update({key: value.get("type")+"_"+value.get("items").get("type")})
                             else:
                                 http_interface["formData_params"].update({key: value.get("type")})
                         else:
                             http_interface["formData_params"].update({key: value.get("type")})
                         http_interface.update({"body_binary": f"${key}$"})
-                        if "description" in value.keys():
-                            http_interface["params_description"].update({key: value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        if "description" in value:
+                            http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            if each.get("schema"):
+                                http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                            else:
+                                http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
                 else:
                     name = each.get("name")
                     if each.get("schema"):
-                        if "items" in each.get("schema").keys():
+                        if "items" in each.get("schema"):
                             http_interface["formData_params"].update({name: each.get("schema").get("type") + "_" + each.get("schema").get("items").get("type")})
                         else:
                             http_interface["formData_params"].update({name: each.get("schema").get("type")})
                     else:
                         http_interface["formData_params"].update({name: each.get("type")})
                     http_interface.update({"body_binary": f"${each.get('name')}$"})
-                    if "description" in each.keys():
-                        http_interface["params_description"].update({name: each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                    if "description" in each:
+                        if each.get("schema"):
+                            http_interface["params_description"].update({name: each.get("schema").get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            http_interface["params_description"].update({name: each.get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                    else:
+                        if each.get("schema"):
+                            http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                        else:
+                            http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
             elif each.get("in") == "header":
                 name = each.get("name")
-                for key in each.keys():
+                for key in each:
                     if "example" in key:
                         http_interface["headers"].update({name: each[key]})
                     else:
@@ -408,7 +460,7 @@ class AnalysisSwaggerJson():
             else:
                 print(f"warning: 出现未处理的请求类型 {each.get('in')} ，请联系作者处理")
         # 把 formData_params 的 key 组装成新的 query_params_url ,生成用例时添加成测试方法的参数
-        if "formData_params" in http_interface.keys() and http_interface["formData_params"]:
+        if "formData_params" in http_interface and http_interface["formData_params"]:
             args = []
             kwargs = []
             http_interface["formData_params_field_type"] = copy.deepcopy(http_interface["formData_params"])
@@ -417,7 +469,7 @@ class AnalysisSwaggerJson():
             http_interface["formData_params_args"] = list(set(args))
             http_interface["formData_params_kwargs"] = list(set(kwargs))
         # 把 query_params 的 key 组装成新的 query_params_url ,生成用例时添加成测试方法的参数
-        if "query_params" in http_interface.keys() and http_interface["query_params"]:
+        if "query_params" in http_interface and http_interface["query_params"]:
             args = []
             kwargs = []
             http_interface["query_params_field_type"] = copy.deepcopy(http_interface["query_params"])
@@ -500,7 +552,7 @@ class AnalysisSwaggerJson():
         return http_interface
 
     def __jiexi(self, schema, http_interface, ephemeral_key=None, key_type=None, body=None, each=None):
-        if "$ref" in schema.keys() or schema.get("type") == "object":
+        if "$ref" in schema or schema.get("type") == "object":
             if schema.get("type") == "object":
                 properties = schema.get("properties")
                 requireds = schema.get("required")
@@ -534,20 +586,20 @@ class AnalysisSwaggerJson():
                 for key, value in properties.items():
                     # 字段是否必填
                     required = True if isinstance(requireds,list) and key in requireds else False
-                    if "type" in value.keys():
+                    if "type" in value:
                         if ephemeral_key:
                             ephemeral_data.update({key: value["type"]})
-                            if "description" in value.keys():
-                                http_interface["params_description"].update({key: value.get("description") + (",可用值:" + ",".join(value.get("enum")) if "enum" in value.keys() else "") + (",必填" if required else ",非必填")})
-                            if "items" in value.keys() and "$ref" in value.get("items"):
+                            if "description" in value:
+                                http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",可用值:" + ",".join(value.get("enum")) if "enum" in value.keys() else "") + (",必填" if required else ",非必填")})
+                            if "items" in value and "$ref" in value.get("items"):
                                 pass
                         else:
-                            if "description" in value.keys():
-                                http_interface["params_description"].update({key: value.get("description") + (",可用值:" + ",".join(value.get("enum")) if "enum" in value.keys() else "") + (",必填" if required else ",非必填")})
+                            if "description" in value:
+                                http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",可用值:" + ",".join(value.get("enum")) if "enum" in value.keys() else "") + (",必填" if required else ",非必填")})
                             else:
                                 http_interface["params_description"].update({key: value.get("type") + (",必填" if value.get("required") else ",非必填")})
                             http_interface["body"].update({key: value.get("type")})
-                        if "items" in value.keys() and "$ref" in value.get("items"):
+                        if "items" in value and "$ref" in value.get("items"):
                             if value.get("items").get("$ref") == ref:
                                 # 跳出递归死循环
                                 pass
@@ -563,7 +615,7 @@ class AnalysisSwaggerJson():
                                             else:
                                                 body.append({key: []})
                                     self.__jiexi(value.get("items"), http_interface, key, value["type"], body=ephemeral_data)
-                    elif "$ref" in value.keys():
+                    elif "$ref" in value:
                         if value.get("$ref") == ref:
                             # 跳出递归死循环
                             pass
@@ -586,7 +638,7 @@ class AnalysisSwaggerJson():
                         http_interface["body"].update({ephemeral_key.split("_")[-1]: ephemeral_data})
         else:
             for key, value in schema.items():
-                if isinstance(value, dict) and "$ref" in value.keys():
+                if isinstance(value, dict) and "$ref" in value:
                     self.__jiexi(value, http_interface, ephemeral_key)
                     return
             # 处理body为array时的情况
@@ -629,11 +681,13 @@ class AnalysisSwaggerJson():
         elif isinstance(data, dict):
             for key, value in data.items():
                 if isinstance(value, list):
+                    self.kwargs.append(key + "=$None$")
                     self.__recursion(value)
                     continue
                 if isinstance(value, dict):
                     for k, v in value.items():
                         if isinstance(v, list):
+                            self.kwargs.append(key + "=$None$")
                             self.__recursion(v)
                             continue
                         self.__wash_body(k, value, self.args, self.kwargs)
@@ -650,11 +704,13 @@ class AnalysisSwaggerJson():
         :param parameters_form: 传参方式
         :return:
         """
+        if arg not in body:
+            return
         # 无默认值或在黑名单中的参数无需处理
         if arg in list_args or arg in self.blacklist:
             return
-        if arg in self.default_parame.keys():
-            # 接口传参默认值处理
+        # 接口传参默认值处理
+        if arg in self.default_parame:
             kwarg = ""
             if isinstance(self.default_parame[arg], int):
                 kwarg = str(self.default_parame[arg])
@@ -705,6 +761,8 @@ if __name__ == "__main__":
     url45 = "http://192.168.13.172:19902/ent-admin-user/v3/api-docs/swagger-config"
     url46 = "http://192.168.13.172:18000/process/v3/api-docs"
     url47 = "http://192.168.13.178:8864/sphere/v3/api-docs"
+    url48 = "http://192.168.13.172:19901/ent-admin-org/v3/api-docs/swagger-config"
+    url49 = "http://192.168.13.172:19904/acl/v3/api-docs/接口文档"
 
 
 
@@ -735,4 +793,6 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url44))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url45))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url46))
-    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url47))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url47))
+    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url48))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url49,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
