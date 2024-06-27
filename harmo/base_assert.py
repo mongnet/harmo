@@ -315,12 +315,23 @@ class Assertions:
         :param expect_value: 预期字典或列表
         :return:
         """
+        # 如果两个对象不是同样的类型，它们不相等
+        if type(actual_value) != type(expect_value):
+            assert False, "两个对象不是同样的类型，它们不相等"
+        # 如果长度不同，它们不相等
+        if len(actual_value) != len(expect_value):
+            assert False, "两个对象长度不同，它们不相等"
         if isinstance(actual_value, dict) and isinstance(expect_value, dict):
             if operator.eq(actual_value,expect_value):
                 assert True
             else:
                 assert False,"二个字典不相等"
         elif isinstance(actual_value, list) and isinstance(expect_value, list):
+            try:
+                set(actual_value)
+                set(expect_value)
+            except TypeError:
+                assert False,"不支持嵌套列表的对比"
             ls1 = list(set(actual_value).difference(set(expect_value)))
             ls2 = list(set(expect_value).difference(set(actual_value)))
             if not ls1 and not ls2:
@@ -429,8 +440,8 @@ class Assertions:
                             print(f'{check_type} not valid check type')
 
 if __name__ == "__main__":
-    dict1 = {"projId":113692,"ppid":130817,"projName":"BW接口用工程-勿删160711"}
-    dict2 = {"projId":113692,"projName":"BW接口用工程-勿删160711","ppid":130817}
+    dict1 = {"projId":113692,"ppid":130817,"projName":"BW接口用工程-勿删160711","projSize":{"projId":113692,"projName":"BW接口用工程-勿删160711","ppid":130817}}
+    dict2 = {"projId":113692,"projName":"BW接口用工程-勿删160711","ppid":130817,"projSize":{"projId":113692,"projName":"BW接口用工程-勿删160711","ppid":130817}}
     dict3 = {"hu":[1111,"adf","胡彪"]}
     dict4 = {"name":"hubiao","chengji":[10,20,30],"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}
     dict5 = {"hu":"adf"}
@@ -439,8 +450,8 @@ if __name__ == "__main__":
     dict8 = {"hu":["胡彪"]}
     dict9 = {"hu":50}
     dict10 = {"hu":1.32}
-    list1 = [1111,"adfaf","公众号：彪哥的测试之路",False,None]
-    list2 = [1111,"公众号：彪哥的测试之路","adfaf"]
+    list1 = [1, 2, 3]
+    list2 = [1, 3, 2]
     list3 = ["89010001#89","89010001#89","89010001#89", "96003010#96"]
     list4 = [{"name":"hubiao"},{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}]
     list5 = [["89010001#89","89010001#89","89010001#89", "96003010#96"],{"name":"mongnet"},{"chengji":[10,20,30]},{"proj":[{"projname":"项目部工程"},{"projsize":1024},{"poe":[{"hu":"adf"}]}]}]
@@ -450,8 +461,8 @@ if __name__ == "__main__":
     data = ['WBS数据-质检','WEB质检-标段基本信息', 'w' ]
     # expected_value = ['WEB质检-标段基本信息', 'WBS数据-质检']
     # Assertions.assert_equal_value('自动化测试企业','初始化分公司')
-    # Assertions.assert_dictOrList_eq(dict1,dict2)
-    # Assertions.assert_dictOrList_eq(list1,list2)
+    Assertions.assert_dictOrList_eq(dict1,dict2)
+    Assertions.assert_dictOrList_eq(list1,list2)
     # Assertions.assert_assign_attribute_value(dict3, "hu", ["adf",1111, "胡彪"])
     # Assertions.assert_assign_attribute_value(dict5, "hu", ["adf",1111, "胡彪"])
     # Assertions.assert_assign_attribute_value(dict3, "hu", "adf")

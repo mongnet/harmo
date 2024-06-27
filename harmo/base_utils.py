@@ -67,10 +67,23 @@ def file_is_exist(file_path: str) -> Path:
     :param file_path:
     :return:
     '''
-    new_path = os.path.normpath(file_path).replace('\\', '/') if os.sep == '/' else os.path.normpath(file_path)
+    new_path = Path(os.path.normpath(file_path).replace('\\', '/')) if os.sep == '/' else Path(os.path.normpath(file_path))
     if not os.path.exists(new_path):
         raise FileNotFoundError(f"请确认 {new_path} 文件路径是否正确！")
-    return Path(new_path)
+    return new_path
+
+def file_absolute_path(rel_path: str) -> Path:
+    '''
+    通过文件相对路径，返回文件绝对路径
+    :param rel_path: 相对于项目根目录的路径，如data/check_lib.xlsx
+    :return:
+    '''
+    new_path = Path(os.path.normpath(rel_path).replace('\\', '/')) if os.sep == '/' else Path(os.path.normpath(rel_path))
+    if os.path.isfile(new_path):
+        return os.path.abspath(new_path)
+    _current_path = Config.project_root_dir  # os.path.abspath(os.path.dirname(__file__))
+    _file_path = os.path.join(_current_path, new_path)
+    return file_is_exist(_file_path)
 
 def getStrMD5(String: str) -> str:
     '''
@@ -537,19 +550,6 @@ def gen_sign(timestamp, secret) -> str:
     hmac_code = hmac.new(string_to_sign.encode("utf-8"), digestmod=hashlib.sha256).digest()
     sign = base64.b64encode(hmac_code).decode("utf-8")
     return sign
-
-def file_absolute_path(rel_path: str) -> Path:
-    '''
-    通过文件相对路径，返回文件绝对路径
-    :param rel_path: 相对于项目根目录的路径，如data/check_lib.xlsx
-    :return:
-    '''
-    new_path = Path(os.path.normpath(rel_path))
-    if os.path.isfile(new_path):
-        return os.path.abspath(new_path)
-    _current_path = Config.project_root_dir  # os.path.abspath(os.path.dirname(__file__))
-    _file_path = os.path.join(_current_path, new_path)
-    return file_is_exist(_file_path)
 
 def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict) -> None:
     '''
