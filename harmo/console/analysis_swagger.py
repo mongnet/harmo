@@ -160,15 +160,15 @@ class AnalysisSwaggerJson():
                 for uri, value in list(tag_value.items()):
                     for method in list(value.keys()):
                         params = value[method]
-                        # deprecated字段标识：接口是否已废弃
-                        if "deprecated" in value.get(method).keys() and value.get(method).get("deprecated"):
-                            print(f'warning: {uri} 已标识为废弃，当前接口不会被生成')
-                            continue
-                        else:
-                            group["name"] = tag_name
-                            interface = self.__wash_params(params, uri, method, group, startswith_equal_path_list)
-                            if interface:
-                                group["interfaces"].append(interface)
+                        # deprecated字段标识：接口是否已废弃，废弃接口不会被生成
+                        # if "deprecated" in value.get(method).keys() and value.get(method).get("deprecated"):
+                        #     print(f'warning: {uri} 已标识为废弃，废弃接口不会被生成')
+                        #     continue
+                        # else:
+                        group["name"] = tag_name
+                        interface = self.__wash_params(params, uri, method, group, startswith_equal_path_list)
+                        if interface:
+                            group["interfaces"].append(interface)
                 # 合并相同file_name
                 groups = base_utils.jpath(http_interface_group.get("groups"), check_key="file_name", sub_key="file_name")
                 if groups:
@@ -231,7 +231,7 @@ class AnalysisSwaggerJson():
         # 通过url生成测试方法名，path中相同的前部分会被去掉
         repuris = [u.replace("{", "").replace("}", "").replace("_", "") for u in uri.split("/")]
         # 去除空字符串
-        original_list = [repuri.lower() for repuri in repuris if repuri != '']
+        original_list = [repuri for repuri in repuris if repuri != '']
         # 去除相邻重复项
         from itertools import groupby
         unique_list = [key for key, group in groupby(original_list)]
