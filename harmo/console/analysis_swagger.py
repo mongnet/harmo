@@ -9,13 +9,13 @@ import re
 from urllib.parse import urlparse
 
 import jsonpath
-import requests
 import copy
 from collections import Counter
 from typing import Optional
 from pathlib import Path
-from harmo import base_utils
+from harmo import base_utils, http_requests
 from harmo.operation import yaml_file
+from harmo.base_assert import Assertions
 
 class AnalysisSwaggerJson():
     """
@@ -41,49 +41,49 @@ class AnalysisSwaggerJson():
         # 如："http://192.168.13.197:8989/builder/v2/api-docs"
         # 如："http://192.168.13.202:8081/Plan/rs/swagger/swagger.json"
         # 如："D:/Automation/standadrd_polling/data/swagger_ent_admin.json"
-        self.url = swaggerUrl
         try:
             http_interface_groups =[]
-            if re.compile(r"(http)(s?)(://)").match(self.url):
-                if header:
-                    self.header.update(json.loads(header) if not isinstance(header, dict) else header)
-                response = requests.get(self.url, headers=self.header)
-                assert response.status_code == 200,f"地址无法访问，响应状态码为{response.status_code}"
-                swagger_res = response.json()
-            elif Path(self.url).is_file() and self.url.endswith(".json"):
-                swaggerfile = open(base_utils.file_absolute_path(self.url),'r',encoding='utf-8-sig')
+            if re.compile(r"(http)(s?)(://)").match(swaggerUrl):
+                req = http_requests.HttpRequests(swaggerUrl)
+                response = req.send_request("GET", swaggerUrl, header=header)
+                Assertions.assert_code(response, response.get("status_code"), 200)
+                swagger_res = response.get("source_response")
+            elif base_utils.file_is_exist(swaggerUrl) and swaggerUrl.endswith(".json"):
+                swaggerfile = open(base_utils.file_absolute_path(swaggerUrl),'r',encoding='utf-8-sig')
                 swagger_res = json.loads(swaggerfile.read())
             else:
-                raise ValueError(f"error: 不是一个有效的swagger地址或文件(swagger地址必须以http或http开头,文件必须以.json结尾)")
+                raise ValueError(f"error: {swaggerUrl} 不是一个有效的swagger地址或文件(swagger地址必须以http或http开头,文件必须以.json结尾)")
             if isinstance(swagger_res,dict):
                 if swagger_res.get("urls"):
                     print(f"这是一个 swagger-groups, 共有 {len(swagger_res.get('urls'))} 个group")
                     for i in swagger_res.get("urls"):
                         print(f"正在处理第 {swagger_res.get('urls').index(i)+1} 个")
                         if isinstance(i, dict) and i.get("url"):
-                            response = requests.get(self.url.split(f"{swagger_res.get('configUrl')}",1)[0] + i.get("url"), headers=self.header)
-                            assert response.status_code == 200, f"连接请求失败，HTTP状态码为{response.status_code}"
-                            res = response.json()
+                            req = http_requests.HttpRequests(swaggerUrl)
+                            response = req.send_request("GET", swaggerUrl.split(f"{swagger_res.get('configUrl')}",1)[0] + i.get("url"), header=header)
+                            Assertions.assert_code(response, response.get("status_code"), 200)
+                            res = response.get("source_response")
                             if res.get("paths"):
-                                http_interface_groups.append(self.__analysis(self.url,res))
+                                http_interface_groups.append(self.__analysis(swaggerUrl,res))
                             else:
                                 print(f'warning: 注意 {i.get("url")} 中没有定义接口')
                         else:
                             raise ValueError(f"error: 不是一个有效的swagger地址或文件")
                 elif swagger_res.get("paths"):
-                    http_interface_groups.append(self.__analysis(self.url,swagger_res))
+                    http_interface_groups.append(self.__analysis(swaggerUrl,swagger_res))
                 else:
-                    print(f'warning: 注意 {self.url} 中没有定义接口')
-            elif isinstance(swagger_res,list) and "swagger-resources" in self.url:
+                    print(f'warning: 注意 {swaggerUrl} 中没有定义接口')
+            elif isinstance(swagger_res,list) and "swagger-resources" in swaggerUrl:
                 print(f"这是一个 swagger-groups, 共有 {len(swagger_res)} 个group")
                 for i in swagger_res:
                     print(f"正在处理第 {swagger_res.index(i)+1} 个")
                     if isinstance(i,dict) and i.get("url"):
-                        response = requests.get(self.url.split("/swagger-resources",1)[0]+i.get("url"), headers=self.header)
-                        assert response.status_code == 200, f"地址无法访问，响应状态码为{response.status_code}"
-                        res = response.json()
+                        req = http_requests.HttpRequests(swaggerUrl)
+                        response = req.send_request("GET", swaggerUrl.split("/swagger-resources",1)[0]+i.get("url"), header=header)
+                        Assertions.assert_code(response, response.get("status_code"), 200)
+                        res = response.get("source_response")
                         if res.get("paths"):
-                            http_interface_groups.append(self.__analysis(self.url,res))
+                            http_interface_groups.append(self.__analysis(swaggerUrl,res))
                         else:
                             print(f'warning: 注意 {i.get("url")} 中没有定义接口')
                     else:
@@ -160,15 +160,15 @@ class AnalysisSwaggerJson():
                 for uri, value in list(tag_value.items()):
                     for method in list(value.keys()):
                         params = value[method]
-                        # deprecated字段标识：接口是否被弃用，暂时无法判断
-                        if "deprecated" not in value.keys():
+                        # deprecated字段标识：接口是否已废弃
+                        if "deprecated" in value.get(method).keys() and value.get(method).get("deprecated"):
+                            print(f'warning: {uri} 已标识为废弃，当前接口不会被生成')
+                            continue
+                        else:
                             group["name"] = tag_name
                             interface = self.__wash_params(params, uri, method, group, startswith_equal_path_list)
                             if interface:
                                 group["interfaces"].append(interface)
-                        else:
-                            print(f'warning: {uri} 接口已被弃用')
-                            break
                 # 合并相同file_name
                 groups = base_utils.jpath(http_interface_group.get("groups"), check_key="file_name", sub_key="file_name")
                 if groups:
@@ -181,6 +181,7 @@ class AnalysisSwaggerJson():
                 if group.get("interfaces"):
                     repetition = {"方法名 "+key: "重复了 "+str(value)+" 次" for key, value in dict(Counter(jsonpath.jsonpath(group.get("interfaces"),"$..name_en"))).items() if value > 1}
                     if repetition:
+                        print(group.get("interfaces"))
                         assert False, f"生成的接口方法名出现重名：{repetition}"
                 http_interface_group["groups"].append(group)
         else:
@@ -229,17 +230,19 @@ class AnalysisSwaggerJson():
         http_interface["name_cn"] = name
         # 通过url生成测试方法名，path中相同的前部分会被去掉
         repuris = [u.replace("{", "").replace("}", "").replace("_", "") for u in uri.split("/")]
-        # 原序去重、去空
-        sort_repuri = [repuris for repuris in list(set(repuris)) if repuris != '']
-        sort_repuri.sort(key=repuris.index)
-        if not sort_repuri and params.get("operationId"):
+        # 去除空字符串
+        original_list = [repuri.lower() for repuri in repuris if repuri != '']
+        # 去除相邻重复项
+        from itertools import groupby
+        unique_list = [key for key, group in groupby(original_list)]
+        if not unique_list and params.get("operationId"):
             operationId = params.get("operationId").split("_")
             if len(operationId) >= 1:
-                sort_repuri.append(operationId[0].lower())
-        if not sort_repuri:
-            sort_repuri.extend(startswith_equal_path_list)
-        sort_repuri.append(method)
-        name_en = "_".join(sort_repuri).replace("-", "_")
+                unique_list.append(operationId[0].lower())
+        if not unique_list:
+            unique_list.extend(startswith_equal_path_list)
+        unique_list.append(method)
+        name_en = "_".join(unique_list).replace("-", "_")
         http_interface["name_en"] = name_en
         http_interface["method"] = method.upper()
         http_interface["uri"] = uri
@@ -300,12 +303,12 @@ class AnalysisSwaggerJson():
                         else:
                             http_interface["query_params"].update({key: value.get("type")})
                         if "description" in value:
-                            http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({key: value.get("type")+"," if value.get("type") else "" + value.get("description") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            if each.get("schema"):
-                                http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                            if value.get("schema"):
+                                http_interface["params_description"].update({name: value.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
                             else:
-                                http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
+                                http_interface["params_description"].update({name: value.get("type") if value.get("type") else "" + (",必填" if each.get("required") else ",非必填")})
                 else:
                     name = each.get("name")
                     if each.get("schema"):
@@ -319,12 +322,12 @@ class AnalysisSwaggerJson():
                         if each.get("schema"):
                             http_interface["params_description"].update({name: each.get("schema").get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            http_interface["params_description"].update({name: each.get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({name: each.get("type")+"," if each.get("type") else "" + each.get("description") + (",必填" if each.get("required") else ",非必填")})
                     else:
                         if each.get("schema"):
                             http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({name: each.get("type") if each.get("type") else "" + (",必填" if each.get("required") else ",非必填")})
             elif each.get("in") == "path":
                 if ref:
                     # 拆分这个ref，根据实际情况来取第几个/反斜杠
@@ -341,12 +344,12 @@ class AnalysisSwaggerJson():
                         else:
                             http_interface["path_params"].update({key: value.get("type")})
                         if "description" in value:
-                            http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({key: value.get("type")+"," if value.get("type") else "" + value.get("description") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            if each.get("schema"):
-                                http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                            if value.get("schema"):
+                                http_interface["params_description"].update({name: value.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
                             else:
-                                http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
+                                http_interface["params_description"].update({name: value.get("type") if value.get("type") else "" + (",必填" if each.get("required") else ",非必填")})
                 else:
                     name = each.get("name")
                     if each.get("schema"):
@@ -360,12 +363,12 @@ class AnalysisSwaggerJson():
                         if each.get("schema"):
                             http_interface["params_description"].update({name: each.get("schema").get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            http_interface["params_description"].update({name: each.get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({name: each.get("type")+"," if each.get("type") else "" + each.get("description") + (",必填" if each.get("required") else ",非必填")})
                     else:
                         if each.get("schema"):
                             http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({name: each.get("type") if each.get("type") else "" + (",必填" if each.get("required") else ",非必填")})
             elif each.get("in") == "cookie":
                 if ref:
                     # 拆分这个ref，根据实际情况来取第几个/反斜杠
@@ -382,12 +385,12 @@ class AnalysisSwaggerJson():
                         else:
                             http_interface["cookie_params"].update({key: value.get("type")})
                         if "description" in value:
-                            http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({key: value.get("type")+"," if value.get("type") else "" + value.get("description") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            if each.get("schema"):
-                                http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
+                            if value.get("schema"):
+                                http_interface["params_description"].update({name: value.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
                             else:
-                                http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
+                                http_interface["params_description"].update({name: value.get("type") if value.get("type") else "" + (",必填" if each.get("required") else ",非必填")})
                 else:
                     name = each.get("name")
                     if each.get("schema"):
@@ -401,12 +404,12 @@ class AnalysisSwaggerJson():
                         if each.get("schema"):
                             http_interface["params_description"].update({name: each.get("schema").get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            http_interface["params_description"].update({name: each.get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({name: each.get("type")+"," if each.get("type") else "" + each.get("description") + (",必填" if each.get("required") else ",非必填")})
                     else:
                         if each.get("schema"):
                             http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({name: each.get("type") if each.get("type") else "" + (",必填" if each.get("required") else ",非必填")})
             elif each.get("in") == "formData":
                 if ref:
                     # 拆分这个ref，根据实际情况来取第几个/反斜杠
@@ -424,12 +427,12 @@ class AnalysisSwaggerJson():
                             http_interface["formData_params"].update({key: value.get("type")})
                         http_interface.update({"body_binary": f"${key}$"})
                         if "description" in value:
-                            http_interface["params_description"].update({key: value.get("type") + "," + value.get("description") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({key: value.get("type") if value.get("type") else "" + value.get("description") + (",必填" if each.get("required") else ",非必填")})
                         else:
                             if each.get("schema"):
                                 http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
                             else:
-                                http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
+                                http_interface["params_description"].update({name: each.get("type") if each.get("type") else "" + (",必填" if each.get("required") else ",非必填")})
                 else:
                     name = each.get("name")
                     if each.get("schema"):
@@ -444,12 +447,12 @@ class AnalysisSwaggerJson():
                         if each.get("schema"):
                             http_interface["params_description"].update({name: each.get("schema").get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            http_interface["params_description"].update({name: each.get("type") + "," + each.get("description") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({name: each.get("type")+"," if each.get("type") else "" + each.get("description") + (",必填" if each.get("required") else ",非必填")})
                     else:
                         if each.get("schema"):
                             http_interface["params_description"].update({name: each.get("schema").get("type") + (",必填" if each.get("required") else ",非必填")})
                         else:
-                            http_interface["params_description"].update({name: each.get("type") + (",必填" if each.get("required") else ",非必填")})
+                            http_interface["params_description"].update({name: each.get("type") if each.get("type") else "" + (",必填" if each.get("required") else ",非必填")})
             elif each.get("in") == "header":
                 name = each.get("name")
                 for key in each:
@@ -745,17 +748,11 @@ if __name__ == "__main__":
     url15 = "http://192.168.13.246:8182/gateway/luban-infrastructure-center/v2/api-docs?group=V1.0.0"
     url16 = "http://192.168.13.246:8182/gateway/luban-misc/v2/api-docs?group=V1.0.0"
     url18 = "http://192.168.13.246:8502/luban-archives/v2/api-docs?group=V1.0.0"
-    url21 = "http://192.168.13.246:8182/pdscommon/rs/swagger/swagger.json"
     url31 = "http://192.168.13.157:8022/luban-bi/v2/api-docs?group=%E6%95%B0%E6%8D%AE%E6%BA%90"
     url32 = "http://192.168.13.246:8864/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url33 = "http://192.168.13.157:8022/luban-bi/swagger-resources"
-    url34 = "http://192.168.13.246:8182/gateway/lbbe/rs/swagger/swagger.json"
-    url35 = "http://192.168.13.178:8182/service/sphere/swagger-resources"
-    url36 = "http://192.168.13.178:8182/ent-admin/v3/api-docs"
-    url38 = "http://192.168.13.178:8182/service/sphere/v2/api-docs?group=%E5%85%AC%E5%85%B1%E4%BB%BB%E5%8A%A1%E6%A8%A1%E5%9D%97"
     url40 = "http://192.168.13.178:16636/plan/v3/api-docs"
-    url41 = "D:/Automation/luban-common/data/swagger_ent_admin.json"
-    url42 = "http://192.168.13.178:8182/ent-admin/v3/api-docs/%E4%B8%9A%E5%8A%A1%E6%8E%A5%E5%8F%A3"
+    url41 = "D:/Automation/harmo/data/swagger_ent_admin.json"
     url43 = "https://sg.luban.fit/x-auth-server/swagger/json"
     url44 = "http://192.168.13.172:19900/auth/v3/api-docs/%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3"
     url45 = "http://192.168.13.172:19902/ent-admin-user/v3/api-docs/swagger-config"
@@ -778,21 +775,15 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url15))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url16))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url18))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url21))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url31))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url32))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url33))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url34))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url35))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url36,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url38))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url40))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url41))
-    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url42,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url43))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url44))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url45))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url46))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url47))
-    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url48))
+    # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url48))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url49,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
