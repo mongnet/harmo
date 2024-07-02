@@ -681,6 +681,18 @@ def is_internal_url(url: str) -> bool:
         return False
     return is_private_ip(hostname)
 
+def remove_adjacent_duplicates(lst):
+    """
+    从列表中删除相邻的重复项
+    """
+    iterator = iter(lst)
+    last = next(iterator).lower()
+    yield last
+    for item in iterator:
+        if item.lower() != last:
+            yield item
+            last = item.lower()
+
 if __name__ == "__main__":
     pass
     # dict1 = {"projId": 113692, "ppid": 130817, "projName": "BW接口用工程-勿删160711"}

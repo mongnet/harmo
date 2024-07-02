@@ -43,7 +43,7 @@ class SwaggerCommand(Command):
         option(
             "header",
             "H",
-            description="请求头信息",
+            description="请求头信息，可选",
             flag=False,
             default=None,
             multiple=True

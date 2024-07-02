@@ -51,7 +51,7 @@ class CasesCommand(Command):
         option(
             "body",
             "b",
-            description="是否生成请求体，当接口有请求体时，默认不生成请求体，可选项",
+            description="是否生成请求体，当接口有请求体时，默认不生成请求体，可选",
             flag=True
         ),
         option(
@@ -70,7 +70,7 @@ class CasesCommand(Command):
         option(
             "header",
             "H",
-            description="请求头信息",
+            description="请求头信息，可选",
             flag=False,
             default=None,
             multiple=True

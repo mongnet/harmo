@@ -232,9 +232,8 @@ class AnalysisSwaggerJson():
         repuris = [u.replace("{", "").replace("}", "").replace("_", "") for u in uri.split("/")]
         # 去除空字符串
         original_list = [repuri for repuri in repuris if repuri != '']
-        # 去除相邻重复项
-        from itertools import groupby
-        unique_list = [key for key, group in groupby(original_list)]
+        # 从列表中删除相邻的重复项
+        unique_list = list(base_utils.remove_adjacent_duplicates(original_list))
         if not unique_list and params.get("operationId"):
             operationId = params.get("operationId").split("_")
             if len(operationId) >= 1:
