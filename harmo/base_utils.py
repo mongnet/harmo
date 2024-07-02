@@ -683,15 +683,18 @@ def is_internal_url(url: str) -> bool:
 
 def remove_adjacent_duplicates(lst):
     """
-    从列表中删除相邻的重复项
+    从列表中删除相邻的重复项，不支持嵌套列表
     """
+    if not isinstance(lst, list):
+        raise TypeError("Input must be a list")
     iterator = iter(lst)
-    last = next(iterator).lower()
+    last = str(next(iterator)).lower()
     yield last
     for item in iterator:
-        if item.lower() != last:
+        item_str = str(item).lower()
+        if item_str != last:
             yield item
-            last = item.lower()
+            last = item_str
 
 if __name__ == "__main__":
     pass
@@ -699,6 +702,8 @@ if __name__ == "__main__":
     # dict2 = {"projId": 113692, "projName": "BW接口用工程-勿删160711", "ppid": 130817}
     # dict3 = {'hu': [1111, 'adfaf', '胡彪']}
     # list1 = [1111, 'adfaf', '胡彪']
+    original_list = [2222,2222,222.2,222.2,'project',2222, 'tree', 'Tree', 'comPonentdetail', 'Tree', 'ppid', 'ppid']
+    print(list(remove_adjacent_duplicates(original_list)))
     # list2 = [1111, '胡彪', 'adfaf']
     # str2 = {'hu': 'adf'}
     # list3 = ['89010001#89', '89010001#89', '89010001#89', '96003010#96']
