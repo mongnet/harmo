@@ -104,48 +104,7 @@ def pytest_configure(config):
                 else:
                     value = cfg_list[1].strip()
                 _custom_config.update({cfg_list[0].strip():value})
-    pytestini = {
-        "lb_env": _env_config,
-        "lb_driver": _browser,
-        "lb_base_url": _base_url,
-        "lb_robot": _robot,
-        "lb_msg_name": _msg_name,
-        "lb_case_tag": _case_tag,
-        "message_switch": _message_switch,
-        "success_message": _success_message,
-        "case_message": _case_message,
-        "is_local": _is_local,
-        "is_clear": _is_clear,
-        "schema_check": _schema_check,
-        "custom_config": _custom_config
-    }
     if _env_config:
-        metadata = config.pluginmanager.getplugin("metadata")
-        if metadata:
-            if _env_config is not None:
-                config.stash[metadata_key]["运行配置"] = _env_config
-            if _browser is not None:
-                config.stash[metadata_key]["浏览器"] = _browser
-            if _base_url is not None:
-                config.stash[metadata_key]["基础URL"] = _base_url
-            if _is_local is not None:
-                config.stash[metadata_key]["本地载入初始化"] = _is_local
-            if _message_switch is not None:
-                config.stash[metadata_key]["消息开关"] = _message_switch
-            if _success_message is not None:
-                config.stash[metadata_key]["成功消息提醒"] = _success_message
-            if _case_message is not None:
-                config.stash[metadata_key]["用例失败提醒"] = _case_message
-            if _robot is not None:
-                config.stash[metadata_key]["机器人ID"] = _robot
-            if _is_clear is not None:
-                config.stash[metadata_key]["是否清理数据"] = _is_clear
-            if _case_tag is not None:
-                config.stash[metadata_key]["执行用例tag"] = _case_tag
-            if _schema_check is not None:
-                config.stash[metadata_key]["schema检查状态"] = _schema_check
-            if _custom_config is not None:
-                config.stash[metadata_key]["其它自定义配置"] = _custom_config
         if _is_local:
             _tmp_data = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
             if not _tmp_data.get("lb_env") or _tmp_data.get("lb_env") in _env_config:
@@ -159,28 +118,50 @@ def pytest_configure(config):
             _global["base_url"] = _base_url
         if _robot:
             _global["weixin_robot"] = _robot
+        pytestini = {
+            "lb_env": _env_config,
+            "lb_driver": _browser,
+            "lb_base_url": _base_url,
+            "lb_robot": _robot,
+            "lb_msg_name": _msg_name,
+            "lb_case_tag": _case_tag,
+            "message_switch": _message_switch,
+            "success_message": _success_message,
+            "case_message": _case_message,
+            "is_local": _is_local,
+            "is_clear": _is_clear,
+            "schema_check": _schema_check,
+            "custom_config": _custom_config
+        }
         Global_Map.sets(_global)
         Global_Map.sets(pytestini)
-
-# def pytest_collect_file(file_path: Path, parent):
-#     '''
-#     https://www.cnblogs.com/yoyoketang/p/16897902.html
-#     :param file_path:
-#     :param parent:
-#     :return:
-#     '''
-#     if file_path.suffix in (".yaml",".yml") and file_path.name.startswith("test"):
-#         py_module = Module.from_parent(parent, path=file_path)
-#         # 动态创建 module
-#         module = types.ModuleType(file_path.stem)
-#         # 解析 yaml 内容
-#         raw_dict = yaml_file.get_yaml_data(file_path)
-#         # 用例名称test_开头
-#         run = runner.RunYaml(raw_dict, module)
-#         run.run()  # 执行用例
-#         # 重写属性
-#         py_module._getobj = lambda: module
-#         return py_module
+        # 写metadata
+        metadata = config.pluginmanager.getplugin("metadata")
+        if metadata:
+            if _env_config is not None:
+                config.stash[metadata_key]["运行配置"] = _env_config
+            if _browser is not None:
+                config.stash[metadata_key]["浏览器"] = _browser
+            if _global.get("base_url"):
+                config.stash[metadata_key]["基础URL"] = _global.get("base_url")
+            if _is_local is not None:
+                config.stash[metadata_key]["本地载入初始化"] = _is_local
+            if _message_switch is not None:
+                config.stash[metadata_key]["消息开关"] = _message_switch
+            if _success_message is not None:
+                config.stash[metadata_key]["成功消息提醒"] = _success_message
+            if _case_message is not None:
+                config.stash[metadata_key]["用例失败提醒"] = _case_message
+            if _global.get("weixin_robot"):
+                config.stash[metadata_key]["机器人ID"] = _global.get("weixin_robot")
+            if _is_clear is not None:
+                config.stash[metadata_key]["是否清理数据"] = _is_clear
+            if _case_tag is not None:
+                config.stash[metadata_key]["执行用例tag"] = _case_tag
+            if _schema_check is not None:
+                config.stash[metadata_key]["schema检查状态"] = _schema_check
+            if _custom_config is not None:
+                config.stash[metadata_key]["其它自定义配置"] = _custom_config
 
 def pytest_report_header(config):
     '''
@@ -270,7 +251,7 @@ def pytest_collection_modifyitems(items):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
-    当测试失败的时候，自动截图，展示到html报告中
+    用例失败消息通知
     :param item:
     """
     out = yield

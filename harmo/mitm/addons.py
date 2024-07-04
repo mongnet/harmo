@@ -3,12 +3,14 @@
 # @TIME    : 2019/4/3 15:12
 # @Author  : hubiao
 
-import mitmproxy.http
+from mitmproxy import http
 from mitmproxy import ctx
 import time,json
 from harmo import base_utils
 from harmo.global_map import Global_Map
 from harmo.operation import yaml_file
+
+Global_Map.sets(yaml_file.get_yaml_data(base_utils.file_absolute_path("config.yaml")))
 
 class Counter:
     def __init__(self,domains):
@@ -16,13 +18,11 @@ class Counter:
         self.num = 0
         #self.interfaces = [['请求路径', '请求类型', '请求headers', '请求体','请求大小(b)', '响应大小', '响应类型', '请求响应时间差(s)', '请求开始时间', '请求响应结束时间']]
         self.interfaces = []
-        config = yaml_file.get_yaml_data(base_utils.file_absolute_path("config.yaml"))
-        Global_Map.sets(config)
 
-    def http_connect(self, flow: mitmproxy.http.HTTPFlow):
+    def http_connect(self, flow: http.HTTPFlow):
         flow.customField = []
 
-    def request(self, flow: mitmproxy.http.HTTPFlow):
+    def request(self, flow: http.HTTPFlow):
         if self.match(flow.request.url):
             self.num = self.num + 1
             # 跳过不录制的请求方法,如：options
@@ -30,6 +30,7 @@ class Counter:
                 return
             flow.start_time = time.time()
             flow.customField = [flow.request.url, flow.request.path, flow.request.method, dict(flow.request.headers), flow.request.get_text()]
+            print(f"这是什么：{flow.customField}")
             if flow.customField:
                 self.interfaces.append(flow.customField)
             print('----------',len(self.interfaces))
@@ -47,9 +48,9 @@ class Counter:
         flow.customField.append("Error response")
 
     def response(self, flow):
-        if self.match(flow.send_request.url):
+        if self.match(flow.request.url):
             # 跳过不录制的请求方法,如：options
-            if isinstance(Global_Map.get("Setting").get("filterMethod"),list) and flow.send_request.method.lower() in Global_Map.get("Setting").get("filterMethod"):
+            if isinstance(Global_Map.get("Setting").get("filterMethod"),list) and flow.request.method.lower() in Global_Map.get("Setting").get("filterMethod"):
                 return
             flow.end_time = time.time()
             try:
@@ -65,13 +66,13 @@ class Counter:
                 flow.customField.append(time_gap)
             except Exception:
                 flow.customField.append("")
-            self.formatoutput(flow)
-            with open('script.json','w',encoding='utf-8') as f:
-                f.write(json.dumps(self.clean_data(self.interfaces), ensure_ascii=False))
-                f.close()
+            clean_result = self.clean_data(self.interfaces)
+            if clean_result:
+                with open('script.json','w',encoding='utf-8') as f:
+                    f.write(json.dumps(clean_result, ensure_ascii=False))
 
     def formatoutput(self, flow):
-        if self.match(flow.send_request.url):
+        if self.match(flow.request.url):
             ctx.log.info(f"We've seen {self.num} flows")
             try:
                 flow.customField.append(flow.start_time)
@@ -130,16 +131,23 @@ class Counter:
                             pass
                     except:
                         data_json['resp'] = None
-            flowList.append(data_json)
+            if data_json:
+                flowList.append(data_json)
         return flowList
+
+def getAllowRecording() -> list:
+    """
+    获取允许录制的域名列表
+    :return:
+    """
+    AllowRecording = Global_Map.get("Setting").get("AllowRecording")
+    if isinstance(AllowRecording, list) and AllowRecording:
+        return AllowRecording
+    raise TypeError("必须配置允许录制的域名列表")
 
 addons = [
     Counter(
         # 允许录制的域名列表
-        [
-            "http://127.0.0.1:5000",
-            "lbuilder.cn"
-        ],
+        getAllowRecording()
     )
 ]
-

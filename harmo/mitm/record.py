@@ -1,13 +1,10 @@
 import signal,os,sys
 
-
-
 # 自定义信号处理函数
 def my_handler(signum, frame):
     global stop
     stop = True
     print("终止")
-
 
 # 设置相应信号处理的handler
 signal.signal(signal.SIGINT, my_handler)  # 读取Ctrl+c信号

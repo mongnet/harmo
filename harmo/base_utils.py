@@ -22,23 +22,23 @@ from harmo import http_requests
 from pathlib2 import Path
 from bs4 import BeautifulSoup
 
-def getFileMD5(file_Path: str) -> str:
+def getFileMD5(file_Path: str) -> Optional[str]:
     '''
     传入文件路径，返回文件MD5
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
     :return: MD5值
     '''
-    file = file_absolute_path(file_Path)
     try:
-        fileObjct = open(file, 'rb')
-        m = hashlib.md5()
-        while True:
-            d = fileObjct.read(4096)  # 每次读取4KB的数据
-            if not d: break  # 如果读出来的数据为空时跳出循环
-            m.update(d)
-        fileObjct.close()
-        return m.hexdigest()
+        file = file_absolute_path(file_Path)
+        with open(file, 'rb') as fileObjct:
+            m = hashlib.md5()
+            while True:
+                d = fileObjct.read(4096)  # 每次读取4KB的数据
+                if not d: break  # 如果读出来的数据为空时跳出循环
+                m.update(d)
+            return m.hexdigest()
     except Exception as e:
+        print(f"IO Error occurred: {e}")
         return None
 
 def getFileSize(file_Path: str) -> int:
@@ -48,8 +48,7 @@ def getFileSize(file_Path: str) -> int:
     :return: 文件大小
     '''
     file = file_absolute_path(file_Path)
-    filesize = os.path.getsize(file)
-    return filesize
+    return os.path.getsize(file)
 
 def getFileName(file_Path: str) -> Path:
     '''
@@ -58,8 +57,7 @@ def getFileName(file_Path: str) -> Path:
     :return: 文件名
     '''
     file = file_absolute_path(file_Path)
-    fileName = os.path.basename(file)
-    return fileName
+    return os.path.basename(file)
 
 def file_is_exist(file_path: str) -> Path:
     '''
@@ -68,7 +66,7 @@ def file_is_exist(file_path: str) -> Path:
     :return:
     '''
     new_path = Path(os.path.normpath(file_path).replace('\\', '/')) if os.sep == '/' else Path(os.path.normpath(file_path))
-    if not os.path.exists(new_path):
+    if not new_path.exists():
         raise FileNotFoundError(f"请确认 {new_path} 文件路径是否正确！")
     return new_path
 

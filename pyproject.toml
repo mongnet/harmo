@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "harmo"
-version = "1.0.6"
+version = "1.0.7"
 description = "Harmony（和谐）的缩写"
 authors = ["mongnet <250021520@qq.com>"]
 license = "MIT"

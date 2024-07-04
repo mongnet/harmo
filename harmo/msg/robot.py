@@ -6,6 +6,7 @@ import json
 import requests
 import urllib3
 from harmo import base_utils
+from typing import Optional
 
 
 urllib3.disable_warnings()
@@ -16,7 +17,7 @@ class WeiXin:
     """
 
     @classmethod
-    def send_message_text(self,hookkey,content,mentioned_mobile_list=None):
+    def send_message_text(self,hookkey: str,content: str,mentioned_mobile_list: Optional[list]=None):
         """
         发送文本消息
         :param hookkey: webhook的key
@@ -52,7 +53,7 @@ class WeiXin:
             print("text消息发送失败")
 
     @classmethod
-    def send_message_markdown(self,hookkey,content):
+    def send_message_markdown(self,hookkey: str,content: str):
         """
         发送markdown消息
         :param hookkey: webhook的key
@@ -78,7 +79,7 @@ class WeiXin:
             print("markdown消息发送失败")
 
     @classmethod
-    def send_message_card(self,hookkey,title,url="#",content=None,picurl=None):
+    def send_message_card(self,hookkey: str,title: str,content: str,url: Optional[str]=None,picurl: Optional[str]=None):
         """
         图文消息
         :param hookkey: webhook的key
@@ -112,7 +113,7 @@ class WeiXin:
             print("textcard消息发送失败")
 
     @classmethod
-    def send_image(self,hookkey,file):
+    def send_image(self,hookkey: str,file: str):
         """
         发送图片
         :param hookkey: webhook的key
@@ -140,7 +141,7 @@ class WeiXin:
             print("发送图片失败")
 
     @classmethod
-    def send_file(self,hookkey,file):
+    def send_file(self,hookkey: str,file: str):
         """
         发送文件
         :param hookkey: webhook的key
@@ -164,7 +165,7 @@ class WeiXin:
             print("发送文件失败")
 
     @classmethod
-    def __up_file(self,hookkey,file):
+    def __up_file(self,hookkey: str,file: str):
         """
         上传文件
         :param hookkey: webhook的key
@@ -199,5 +200,6 @@ if __name__ == "__main__":
                             >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
     send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=markdown_content)
     send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页",url="http://",picurl="http://www.lubansoft.com/uploads/1540977656.jpg")
+    send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页")
     send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
     send.send_image(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="../../data/20201222101200.png")
