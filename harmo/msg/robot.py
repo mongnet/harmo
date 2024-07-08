@@ -185,21 +185,29 @@ class WeiXin:
 
 if __name__ == "__main__":
     send = WeiXin()
-    send.send_message_text(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content="这里是消息内容，http://work.weixin.qq.com 使用很方便。",mentioned_mobile_list=["18019463445","13916829124"] )
-    markdown_content = """
-                            ># 这是`markdown`消息
-                            >作　者：<font color=\"info\">MonNet</font>
-                            >公众号：彪哥的测试之路
-                            >
-                            >会议室：<font color=\"info\">上海</font>
-                            >日　期：<font color=\"warning\">2020年8月18日</font>
-                            >时　间：<font color=\"comment\">上午9:00-11:00</font>
-                            >
-                            >请**准时**参加会议。
-                            >
-                            >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
-    send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=markdown_content)
-    send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页",url="http://",picurl="http://www.lubansoft.com/uploads/1540977656.jpg")
-    send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页")
-    send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
-    send.send_image(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="../../data/20201222101200.png")
+    # send.send_message_text(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content="这里是消息内容，http://work.weixin.qq.com 使用很方便。",mentioned_mobile_list=["18019463445","13916829124"] )
+    # markdown_content = """
+    #                         ># 这是`markdown`消息
+    #                         >作　者：<font color=\"info\">MonNet</font>
+    #                         >公众号：彪哥的测试之路
+    #                         >
+    #                         >会议室：<font color=\"info\">上海</font>
+    #                         >日　期：<font color=\"warning\">2020年8月18日</font>
+    #                         >时　间：<font color=\"comment\">上午9:00-11:00</font>
+    #                         >
+    #                         >请**准时**参加会议。
+    #                         >
+    #                         >如需修改会议信息，请点击：[这里还可以有连接](https://work.weixin.qq.com)"""
+    markdown_content = f'''
+                        # 用例 d
+                        >名称：<font color="comment">名称</font>\n
+                        >描述：<font color="comment">描述</font>\n
+                        >位置：<font color="comment">位置</font>\n>原因：<font color="comment">原因</font>'''
+    # send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=markdown_content)
+    jj = "".join([markdown_content,"\n>我不是一个人"])
+    print(len(jj.encode()))
+    send.send_message_markdown(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",content=jj)
+    # send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页",url="http://",picurl="http://www.lubansoft.com/uploads/1540977656.jpg")
+    # send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",title="这是卡片消息(PASS)",content="这里是消息内容，可以点击查看更多跳转到网页")
+    # send.send_file(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="weixin.py")
+    # send.send_image(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42",file="../../data/20201222101200.png")

@@ -2,6 +2,8 @@ import requests, json, yaml, copy, time, os
 from harmo import base_utils
 from harmo.global_map import Global_Map
 from harmo.msg.robot import WeiXin
+from harmo.operation.yaml_file import get_yaml_data
+
 
 def setToken():
     data = getConfig()
@@ -13,10 +15,7 @@ def setToken():
 
 def getConfig():
     result = {}
-    with open('config.yaml', 'r', encoding='utf-8') as file:
-        # configInfo = yaml.load(file.read())
-        configInfo = yaml.load(file,Loader=yaml.FullLoader)
-        file.close()
+    configInfo = get_yaml_data(base_utils.file_absolute_path('config.yaml'))
     if str(configInfo['Setting']['Status']).upper() == 'NOW':
         result['path'] = 'script.json'
         result['whetherRecord'] = 1
@@ -71,9 +70,7 @@ def noise_reduction(testDocName):
             else:
                 with open(execPath, 'r') as f1:
                     flowData = json.loads(f1.read())
-            with open('rules.yaml', 'r', encoding='utf-8') as r:
-                # rules = yaml.load(r.read())
-                rules = yaml.load(r,Loader=yaml.FullLoader)
+            rules = get_yaml_data(base_utils.file_absolute_path('rules.yaml'))
             for rulesValueEach in rules['Rules']:
                 rulesValueEach['Value'] = []
                 for data in flowData:
@@ -81,13 +78,13 @@ def noise_reduction(testDocName):
                         flowData.remove(data)
                     else:
                         if '{' in rulesValueEach['Path']:
-                            if (rulesValueEach['Path'].split('{')[0] in data['path']) and (
-                                    rulesValueEach['Method'] == data['method']):
+                            if (rulesValueEach['Path'].split('{')[0] in data['path']) and (rulesValueEach['Method'] == data['method']):
                                 location_list = str(rulesValueEach['Location']).split('.')
                                 val = copy.deepcopy(data)
                                 if str(rulesValueEach['Type']).upper() == 'GETVALUE':
                                     for path in location_list:
-                                        if path.isdigit(): path = int(path)
+                                        if path.isdigit():
+                                            path = int(path)
                                         try:
                                             val = val[path]
                                         except:

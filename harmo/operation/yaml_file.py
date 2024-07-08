@@ -16,7 +16,7 @@ def get_yaml_data(file_path: str) -> dict:
     '''
     file = base_utils.file_is_exist(file_path)
     yaml = YAML(typ='safe', pure=True)
-    if file.suffix in (".yaml",".yml"):
+    if Path(file).suffix in (".yaml",".yml"):
         with open(file,'r',encoding='utf-8-sig') as f:
             file_data = f.read()
         return yaml.load(file_data)

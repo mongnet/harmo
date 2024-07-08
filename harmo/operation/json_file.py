@@ -15,7 +15,7 @@ def get_json_data(file_path: str) -> dict:
     :return: dict
     '''
     file = base_utils.file_is_exist(file_path)
-    if file.suffix in (".json"):
+    if Path(file).suffix in (".json"):
         with open(file, 'r', encoding='utf-8-sig') as f:
             json_data = json.load(f)
         return json_data
@@ -58,13 +58,13 @@ def writer_json(file: str,json_data: Union[dict,list]) -> None:
 
 
 if __name__ == '__main__':
-    # pass
+    pass
     # 读取信息
-    yamldata = get_json_data(file_path='../../data/config.yaml')
+    # yamldata = get_json_data(file_path='../../data/config.yaml')
     # print(yamldata)
     # print(type(yamldata))
     # yamldataall = get_json_data_all(catalogue='../../data',filter=["swagger_ent_admin.json"])
     # print(yamldataall)
     # print(type(yamldataall))
-    # yamldata = "name"
-    # writer_json(file="../../data/source2.json",json_data=json.dumps(yamldata))
+    # yamldata = {"name": "hubiao"}
+    # writer_json(file="../../data/source2.json",json_data=yamldata)

@@ -54,7 +54,7 @@ class HttpRequests(requests.Session):
         :param payload：请求的body数据，可以不传，默认为空
         :param header：header信息
         :param flush_header: 刷新header，默认临时刷新，只对当前请求有效，当传True时会刷新整个session，后续请求都会用新header
-        :param files：上传文件时的文件信息，files={'file': 'data\签章文件.pdf'}
+        :param files：上传文件时的文件信息，files={'file': 'data/签章文件.pdf'}
         :param params: URL传参，接收一个字典数据
         :param cookies_kwargs: cookie参数，接收一个字典数据
         :param timeout: 超时时间，默认60s
@@ -73,13 +73,13 @@ class HttpRequests(requests.Session):
             self.Url = "".join([self.base_url,url])
         request_header = copy.deepcopy(self.header)
         # 添加header信息，有些接口请求时添加请求头,flush_header用来指定是否更新基线header
-        if header is not None:
+        if header:
             header = json.loads(header) if not isinstance(header, dict) else header
             request_header.update(header)
             if flush_header:
                 self.header.update(header)
         # 添加cookies信息，有些接口请求时要在cookies上添加信息
-        if cookies_kwargs is not None:
+        if cookies_kwargs:
             if isinstance(cookies_kwargs,dict):
                 for key, value in cookies_kwargs.items():
                     self.session.cookies.set(key,value)
@@ -95,11 +95,11 @@ class HttpRequests(requests.Session):
                     files = None
                 else:
                     files = {'file': (base_utils.getFileName(filepath), open(filepath, 'rb'))}
+                # 上传文件时，如果没有指定header，则删除Content-Type
+                if header is None:
+                    del request_header["Content-Type"]
             else:
                 raise TypeError("files参数格式错误,files必须为dict类型，且必须包含file")
-            # 指定header时跳过删除类型
-            if header is None:
-                del request_header["Content-Type"]
         # 判断payload不为str时，dumps成str类型
         elif isinstance(payload,list) or (not isinstance(payload,str) and payload):
             payload = json.dumps(payload)
@@ -165,6 +165,7 @@ class HttpRequests(requests.Session):
             res["request_params"] = params
             res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")
             res["Response_text"] = "发送请求出现异常，异常信息为: " + str(e)
+        Global_Map.sets({"temp_user_properties": {"url":res.get("request_url",None),"status_code":res.get("status_code",None),"source_response":res.get("source_response",None)}})
         return res
 
     def hooks(self,r,*args, **kwargs):

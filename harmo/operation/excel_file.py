@@ -15,8 +15,9 @@ class OperationExcel:
         :param file_path: excel文件路径
         :param sheetId: sheet ID基于索引获取sheet对象
         '''
-        if Path(file_path).suffix in [".xlsx",".xls",".xlsm",".xltm"]:
-            self.file = file_is_exist(file_path)
+        file = file_is_exist(file_path)
+        if Path(file).suffix in [".xlsx",".xls",".xlsm",".xltm"]:
+            self.file = file
         else:
             raise RuntimeError("The file format must be excel")
         self.sheet = self._get_data(sheetID)
@@ -62,7 +63,7 @@ class OperationExcel:
             raise ValueError("获取指定列数据只支持 1,1 或 A1 方式传参")
 
 if __name__ == '__main__':
-    oper = OperationExcel(file_path="../template/data/WBS.xlsx",sheetID=0)
+    oper = OperationExcel(file_path="../../data/Quality_check_lib.xls",sheetID=0)
     # print(oper.get_rows())
     # print(oper.get_columns())
     # print(oper.get_cell(1,1))

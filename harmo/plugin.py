@@ -33,36 +33,36 @@ def pytest_addoption(parser):
     '''
     # 注册命令行参数
     group = parser.getgroup('testing environment configuration')
-    group.addoption('--lb-driver',
+    group.addoption('--h-driver',
                     action="store",
-                    default=os.getenv('lb_driver', 'chrome'),
+                    default=os.getenv('h_driver', 'chrome'),
                     metavar="path",
                     choices=['chrome', 'firefox', 'ie'],
                     help='set Browser')
-    group.addoption('--lb-base-url',
+    group.addoption('--h-base-url',
                     action="store",
                     metavar="path",
-                    default=os.getenv('lb_base_url', None),
+                    default=os.getenv('h_base_url', None),
                     help='base url for the application under test')
-    group.addoption('--lb-env',
+    group.addoption('--h-env',
                     action="store",
                     metavar="path",
-                    default=os.getenv('lb_env', None),
+                    default=os.getenv('h_env', None),
                     help='set testing environment')
-    group.addoption('--lb-robot',
+    group.addoption('--h-robot',
                     action="store",
                     metavar="path",
-                    default=os.getenv('lb_robot', None),
+                    default=os.getenv('h_robot', None),
                     help='set robot')
-    group.addoption('--lb-msg-name',
+    group.addoption('--h-msg-name',
                     action="store",
                     metavar="path",
-                    default=os.getenv('lb_msg_name', None),
+                    default=os.getenv('h_msg_name', None),
                     help='set robot msg name')
-    group.addoption('--lb-case-tag',
+    group.addoption('--h-case-tag',
                     action="append",
                     metavar="path",
-                    default=os.getenv('lb_case_tags', None),
+                    default=os.getenv('h_case_tags', None),
                     help='Set the use case tags to be executed')
     # 自定义的配置选项，需要先注册才能在ptest.ini中使用，注册方法如下
     parser.addini('message_switch', help='message_switch configuration')
@@ -79,12 +79,12 @@ def pytest_configure(config):
     :param config:
     :return:
     '''
-    _env_config = os.getenv("lb_env", None) if os.getenv("lb_env", None) else config.getoption("--lb-env")
-    _browser = os.getenv("lb_driver", None) if os.getenv("lb_driver", None) else config.getoption("--lb-driver")
-    _base_url = os.getenv("lb_base_url", None) if os.getenv("lb_base_url", None) else config.getoption("--lb-base-url")
-    _robot = os.getenv("lb_robot", None) if os.getenv("lb_robot", None) else config.getoption("--lb-robot")
-    _msg_name = os.getenv("lb_msg_name", None) if os.getenv("lb_msg_name", None) else config.getoption("--lb-msg-name")
-    _case_tag = os.getenv("lb_case_tag", None) if os.getenv("lb_case_tag", None) else config.getoption("--lb-case-tag")
+    _env_config = os.getenv("h_env", None) if os.getenv("h_env", None) else config.getoption("--h-env")
+    _browser = os.getenv("h_driver", None) if os.getenv("h_driver", None) else config.getoption("--h-driver")
+    _base_url = os.getenv("h_base_url", None) if os.getenv("h_base_url", None) else config.getoption("--h-base-url")
+    _robot = os.getenv("h_robot", None) if os.getenv("h_robot", None) else config.getoption("--h-robot")
+    _msg_name = os.getenv("h_msg_name", None) if os.getenv("h_msg_name", None) else config.getoption("--h-msg-name")
+    _case_tag = os.getenv("h_case_tag", None) if os.getenv("h_case_tag", None) else config.getoption("--h-case-tag")
     _message_switch = True if config.getini("message_switch") == "True" else False
     _success_message = True if config.getini("success_message") == "True" else False
     _case_message = True if config.getini("case_message") == "True" else False
@@ -107,7 +107,7 @@ def pytest_configure(config):
     if _env_config:
         if _is_local:
             _tmp_data = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"))
-            if not _tmp_data.get("lb_env") or _tmp_data.get("lb_env") in _env_config:
+            if not _tmp_data.get("h_env") or _tmp_data.get("h_env") in _env_config:
                 _global_conf = _tmp_data
             else:
                 _global_conf = yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config/global"), filter=["_global_map.yaml","_global_map_temp.yaml"])
@@ -119,12 +119,12 @@ def pytest_configure(config):
         if _robot:
             _global["weixin_robot"] = _robot
         pytestini = {
-            "lb_env": _env_config,
-            "lb_driver": _browser,
-            "lb_base_url": _base_url,
-            "lb_robot": _robot,
-            "lb_msg_name": _msg_name,
-            "lb_case_tag": _case_tag,
+            "h_env": _env_config,
+            "h_driver": _browser,
+            "h_base_url": _base_url,
+            "h_robot": _robot,
+            "h_msg_name": _msg_name,
+            "h_case_tag": _case_tag,
             "message_switch": _message_switch,
             "success_message": _success_message,
             "case_message": _case_message,
@@ -169,8 +169,8 @@ def pytest_report_header(config):
     :param config:
     :return:
     '''
-    if Global_Map.get("lb_env") is not None:
-        return f'lb_base_url: {Global_Map.get("lb_base_url")}, lb_driver: {Global_Map.get("lb_driver")}, lb_env: {Global_Map.get("lb_env")}'
+    if Global_Map.get("h_env") is not None:
+        return f'h_base_url: {Global_Map.get("h_base_url")}, h_driver: {Global_Map.get("h_driver")}, h_env: {Global_Map.get("h_env")}'
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
     '''
@@ -180,7 +180,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     weixin_robot = Global_Map.get("weixin_robot")
     message_switch = Global_Map.get("message_switch")
     success_message = Global_Map.get("success_message")
-    lb_msg_name = Global_Map.get("lb_msg_name")
+    h_msg_name = Global_Map.get("h_msg_name")
     # 定义测试结果
     total = terminalreporter._numcollected
     passed = len([i for i in terminalreporter.stats.get("passed", []) if i.when != "teardown"])
@@ -193,8 +193,8 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     if message_switch or weixin_robot:
         if weixin_robot:
             # 通过jenkins构件时，可以获取到JOB_NAME
-            if lb_msg_name:
-                JOB_NAME = lb_msg_name
+            if h_msg_name:
+                JOB_NAME = h_msg_name
             else:
                 JOB_NAME = "通用" if config.stash[metadata_key].get("JOB_NAME") is None else config.stash[metadata_key].get("JOB_NAME")
             if failed + error != 0:
@@ -232,8 +232,8 @@ def pytest_unconfigure(config):
     :return:
     '''
 
-    # 有lb_env表示使用到了luban-common，然后把全局变量写入到 _global_map_temp.yaml 文件
-    if Global_Map.get("lb_env"):
+    # 有h_env表示使用到了harmo，然后把全局变量写入到 _global_map_temp.yaml 文件
+    if Global_Map.get("h_env"):
         yaml_file.writer_yaml(file=os.path.join(Config.project_root_dir,"config/global/_global_map_temp.yaml"), data=Global_Map.get())
     # unregister plugin
 
@@ -251,7 +251,7 @@ def pytest_collection_modifyitems(items):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     """
-    用例失败消息通知
+    每个测试用例运行结束后，如果失败发送消息通知
     :param item:
     """
     out = yield
@@ -270,10 +270,17 @@ def pytest_runtest_makereport(item, call):
                         >用例描述：<font color="comment">{str.strip(item.function.__doc__) if item.function.__doc__ else "无"}</font>
                         >用例位置：<font color="comment">{report.nodeid}</font>
                         >失败原因：<font color="comment">{call.excinfo}</font>'''
+                if Global_Map.get("temp_user_properties"):
+                    if Global_Map.get("temp_user_properties").get("url"):
+                        md += f'''\n>接口URL：<font color="comment">{Global_Map.get("temp_user_properties").get("url")}</font>'''
+                    if Global_Map.get("temp_user_properties").get("status_code"):
+                        md += f'''\n>响应码：<font color="comment">{Global_Map.get("temp_user_properties").get("status_code")}</font>'''
                 if len(md.encode()) > 4096:
                     print("最长不能超过4096个字节")
                 else:
                     WeiXin().send_message_markdown(hookkey=weixin_robot, content=md)
+    # 删除临时变量
+    Global_Map.del_key("temp_user_properties")
 
 # def pytest_html_results_table_header(cells):
 #     cells.insert(2, html.th("Description"))
@@ -286,12 +293,12 @@ def pytest_runtest_makereport(item, call):
 # @pytest.fixture(scope="session")
 # def browser(pytestconfig):
 #     '''
-#     根据 --lb-driver 确定使用什么浏览器执行自动化
+#     根据 --h-driver 确定使用什么浏览器执行自动化
 #     :param cmdopt: 调用命令行选项函数
 #     :return:
 #     '''
 #     global driver
-#     browser = pytestconfig.getoption("--lb-driver")
+#     browser = pytestconfig.getoption("--h-driver")
 #     if browser is not None:
 #         if browser == "chrome":
 #             options = webdriver.ChromeOptions()
@@ -318,7 +325,7 @@ def pytest_runtest_makereport(item, call):
 #         yield driver
 #         driver.quit()
 #     else:
-#         raise RuntimeError("Configuration --lb-driver not found")
+#         raise RuntimeError("Configuration --h-driver not found")
 #
 # @pytest.mark.hookwrapper
 # def pytest_runtest_makereport(item):

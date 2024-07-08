@@ -16,8 +16,9 @@ class ManageConfig:
     配置管理
     '''
     def __init__(self,file_path):
-        if Path(file_path).suffix == ".ini":
-            self.conf_path = file_is_exist(file_path)
+        file = file_is_exist(file_path)
+        if Path(file).suffix == ".ini":
+            self.conf_path = file
         else:
             raise RuntimeError("The file format must be ini")
         self.config = configparser.RawConfigParser()

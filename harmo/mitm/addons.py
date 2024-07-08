@@ -18,22 +18,21 @@ class Counter:
         self.num = 0
         #self.interfaces = [['请求路径', '请求类型', '请求headers', '请求体','请求大小(b)', '响应大小', '响应类型', '请求响应时间差(s)', '请求开始时间', '请求响应结束时间']]
         self.interfaces = []
-
-    def http_connect(self, flow: http.HTTPFlow):
-        flow.customField = []
+        self.customField = {}
 
     def request(self, flow: http.HTTPFlow):
+        # 记录请求信息
         if self.match(flow.request.url):
             self.num = self.num + 1
             # 跳过不录制的请求方法,如：options
             if isinstance(Global_Map.get("Setting").get("filterMethod"),list) and flow.request.method.lower() in Global_Map.get("Setting").get("filterMethod"):
                 return
             flow.start_time = time.time()
-            flow.customField = [flow.request.url, flow.request.path, flow.request.method, dict(flow.request.headers), flow.request.get_text()]
-            print(f"这是什么：{flow.customField}")
-            if flow.customField:
-                self.interfaces.append(flow.customField)
-            print('----------',len(self.interfaces))
+            self.customField.update({"url": flow.request.url})
+            self.customField.update({"path": flow.request.path})
+            self.customField.update({"method": flow.request.method})
+            self.customField.update({"headers": dict(flow.request.headers)})
+            self.customField.update({"body": flow.request.get_text()})
 
     def match(self, url):
         if not self.domains:
@@ -44,9 +43,6 @@ class Counter:
                 return True
         return False
 
-    def error(self, flow):
-        flow.customField.append("Error response")
-
     def response(self, flow):
         if self.match(flow.request.url):
             # 跳过不录制的请求方法,如：options
@@ -54,63 +50,50 @@ class Counter:
                 return
             flow.end_time = time.time()
             try:
-                flow.customField.append(json.loads(flow.response.text))
+                self.customField.update({"resp": json.loads(flow.response.text)})
             except:
-                flow.customField.append(flow.response.text)
+                self.customField.update({"resp": flow.request.text})
             try:
-                flow.customField.append(flow.response.headers['Content-Type'])
+                self.customField.update({"time_gap": flow.end_time - flow.start_time})
             except Exception:
-                flow.customField.append("")
-            try:
-                time_gap = flow.end_time - flow.start_time
-                flow.customField.append(time_gap)
-            except Exception:
-                flow.customField.append("")
-            clean_result = self.clean_data(self.interfaces)
+                self.customField.update({"time_gap": ""})
+            clean_result = self.clean_data(self.customField)
             if clean_result:
+                self.interfaces.append(clean_result)
+                ctx.log.info(f"发现第： {len(self.interfaces)} 个接口")
                 with open('script.json','w',encoding='utf-8') as f:
-                    f.write(json.dumps(clean_result, ensure_ascii=False))
+                    f.write(json.dumps(self.interfaces, ensure_ascii=False))
+        # 清空数据
+        self.customField = {}
 
-    def formatoutput(self, flow):
-        if self.match(flow.request.url):
-            ctx.log.info(f"We've seen {self.num} flows")
-            try:
-                flow.customField.append(flow.start_time)
-            except:
-                flow.customField.append("")
-            try:
-                flow.customField.append(flow.end_time)
-            except:
-                flow.customField.append("")
-
-    def clean_data(self,interfaces):
-        flowList =[]
-        for interface in interfaces:
+    def clean_data(self,interface):
+        if isinstance(interface,dict):
             data_json,filterInfo={},False
             if isinstance(Global_Map.get("Setting").get("filterFile"),list):
                 for special in Global_Map.get("Setting").get("filterFile"):
-                    if special in interface[0]:
+                    if special in interface.get("url"):
                         filterInfo = True
-                if not filterInfo and not interface[0].endswith("/"):
+                if not filterInfo and not interface.get("url").endswith("/"):
                     data_json['id'] = base_utils.generate_random_str(randomlength=10)
-                    data_json['url'] = interface[0]
-                    data_json['path'] = interface[1]
-                    data_json['method'] = interface[2]
-                    data_json['headers'] = interface[3]
+                    data_json['url'] = interface.get("url")
+                    data_json['path'] = interface.get("path")
+                    data_json['method'] = interface.get("method")
+                    data_json['headers'] = interface.get("headers")
                     try:
-                        if isinstance(interface[4],dict):
-                            base_utils.recursion_replace_dict_value(interface[4], Global_Map.get("Setting").get("replaceDict"))
-                            data_json['body'] = interface[4]
-                        elif isinstance(interface[4],list):
+                        if isinstance(interface.get("body"),dict):
+                            base_utils.recursion_replace_dict_value(interface.get("body"), Global_Map.get("Setting").get("replaceDict"))
+                            data_json['body'] = interface.get("body")
+                        elif isinstance(interface.get("body"),list):
                             # TODO 列表替换
                             pass
-                        elif 'WebKitFormBoundary' not in str(interface[4]):
-                            if interface[4] !='' :
-                                data_json['body'] = eval(str(interface[4]).replace('null','None').replace('true','True').replace('false','False'))
+                        elif 'WebKitFormBoundary' not in str(interface.get("body")):
+                            if interface.get("body") !='' :
+                                data_json['body'] = eval(str(interface.get("body")).replace('null','None').replace('true','True').replace('false','False'))
+                                # data_json['body'] = interface.get("body")
                             else:
                                 data_json['body'] = None
                         else:
-                            body = str(interface[4])
+                            body = str(interface.get("body"))
                             bodylist = body.split('\r\n')
                             data_json['body']={}
                             for each in bodylist:
@@ -122,18 +105,18 @@ class Counter:
                     except:
                         data_json['body'] = None
                     try:
-                        if isinstance(interface[5],dict):
-                            base_utils.recursion_replace_dict_value(interface[5], Global_Map.get("Setting").get("replaceDict"))
-                            data_json['resp'] = interface[5]
-                            ctx.log.error(f"resp:{interface[5]}")
-                        elif isinstance(interface[5],list):
+                        if isinstance(interface.get("resp"),dict):
+                            base_utils.recursion_replace_dict_value(interface.get("resp"), Global_Map.get("Setting").get("replaceDict"))
+                            data_json['resp'] = interface.get("resp")
+                            # ctx.log.error(f'resp:{interface.get("resp")}')
+                        elif isinstance(interface.get("resp"),list):
                             # TODO 列表替换
                             pass
                     except:
                         data_json['resp'] = None
             if data_json:
-                flowList.append(data_json)
-        return flowList
+                return data_json
+        return
 
 def getAllowRecording() -> list:
     """

@@ -38,7 +38,7 @@ def getFileMD5(file_Path: str) -> Optional[str]:
                 m.update(d)
             return m.hexdigest()
     except Exception as e:
-        print(f"IO Error occurred: {e}")
+        print(f"Error occurred: {e}")
         return None
 
 def getFileSize(file_Path: str) -> int:
@@ -50,7 +50,7 @@ def getFileSize(file_Path: str) -> int:
     file = file_absolute_path(file_Path)
     return os.path.getsize(file)
 
-def getFileName(file_Path: str) -> Path:
+def getFileName(file_Path: str) -> str:
     '''
     传入文件路径，返回文件名称
     :param file_Path: 文件路径，相对于项目根目录，如 data/Doc/Lubango20191205.docx
@@ -59,7 +59,7 @@ def getFileName(file_Path: str) -> Path:
     file = file_absolute_path(file_Path)
     return os.path.basename(file)
 
-def file_is_exist(file_path: str) -> Path:
+def file_is_exist(file_path: str) -> str:
     '''
     判断文件是否存在
     :param file_path:
@@ -68,9 +68,9 @@ def file_is_exist(file_path: str) -> Path:
     new_path = Path(os.path.normpath(file_path).replace('\\', '/')) if os.sep == '/' else Path(os.path.normpath(file_path))
     if not new_path.exists():
         raise FileNotFoundError(f"请确认 {new_path} 文件路径是否正确！")
-    return new_path
+    return os.path.abspath(new_path)
 
-def file_absolute_path(rel_path: str) -> Path:
+def file_absolute_path(rel_path: str) -> str:
     '''
     通过文件相对路径，返回文件绝对路径
     :param rel_path: 相对于项目根目录的路径，如data/check_lib.xlsx
@@ -754,9 +754,13 @@ if __name__ == "__main__":
     # print(UnixToTime(unix=1494325882000))
     # print(UnixToTime(unix=getUnix(date='2019-12-31 18:31:22', day=2)))
     print(file_absolute_path('../data/Quality_check_lib.xls'))
+    print(type(file_absolute_path('../data/Quality_check_lib.xls')))
     print(file_absolute_path('D:/Automation\\standard_polling/data/Quality_check_lib.xls'))
+    print(type(file_absolute_path('D:/Automation\\standard_polling/data/Quality_check_lib.xls')))
     print(file_is_exist('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
+    print(type(file_is_exist('D:/Automation/standard_polling/data/Quality_check_lib.xls')))
     print(getFileMD5('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
+    print(getFileName('D:/Automation/standard_polling/data/Quality_check_lib.xls'))
     source = {"ex": 1, "state": "false", "age": 38, "shool":{"name":"wgj"}}
     replaceDict = {"ex": None, "state": False, "shool": 38, "age":20, "name":"hubiao"}
     a = {"name": "hubiao", "age": 37, "age2": "37", "ex": None,  "ex2": False, "shool":{"name":"wgj"}}
