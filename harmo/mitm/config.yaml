@@ -1,11 +1,14 @@
 Setting :
-  Status : doc
+  Status : NOW
   Url : http://192.168.2.57:9876/things/v1/login
   User : testapi
   PSW : 111111
   weixin_robot : "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
   Scope :
     - 龙门吊-设备管理_测试脚本文件夹_1670811570
+  Login :
+    url : /auth-server/auth/token
+    rule : resp.data
   filterMethod :
     - options
   filterFile :
@@ -25,3 +28,8 @@ Setting :
   AllowRecording :
     - http://127.0.0.1:5000
     - lbuilder.cn
+  filterUrl :
+    - /auth-server/auth/token
+    - /auth-server/auth/enterprises
+    - /auth-server/auth/enterprise
+    - /auth-server/auth/innerSystemToken/192

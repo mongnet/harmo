@@ -8,7 +8,7 @@ from harmo.operation import yaml_file
 from mitmproxy import options
 from mitmproxy.tools.dump import DumpMaster
 from harmo import base_utils
-import mitmproxy.http
+from mitmproxy import http
 from mitmproxy import ctx
 import json
 import asyncio
@@ -25,17 +25,17 @@ class Counter(object):
         Global_Map.sets(config)
 
     def match(self, url):
-        ctx.log.error("match")
+        ctx.log.info("match")
         if not self.domains:
-            ctx.log.error("必须配置允许录制的域名列表")
+            ctx.log.info("必须配置允许录制的域名列表")
             exit(-1)
         for domain in self.domains:
             if domain in url:
                 return True
         return False
 
-    def request(self, flow: mitmproxy.http.HTTPFlow):
-        ctx.log.error("hubiao")
+    def request(self, flow: http.HTTPFlow):
+        ctx.log.info("hubiao")
         if self.match(flow.request.url):
             # 跳过不录制的请求方法,如：options
             if isinstance(Global_Map.get("Setting").get("filterMethod"),list) and flow.request.method.lower() in Global_Map.get("Setting").get("filterMethod"):
@@ -47,7 +47,7 @@ class Counter(object):
             print('----------',len(self.interfaces))
 
     def response(self, flow):
-        ctx.log.error("resp")
+        ctx.log.info("resp")
         if self.match(flow.send_request.url):
             # 跳过不录制的请求方法,如：options
             if isinstance(Global_Map.get("Setting").get("filterMethod"),list) and flow.send_request.method.lower() in Global_Map.get("Setting").get("filterMethod"):
