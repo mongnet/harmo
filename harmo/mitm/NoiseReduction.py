@@ -9,13 +9,13 @@ class NoiseReduction:
         self.config = Utils().getConfig()
         self.rules_IGNORE_CONTAIN,self.rules_IGNORE_EXECT,self.rules_GET,self.rules_DOC = [],[],[],[]
         self.ts =str(int(time.time()))
-        with open('rules.yaml', 'r', encoding='utf-8') as r:
+        with open('conifg/rules.yaml', 'r', encoding='utf-8') as r:
             self.rules = yaml.load(r,Loader=yaml.FullLoader)
-        with open('filter.yaml', 'r', encoding='utf-8') as f:
+        with open('conifg/filter.yaml', 'r', encoding='utf-8') as f:
             filter = yaml.load(f,Loader=yaml.FullLoader)
         self.filter = [ each for each in filter['FilterConfig'] if each['Status'] ]
 
-    def createTestCase(self,modelName,testDocName):
+    def createTestCase(self,modelName,testDocName=None):
         scriptPathlist,modelName =[],modelName+"_测试脚本集"
         try:
             os.mkdir(modelName)

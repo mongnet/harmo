@@ -9,8 +9,9 @@ import time,json
 from harmo import base_utils
 from harmo.global_map import Global_Map
 from harmo.operation import yaml_file
+from urllib.parse import urlparse
 
-Global_Map.sets(yaml_file.get_yaml_data(base_utils.file_absolute_path("config.yaml")))
+Global_Map.sets(yaml_file.get_yaml_data(base_utils.file_absolute_path("conifg/config.yaml")))
 
 class Counter:
     def __init__(self,domains):
@@ -18,7 +19,6 @@ class Counter:
         self.interfaces = []
 
     def request(self, flow: http.HTTPFlow):
-
         # 记录请求信息
         if self.match(flow.request.url):
             # 跳过不录制的请求方法,如：options
@@ -36,8 +36,9 @@ class Counter:
         if not self.domains:
             ctx.log.error("必须配置允许录制的域名列表")
             exit(-1)
+        parsed_url = urlparse(url)
         for domain in self.domains:
-            if domain in url:
+            if parsed_url.hostname and parsed_url.hostname.endswith(domain):
                 return True
         return False
 
@@ -111,7 +112,7 @@ def getAllowRecording() -> list:
     获取允许录制的域名列表
     :return:
     """
-    AllowRecording = Global_Map.get("Setting").get("AllowRecording")
+    AllowRecording = Global_Map.get("Setting").get("allowRecording")
     if isinstance(AllowRecording, list) and AllowRecording:
         return AllowRecording
     raise TypeError("必须配置允许录制的域名列表")

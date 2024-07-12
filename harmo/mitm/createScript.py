@@ -1,11 +1,10 @@
+import jsonpath
 
 from harmo import base_utils
 from harmo.mitm.report import ReportUtil
-
 from harmo.operation import yaml_file
 from ExecRules import *
 from ExecScript import *
-# from _global import *
 
 
 def assert_json(actual, expect):
@@ -44,16 +43,28 @@ def assert_json(actual, expect):
         print(errorList)
     return errorList
 
-def execScript(modelName,testDocName):
-    Global_Map.sets(yaml_file.get_yaml_data(base_utils.file_absolute_path("config.yaml")))
+def execScript(modelName,testDocName=None):
+    Global_Map.sets(yaml_file.get_yaml_data(base_utils.file_absolute_path("conifg/config.yaml")))
     scriptPathlist = NoiseReduction().createTestCase(modelName,testDocName)
-    FLOW_LIST,ALL_ERROR_LIST=[],[]
+    FLOW_LIST,ALL_RESULT_LIST=[],[]
+    urlTotal = 0
     for scriptPath in scriptPathlist:
-        ERROR_LIST =[]
+        RESULT_LIST =[]
         flowData = ExecScript(scriptPath).updateToken(NoiseReduction().createScript(scriptPath))
         for i in range(len(flowData)):
             FLOW_LIST.append({'id':base_utils.generate_random_str(16),'url':flowData[i]['url'],'method':flowData[i]['method']})
             result = ExecScript(scriptPath).callAPI(flowData[i])
+            urlTotal += 1
+            result_dict = {}
+            # 过滤url
+            from urllib.parse import urlparse
+            filter_urls = Global_Map.get('Setting').get('filterUrl')
+            parsed_url = urlparse(flowData[i]['url'])
+            if filter_urls and any(parsed_url.path.endswith(filteUrl) or flowData[i]['url'].startswith(filteUrl) for filteUrl in filter_urls):
+                result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
+                    flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'pass'
+                RESULT_LIST.append(result_dict)
+                continue
             for rule in ExecRules(scriptPath).rulesGet:
                 try:
                     if result:
@@ -80,15 +91,10 @@ def execScript(modelName,testDocName):
                         flowData = eval(str(flowData).replace(str(rule['value'][0]), val))
                         rule['value'].remove(rule['value'][0])
             if result:
-                from urllib.parse import urlparse
-                parsed_url = urlparse(flowData[i]['url'])
-                if Global_Map.get('Setting').get('filterUrl') and parsed_url.path in Global_Map.get('Setting').get('filterUrl'):
-                    continue
                 if result.status_code in [200,500]:
                     if 'PNG' not in result.text:
                         diff = assert_json(result.json(), flowData[i]['resp'])
                         if diff:
-                            error_dict={}
                             diff_afterRules = ExecRules(scriptPath,diff).main(flowData[i])
                             if diff_afterRules:
                                 for eachdiff in diff:
@@ -99,28 +105,31 @@ def execScript(modelName,testDocName):
                                         except:
                                             pass
                                 if diff:
-                                    error_dict['id'],error_dict['url'],error_dict['method'],error_dict['contentList'] = flowData[i]['id'],flowData[i]['url'],flowData[i]['method'],diff
-                                    ERROR_LIST.append(error_dict)
-        if ERROR_LIST:
+                                    result_dict['id'],result_dict['url'],result_dict['method'],result_dict['status'],result_dict['contentList'] = flowData[i]['id'],flowData[i]['url'],flowData[i]['method'],'fail',diff
+                                    RESULT_LIST.append(result_dict)
+                                else:
+                                    result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'pass'
+                                    RESULT_LIST.append(result_dict)
+                            else:
+                                result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
+                                flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'pass'
+                                RESULT_LIST.append(result_dict)
+                        else:
+                            result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
+                            flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'pass'
+                            RESULT_LIST.append(result_dict)
+        if RESULT_LIST:
             key = str(str(scriptPath).split('\\')[-1]).split('_')[0]
             module = str(str(scriptPath).split('\\')[-2]).split('_')[0]
-            ALL_ERROR_LIST.append({'name':key,'info':ERROR_LIST,'moduleName':module})
-    moduleNameList = list(set([each['moduleName'] for each in ALL_ERROR_LIST]))
+            ALL_RESULT_LIST.append({'name':key,'info':RESULT_LIST,'moduleName':module})
+    moduleNameList = jsonpath.jsonpath(ALL_RESULT_LIST,'$..[?(@.moduleName)]..moduleName')
     moduleCaseTotal =[]
-    for name in moduleNameList:
-        num = 0
-        for case in ALL_ERROR_LIST:
-            if case['moduleName'] == name:
-                num=num+1
-        moduleCaseTotal.append(num)
-
-    data ={'error': ALL_ERROR_LIST,'moduleNameList':moduleNameList,'moduleCaseTotal':moduleCaseTotal}
+    if ALL_RESULT_LIST:
+        for module in jsonpath.jsonpath(ALL_RESULT_LIST,'$..[?(@.moduleName)]'):
+            moduleCaseTotal.append(len(module.get('info')))
+    data ={'result': ALL_RESULT_LIST,'moduleNameList':moduleNameList,'moduleCaseTotal':moduleCaseTotal,'urlTotal':urlTotal}
     ReportUtil().createReport(data)
     print(data)
 
-
-
-
 if __name__ == '__main__':
     execScript('Center模块','职务管理-编辑职务')
-    # noise_reduction()

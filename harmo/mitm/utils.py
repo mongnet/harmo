@@ -7,7 +7,7 @@ class Utils:
 
     def getConfig(self):
         result = {}
-        with open('config.yaml', 'r', encoding='utf-8') as file:
+        with open('conifg/config.yaml', 'r', encoding='utf-8') as file:
             # configInfo = yaml.load(file.read())
             configInfo = yaml.load(file, Loader=yaml.FullLoader)
             file.close()

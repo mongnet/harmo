@@ -1,12 +1,12 @@
 Setting :
   Status : NOW
-  Url : http://192.168.2.57:9876/things/v1/login
+  Url : https://lubantest.sg.luban.cn
   User : testapi
   PSW : 111111
   weixin_robot : "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
   Scope :
     - 龙门吊-设备管理_测试脚本文件夹_1670811570
-  Login :
+  login :
     url : /auth-server/auth/token
     rule : resp.data
   filterMethod :
@@ -21,15 +21,14 @@ Setting :
     - .woff2
     - .io
     - .css
+    - .map
   replaceDict :
     null : ~
     true : True
     false : False
-  AllowRecording :
-    - http://127.0.0.1:5000
+  allowRecording :
     - lbuilder.cn
+    - luban.cn
   filterUrl :
-    - /auth-server/auth/token
-    - /auth-server/auth/enterprises
-    - /auth-server/auth/enterprise
-    - /auth-server/auth/innerSystemToken/192
+    - service/auth/login
+    - https://lubantest.sg.luban.cn/?refreshToken
