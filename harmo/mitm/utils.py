@@ -1,4 +1,10 @@
-import requests,yaml,os,pathlib
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# @TIME    : 2024/4/3 15:00
+# @Author  : hubiao
+# @Email   : 250021520@qq.com
+
+import yaml,os,pathlib
 
 
 class Utils:
@@ -38,3 +44,6 @@ class Utils:
             configInfo.get('Setting').get('PSW'), \
             configInfo.get('Setting').get('NotifyUser')
         return result
+
+if __name__ == '__main__':
+    print(Utils().getConfig())

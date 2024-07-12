@@ -1,3 +1,9 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# @TIME    : 2024/4/3 15:00
+# @Author  : hubiao
+# @Email   : 250021520@qq.com
+
 import signal,os,sys
 
 # 自定义信号处理函数
@@ -26,8 +32,8 @@ while True:
             curPath = os.path.abspath(os.path.dirname(__file__))
             rootPath = os.path.split(curPath)[0]
             sys.path.append(rootPath)
-            import createScript
-            res = createScript.execScript(name)
+            import replay
+            res = replay.execScript(name)
             if res !=[]:
                 print("请建立规则，去掉唯一值对比，如id，时间，日期，等")
             # 中断时需要处理的代码

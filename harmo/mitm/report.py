@@ -1,6 +1,11 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# @TIME    : 2024/4/3 15:00
+# @Author  : hubiao
+# @Email   : 250021520@qq.com
+
 import os
 import time,yaml
-
 import jsonpath
 from jinja2 import Environment, PackageLoader
 
@@ -59,6 +64,7 @@ class ReportUtil:
         report_name = 'TestRport_'+str(createDate).replace(' ','_').replace(':','')+'.html'
         with open(report_name, 'w', encoding='utf-8') as fileObjct:
             fileObjct.writelines(html)
+        return output_dir+report_name
 
     def _upgradeError(self,eachInfo):
         text =''
@@ -574,4 +580,4 @@ if __name__ == '__main__':
     "urlTotal": 52
 }
 
-    ReportUtil().createReport(data)
+    print(ReportUtil().createReport(data))

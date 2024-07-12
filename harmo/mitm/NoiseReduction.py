@@ -1,7 +1,15 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# @TIME    : 2024/4/3 15:00
+# @Author  : hubiao
+# @Email   : 250021520@qq.com
+
 import copy
 
+from harmo import base_utils
+from harmo.operation import json_file
 from utils import Utils
-import time,os,json,yaml
+import time
 from ThirdServer.advanceForm.main import *
 
 class NoiseReduction:
@@ -34,8 +42,7 @@ class NoiseReduction:
     def createScript(self,scriptPath):
         execPath = str(scriptPath) + os.sep + 'script.json'
         if self.config['whetherRecord']:
-            with open('script.json', 'r', encoding='utf-8') as fscript:
-                flowData = json.loads(fscript.read())
+            flowData = json_file.get_json_data(base_utils.file_absolute_path('script.json'))
             with open(execPath, 'w') as ff:
                 ff.write(json.dumps(flowData))
         else:

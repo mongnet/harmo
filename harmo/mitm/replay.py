@@ -1,11 +1,16 @@
-import jsonpath
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+# @TIME    : 2024/4/3 15:00
+# @Author  : hubiao
+# @Email   : 250021520@qq.com
 
+import jsonpath
 from harmo import base_utils
 from harmo.mitm.report import ReportUtil
+from harmo.msg.robot import WeiXin
 from harmo.operation import yaml_file
 from ExecRules import *
 from ExecScript import *
-
 
 def assert_json(actual, expect):
     actual = base_utils.ResponseData(actual)
@@ -128,8 +133,10 @@ def execScript(modelName,testDocName=None):
         for module in jsonpath.jsonpath(ALL_RESULT_LIST,'$..[?(@.moduleName)]'):
             moduleCaseTotal.append(len(module.get('info')))
     data ={'result': ALL_RESULT_LIST,'moduleNameList':moduleNameList,'moduleCaseTotal':moduleCaseTotal,'urlTotal':urlTotal}
-    ReportUtil().createReport(data)
-    print(data)
+    weixin_robot = Global_Map.get('Setting').get('weixin_robot')
+    result = ReportUtil().createReport(data)
+    if weixin_robot:
+        WeiXin().send_file(hookkey=weixin_robot, file=result)
 
 if __name__ == '__main__':
     execScript('Center模块','职务管理-编辑职务')
