@@ -39,6 +39,10 @@
             color: red;
             font-weight :bold;
         }
+        .ignore {
+            color: grey;
+            font-weight :bold;
+        }
         .charts-container {
             display: flex;
             flex-wrap: wrap;
@@ -75,6 +79,7 @@
     <p>接口总数: {{details.total}}</p>
     <p class="pass">通过: {{details.pass}}</p>
     <p class="fail">失败: {{details.failed}}</p>
+    <p class="ignore">忽略: {{details.ignore}}</p>
 
     <h2>图表</h2>
     <div class="charts-container">
@@ -124,15 +129,18 @@
                 type: 'pie',
                 data: [
                     { value: [{{details.pass}}], name: '通过' },
-                    { value: [{{details.failed}}], name: '失败' }
+                    { value: [{{details.failed}}], name: '失败' },
+                    { value: [{{details.ignore}}], name: '忽略' }
                 ],
                 itemStyle: {
                     color: function (params) {
-                        // 根据不同类别返回不同的颜色
-                        if (params.data.name === '通过') {
+                        // 根据不同类别设置不同的颜色
+                        if (params.name === '通过') {
                             return 'green';
-                        } else if (params.data.name === '失败') {
+                        } else if (params.name === '失败') {
                             return 'red';
+                        } else if (params.name === '忽略') {
+                            return 'grey';
                         }
                     }
                 },

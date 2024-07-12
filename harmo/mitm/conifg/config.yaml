@@ -32,3 +32,4 @@ Setting :
   filterUrl :
     - service/auth/login
     - https://lubantest.sg.luban.cn/?refreshToken
+    - service/ent-admin-user/biz/user

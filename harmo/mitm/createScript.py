@@ -62,7 +62,7 @@ def execScript(modelName,testDocName=None):
             parsed_url = urlparse(flowData[i]['url'])
             if filter_urls and any(parsed_url.path.endswith(filteUrl) or flowData[i]['url'].startswith(filteUrl) for filteUrl in filter_urls):
                 result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
-                    flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'pass'
+                    flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'ignore'
                 RESULT_LIST.append(result_dict)
                 continue
             for rule in ExecRules(scriptPath).rulesGet:

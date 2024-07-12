@@ -22,13 +22,15 @@ class ReportUtil:
         total = data['urlTotal']
         failed = len(jsonpath.jsonpath(data['result'],'$..info[?(@.status=="fail")]')) if jsonpath.jsonpath(data['result'],'$..info[?(@.status=="fail")]') else 0
         Pass = len(jsonpath.jsonpath(data['result'],'$..info[?(@.status=="pass")]')) if jsonpath.jsonpath(data['result'],'$..info[?(@.status=="pass")]') else 0
+        ignore = len(jsonpath.jsonpath(data['result'],'$..info[?(@.status=="ignore")]')) if jsonpath.jsonpath(data['result'],'$..info[?(@.status=="ignore")]') else 0
         details = {
             'createdate' : createDate,
             'reporter' : reporter,
             'host' : configInfo['Setting']['Url'],
-            'total': Pass+failed,
+            'total': Pass+failed+ignore,
             'pass': Pass,
             'failed': failed,
+            'ignore': ignore,
             'caseList':[],
 			'moduleNameList': data['moduleNameList'],
 			'moduleCaseTotal':data['moduleCaseTotal']
@@ -41,8 +43,10 @@ class ReportUtil:
                     caseEach = {"nmber":nmber,"moduleName":each['moduleName'],'caseName':each['name'],'status':'<p class="pass">通过</p>','url':"",'errorinfo':self._upgradeError(eachInfo)}
                     if eachInfo.get("status") == "pass":
                         caseEach['status'] = '<p class="pass">通过</p>'
-                    else:
+                    elif eachInfo.get("status") == "fail":
                         caseEach['status'] = '<p class="fail">失败</p>'
+                    else:
+                        caseEach['status'] = '<p class="ignore">忽略</p>'
                     caseEach['url'] = eachInfo.get("url")
                     details['caseList'].append(caseEach)
         template = env.get_template(template_name)
@@ -69,8 +73,12 @@ class ReportUtil:
                         text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'][n])+"</span><b> 实际:</b><span class='fail'> "+str(content['actual'][n])+'</span><br><br>'
                     else:
                         text = text + "路径: "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际数量不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'])+"</span><b> 实际:</b><span class='fail'> "+str(content['actual'])+'</span><br><br>'
+            elif eachInfo.get("status") == "fail":
+                text = '<p class="fail">失败</p>'
+            elif eachInfo.get("status") == "ignore":
+                text = '<p class="ignore">忽略</p>'
             else:
-                text = '<p class="pass">通过</p>'
+                text = '--'
         else:
             text = '--'
         return text
