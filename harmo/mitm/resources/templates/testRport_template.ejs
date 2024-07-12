@@ -99,10 +99,10 @@
     <table>
         <thead>
             <tr>
-                <th>序号</th>
+                <th style="width: 35px">序号</th>
+                <th style="width: 35px">状态</th>
                 <th>模块名</th>
                 <th>用例名</th>
-                <th>状态</th>
                 <th>接口地址</th>
                 <th style="max-width: 500px">校验详情</th>
             </tr>
@@ -111,9 +111,9 @@
         {% for case in details.caseList %}
         <tr class="{{ loop.cycle('odd', 'even') }}">
             <td>{{case.nmber}}</td>
+            <td class="[结果类别]">{{case.status}}</td>
             <td>{{case.moduleName}}</td>
             <td>{{case.caseName}}</td>
-            <td class="[结果类别]">{{case.status}}</td>
             <td>{{case.url}}</td>
             <td style="max-width: 500px">{{case.errorinfo}}</td>
         </tr>
