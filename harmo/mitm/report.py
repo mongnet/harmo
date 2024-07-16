@@ -31,7 +31,7 @@ class ReportUtil:
         ignore = len(jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="ignore")]')) if jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="ignore")]') else 0
         details = {
             'createdate' : createDate,
-            'reporter' : reporter,
+            # 'reporter' : reporter,
             'title' : title,
             'host' : Global_Map.get('Setting').get('Url'),
             'total': Pass+failed+ignore,

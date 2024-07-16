@@ -61,16 +61,11 @@
     <h2>测试概要</h2>
     <table style="width: 30%; height: 100px;">
         <tr>
-            <td>测试日期</td>
+            <td>执行日期</td>
             <td>{{details.createdate}}</td>
-
         </tr>
         <tr>
-             <td>测试执行者</td>
-            <td>{{details.reporter}}</td>
-        </tr>
-        <tr>
-            <td>测试环境</td>
+            <td>执行环境</td>
             <td>{{details.host}}</td>
         </tr>
     </table>
@@ -103,7 +98,7 @@
                 <th style="width: 35px">状态</th>
                 <th>模块名</th>
                 <th>用例名</th>
-                <th>接口地址</th>
+                <th style="max-width: 500px">接口地址</th>
                 <th style="max-width: 500px">校验详情</th>
             </tr>
         </thead>
@@ -114,7 +109,7 @@
             <td class="[结果类别]">{{case.status}}</td>
             <td>{{case.moduleName}}</td>
             <td>{{case.caseName}}</td>
-            <td>{{case.url}}</td>
+            <td style="max-width: 800px;word-wrap:break-word;overflow:hidden;text-overflow: ellipsis;">{{case.url}}</td>
             <td style="max-width: 500px">{{case.errorinfo}}</td>
         </tr>
         {% endfor %}
