@@ -26,9 +26,9 @@ class ReportUtil:
         env = Environment(loader=FileSystemLoader(templates_dir))
         template_name = 'testRport_template.ejs'
         status = u"成功" if replayResult['result']==[] else u"失败"
-        failed = len(jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="fail")]')) if jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="fail")]') else 0
-        Pass = len(jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="pass")]')) if jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="pass")]') else 0
-        ignore = len(jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="ignore")]')) if jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="ignore")]') else 0
+        failed = len(jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="fail")]')) if jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="fail")]') else 0
+        Pass = len(jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="pass")]')) if jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="pass")]') else 0
+        ignore = len(jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="ignore")]')) if jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="ignore")]') else 0
         details = {
             'createdate' : createDate,
             # 'reporter' : reporter,
@@ -39,15 +39,15 @@ class ReportUtil:
             'failed': failed,
             'ignore': ignore,
             'caseList':[],
-			'moduleNameList': replayResult['moduleNameList'],
-			'moduleCaseTotal':replayResult['moduleCaseTotal']
+			'moduleNameList': replayResult.get('moduleNameList'),
+			'moduleCaseTotal':replayResult.get('moduleCaseTotal')
 		}
         nmber = 0
-        for each in replayResult['result']:
+        for each in replayResult.get('result'):
             if each['info']:
                 for eachInfo in each['info']:
                     nmber += 1
-                    caseEach = {"nmber":nmber,"moduleName":each['moduleName'],'caseName':each['name'],'status':'<p class="pass">通过</p>','url':"",'errorinfo':self._upgradeError(eachInfo)}
+                    caseEach = {"nmber":nmber,"moduleName":each['moduleName'],'status':'<p class="pass">通过</p>','url':"",'errorinfo':self._upgradeError(eachInfo)}
                     if eachInfo.get("status") == "pass":
                         caseEach['status'] = '<p class="pass">通过</p>'
                     elif eachInfo.get("status") == "fail":

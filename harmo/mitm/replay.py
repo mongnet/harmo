@@ -156,9 +156,11 @@ class Replay:
                                 flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'pass'
                                 RESULT_LIST.append(result_dict)
             if RESULT_LIST:
-                key = str(str(scriptPath).split('\\')[-1]).split('_')[0]
-                module = str(str(scriptPath).split('\\')[-2]).split('_')[0]
-                ALL_RESULT_LIST.append({'name':key,'info':RESULT_LIST,'moduleName':module})
+                if str(scriptPath).endswith('.json'):
+                    key = str(str(scriptPath).split('\\')[0]).split('_测试脚本')[0]
+                else:
+                    key = str(str(scriptPath).split('\\')[-1]).split('_测试脚本')[0]
+                ALL_RESULT_LIST.append({'moduleName':key,'info':RESULT_LIST})
         moduleNameList = jsonpath.jsonpath(ALL_RESULT_LIST,'$..[?(@.moduleName)]..moduleName')
         moduleCaseTotal =[]
         if ALL_RESULT_LIST:
