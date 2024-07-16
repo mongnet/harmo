@@ -3,46 +3,30 @@
 # @TIME    : 2024/4/3 15:00
 # @Author  : hubiao
 # @Email   : 250021520@qq.com
+import os
+import subprocess
 
-import signal,os,sys
+def run_mitmdump_script():
+    # 定义 mitmdump 命令和参数
+    addons_py_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "addons.py")
+    command = ['mitmdump', '-s', addons_py_path]
+    print("录制已开始，请设置好代理并开始操作，按 ctrl+C 结束录制.")
+    # 使用 subprocess.Popen 来启动命令并获取输出
+    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=os.environ) as process:
+        try:
+            # 实时获取并打印 mitmdump 的输出
+            for line in process.stdout:
+                print(line, end='')  # 使用 end='' 避免每次打印后出现额外的换行符
+        except KeyboardInterrupt:
+            # 如果需要，可以在这里处理 KeyboardInterrupt 异常
+            # 例如，可以通过 process.terminate() 终止进程
+            process.terminate()
+            print("录制被手动终止.")
+        finally:
+            # 等待进程结束并获取退出码
+            # process.wait()
+            # exit_code = process.returncode
+            print(f"录制结束.")
 
-# 自定义信号处理函数
-def my_handler(signum, frame):
-    global stop
-    stop = True
-    print("终止")
-
-# 设置相应信号处理的handler
-signal.signal(signal.SIGINT, my_handler)  # 读取Ctrl+c信号
-
-try:
-    name =sys.argv[1]
-except:
-    name = "NoName"
-try:
-    retry = sys.argv[2]
-except:
-    retry = None
-stop = False
-count =0
-while True:
-    try:
-        # 读取到Ctrl+c前进行的操作
-        if stop or retry==True:
-            curPath = os.path.abspath(os.path.dirname(__file__))
-            rootPath = os.path.split(curPath)[0]
-            sys.path.append(rootPath)
-            import replay
-            res = replay.execScript(name)
-            if res !=[]:
-                print("请建立规则，去掉唯一值对比，如id，时间，日期，等")
-            # 中断时需要处理的代码
-            break  # break只能退出当前循坏
-            # 中断程序需要用 raise
-        else:
-            if count==0:
-                os.system("mitmdump -s addons.py")
-                count=1
-    except Exception as e:
-        print(str(e))
-        break
+if __name__ == '__main__':
+    run_mitmdump_script()

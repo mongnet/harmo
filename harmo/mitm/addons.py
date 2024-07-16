@@ -61,7 +61,7 @@ class Counter:
             if clean_result:
                 self.interfaces.append(clean_result)
                 ctx.log.info(f"发现第： {len(self.interfaces)} 个接口")
-                with open('script.json','w',encoding='utf-8') as f:
+                with open('record_results.json','w',encoding='utf-8') as f:
                     f.write(json.dumps(self.interfaces, ensure_ascii=False))
 
     def clean_data(self,interface):

@@ -9,6 +9,8 @@ from .cases_command import CasesCommand
 from .weixin_msg_command import WeixinMsgCommand
 from .swagger_command import SwaggerCommand
 from .new_command import NewCommand
+from .record_command import RecordCommand
+from .replay_command import ReplayCommand
 
 
 class Application(BaseApplication):
@@ -23,7 +25,9 @@ class Application(BaseApplication):
             NewCommand(),
             SwaggerCommand(),
             WeixinMsgCommand(),
-            CasesCommand()
+            CasesCommand(),
+            RecordCommand(),
+            ReplayCommand()
         ]
 
         return commands

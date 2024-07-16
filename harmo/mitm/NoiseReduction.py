@@ -5,49 +5,49 @@
 # @Email   : 250021520@qq.com
 
 import copy
+import json
+import os
+import pathlib
 
 from harmo import base_utils
-from harmo.operation import json_file
-from utils import Utils
+from harmo.config import Config
+from harmo.global_map import Global_Map
+from harmo.operation import json_file, yaml_file
 import time
-from ThirdServer.advanceForm.main import *
+from typing import Optional
 
 class NoiseReduction:
     def __init__(self):
-        self.config = Utils().getConfig()
+        self.config = self.getConfig()
         self.rules_IGNORE_CONTAIN,self.rules_IGNORE_EXECT,self.rules_GET,self.rules_DOC = [],[],[],[]
         self.ts =str(int(time.time()))
-        with open('conifg/rules.yaml', 'r', encoding='utf-8') as r:
-            self.rules = yaml.load(r,Loader=yaml.FullLoader)
-        with open('conifg/filter.yaml', 'r', encoding='utf-8') as f:
-            filter = yaml.load(f,Loader=yaml.FullLoader)
-        self.filter = [ each for each in filter['FilterConfig'] if each['Status'] ]
+        self.rules = yaml_file.get_yaml_data(base_utils.file_absolute_path("conifg/rules.yaml"))
+        filter = yaml_file.get_yaml_data(base_utils.file_absolute_path("conifg/filter.yaml"))
+        self.filter = [ each for each in filter.get('FilterConfig') if each.get('Status')]
 
-    def createTestCase(self,modelName,testDocName=None):
-        scriptPathlist,modelName =[],modelName+"_测试脚本集"
-        try:
-            os.mkdir(modelName)
-        except:
-            pass
+    def createTestCase(self,modelName:str):
+        scriptPathlist =[]
         if self.config['whetherRecord']:
-            name = 'NoName_测试脚本文件夹_'.replace('NoName',testDocName)+self.ts if testDocName != None else 'NoName_测试脚本文件夹_'+self.ts
-            path =  os.getcwd() + os.sep+modelName+os.sep+name
-            os.mkdir(path)
-            #path = path + os.sep
+            name = 'NoName_测试脚本文件夹_'.replace('NoName',modelName)+self.ts if modelName else 'NoName_测试脚本文件夹_'+self.ts
+            path =  os.path.join(os.getcwd(), name)
+            if not os.path.exists(path):
+                os.mkdir(path)
             scriptPathlist.append(path)
         else:
             scriptPathlist = self.config['path']
         return scriptPathlist
 
     def createScript(self,scriptPath):
-        execPath = str(scriptPath) + os.sep + 'script.json'
+        if str(scriptPath).endswith('.json'):
+            execPath = scriptPath
+        else:
+            execPath = os.path.join(scriptPath,'record_results.json')
         if self.config['whetherRecord']:
-            flowData = json_file.get_json_data(base_utils.file_absolute_path('script.json'))
+            flowData = json_file.get_json_data(base_utils.file_absolute_path('record_results.json'))
             with open(execPath, 'w') as ff:
                 ff.write(json.dumps(flowData))
         else:
-            with open(execPath, 'r') as f1:
-                flowData = json.loads(f1.read())
+            flowData = json_file.get_json_data(execPath)
         flowDataDeepCopy = [each for each in flowData if each != {} and self.__specialFlowStatus(each)]
         flowData_urlList = [each['url'] for each in flowDataDeepCopy]
         if self.filter:
@@ -138,6 +138,33 @@ class NoiseReduction:
                 status=False
         return status
 
-
+    def getConfig(self):
+        result = {}
+        configInfo = Global_Map.get()
+        result['whetherRecord'], result['path'] = False, []
+        if str(configInfo['Setting']['Status']).upper() == 'NOW':
+            result['path'], result['whetherRecord'] = ['record_results.json'], True
+        elif str(configInfo['Setting']['Status']).upper() == 'DEBUG':
+            for value in configInfo['Setting']['Scope']:
+                path = os.path.join(Config.project_root_dir, value)
+                if not os.path.exists(path):
+                    raise ValueError(f"{path} 文件夹没找到，请检查后在执行！")
+                else:
+                    result['path'] = result['path'] + list(pathlib.Path(path).iterdir())
+        else:
+            for eachPath in os.listdir():
+                if "_测试脚本集" in eachPath:
+                    path = os.getcwd() + os.sep + eachPath
+                    pathAbs = path + os.sep
+                    path_list = pathlib.Path(pathAbs)
+                    result['path'] = result['path']+list(path_list.iterdir())
+        if result['path'] == []:
+            raise ValueError(f"{result['path']} 文件夹没找到，请检查后在执行！")
+        result['Model'] = configInfo.get('Setting').get('Model')
+        result['Url'], result['User'], result['PSW'], result['NotifyUser'] = configInfo.get('Setting').get('Url'), \
+            configInfo.get('Setting').get('User'), \
+            configInfo.get('Setting').get('PSW'), \
+            configInfo.get('Setting').get('NotifyUser')
+        return result
 
 

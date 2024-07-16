@@ -1,11 +1,9 @@
 Setting :
   Status : NOW
   Url : https://lubantest.sg.luban.cn
-  User : testapi
-  PSW : 111111
   weixin_robot : "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
   Scope :
-    - 职务管理-编辑职务_测试脚本文件夹_1721111104
+    - 龙门吊-设备管理_测试脚本文件夹_1670811570
   login :
     url : /auth-server/auth/token
     rule : resp.data
@@ -34,4 +32,4 @@ Setting :
     - lbuilder.cn
     - luban.cn
   headers :
-    access-token: IGCsSQVp9oi8YS8z3Bk38QbDSxx9A1VA1YATMLS1NAmbVisKpQXA5MMCPZ3AkgKP
+    access-token: X2HC0WeabtWTaL8iTD8f1P8nh4MvKD8LbYyFlpXkbGeJQbDWJHXCmehcEW9a5prN

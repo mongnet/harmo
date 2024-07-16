@@ -32,46 +32,40 @@ def pytest_addoption(parser):
     :return:
     '''
     # 注册命令行参数
-    group = parser.getgroup('testing environment configuration')
+    group = parser.getgroup('harmo', "Harmo")
     group.addoption('--h-driver',
                     action="store",
                     default=os.getenv('h_driver', 'chrome'),
-                    metavar="path",
                     choices=['chrome', 'firefox', 'ie'],
-                    help='set Browser')
+                    help='Browser engine which should be used.')
     group.addoption('--h-base-url',
                     action="store",
-                    metavar="path",
                     default=os.getenv('h_base_url', None),
-                    help='base url for the application under test')
+                    help='base url for the application under test.')
     group.addoption('--h-env',
                     action="store",
-                    metavar="path",
                     default=os.getenv('h_env', None),
-                    help='set testing environment')
+                    help='set testing environment.')
     group.addoption('--h-robot',
                     action="store",
-                    metavar="path",
                     default=os.getenv('h_robot', None),
-                    help='set robot')
+                    help='set robot.')
     group.addoption('--h-msg-name',
                     action="store",
-                    metavar="path",
                     default=os.getenv('h_msg_name', None),
-                    help='set robot msg name')
+                    help='set robot msg name.')
     group.addoption('--h-case-tag',
                     action="append",
-                    metavar="path",
                     default=os.getenv('h_case_tags', None),
-                    help='Set the use case tags to be executed')
+                    help='Set the use case tags to be executed.')
     # 自定义的配置选项，需要先注册才能在ptest.ini中使用，注册方法如下
-    parser.addini('message_switch', help='message_switch configuration')
-    parser.addini('success_message', help='success_message configuration')
-    parser.addini('case_message', help='case_message configuration')
-    parser.addini('is_local', help='is_local configuration')
-    parser.addini('is_clear', help='is_clear configuration')
-    parser.addini('schema_check', help='schema_check configuration')
-    parser.addini('custom_config', type='linelist' ,help='custom_config configuration')
+    parser.addini('message_switch', type="bool", default=False, help='message_switch configuration.')
+    parser.addini('success_message', type="bool", default=False, help='success_message configuration.')
+    parser.addini('case_message', type="bool", default=False, help='case_message configuration.')
+    parser.addini('is_local', type="bool", default=False, help='is_local configuration.')
+    parser.addini('is_clear', type="bool", default=True, help='is_clear configuration.')
+    parser.addini('schema_check', type="bool", default=False, help='schema_check configuration.')
+    parser.addini('custom_config', type='linelist' ,help='custom_config configuration.')
 
 def pytest_configure(config):
     '''
@@ -85,12 +79,12 @@ def pytest_configure(config):
     _robot = os.getenv("h_robot", None) if os.getenv("h_robot", None) else config.getoption("--h-robot")
     _msg_name = os.getenv("h_msg_name", None) if os.getenv("h_msg_name", None) else config.getoption("--h-msg-name")
     _case_tag = os.getenv("h_case_tag", None) if os.getenv("h_case_tag", None) else config.getoption("--h-case-tag")
-    _message_switch = True if config.getini("message_switch") == "True" else False
-    _success_message = True if config.getini("success_message") == "True" else False
-    _case_message = True if config.getini("case_message") == "True" else False
-    _is_local =  True if config.getini("is_local") == "True" else False
-    _is_clear = True if config.getini("is_clear") == "True" else False
-    _schema_check = True if config.getini("schema_check") == "True" else False
+    _message_switch = config.getini("message_switch")
+    _success_message = config.getini("success_message")
+    _case_message = config.getini("case_message")
+    _is_local =  config.getini("is_local")
+    _is_clear = config.getini("is_clear")
+    _schema_check = config.getini("schema_check")
     _custom_config_temp = config.getini("custom_config")
     _custom_config = {}
     if _custom_config_temp:

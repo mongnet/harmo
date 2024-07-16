@@ -7,41 +7,43 @@
 import os
 import time,yaml
 import jsonpath
-from jinja2 import Environment, PackageLoader
+from jinja2 import Environment, FileSystemLoader
 
+from harmo import base_utils
+from harmo.config import Config
+from harmo.global_map import Global_Map
 
 
 class ReportUtil:
     def __init__(self):
         pass
 
-    def createReport(self,data):
-        with open('conifg/config.yaml', 'r', encoding='utf-8') as file:
-            configInfo = yaml.load(file, Loader=yaml.FullLoader)
+    def createReport(self,modelName,replayResult):
         createDate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        reporter = "菜鸡吴"
-        title = u"测试报告"
-        env = Environment(loader=PackageLoader('resources', 'templates'))
+        reporter = "那个谁"
+        title = f"{modelName}流量回放报告"
+        templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources","templates")
+        env = Environment(loader=FileSystemLoader(templates_dir))
         template_name = 'testRport_template.ejs'
-        status = u"成功" if data['result']==[] else u"失败"
-        total = data['urlTotal']
-        failed = len(jsonpath.jsonpath(data['result'],'$..info[?(@.status=="fail")]')) if jsonpath.jsonpath(data['result'],'$..info[?(@.status=="fail")]') else 0
-        Pass = len(jsonpath.jsonpath(data['result'],'$..info[?(@.status=="pass")]')) if jsonpath.jsonpath(data['result'],'$..info[?(@.status=="pass")]') else 0
-        ignore = len(jsonpath.jsonpath(data['result'],'$..info[?(@.status=="ignore")]')) if jsonpath.jsonpath(data['result'],'$..info[?(@.status=="ignore")]') else 0
+        status = u"成功" if replayResult['result']==[] else u"失败"
+        failed = len(jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="fail")]')) if jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="fail")]') else 0
+        Pass = len(jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="pass")]')) if jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="pass")]') else 0
+        ignore = len(jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="ignore")]')) if jsonpath.jsonpath(replayResult['result'],'$..info[?(@.status=="ignore")]') else 0
         details = {
             'createdate' : createDate,
             'reporter' : reporter,
-            'host' : configInfo['Setting']['Url'],
+            'title' : title,
+            'host' : Global_Map.get('Setting').get('Url'),
             'total': Pass+failed+ignore,
             'pass': Pass,
             'failed': failed,
             'ignore': ignore,
             'caseList':[],
-			'moduleNameList': data['moduleNameList'],
-			'moduleCaseTotal':data['moduleCaseTotal']
+			'moduleNameList': replayResult['moduleNameList'],
+			'moduleCaseTotal':replayResult['moduleCaseTotal']
 		}
         nmber = 0
-        for each in data['result']:
+        for each in replayResult['result']:
             if each['info']:
                 for eachInfo in each['info']:
                     nmber += 1
@@ -54,22 +56,30 @@ class ReportUtil:
                         caseEach['status'] = '<p class="ignore">忽略</p>'
                     caseEach['url'] = eachInfo.get("url")
                     details['caseList'].append(caseEach)
-        template = env.get_template(template_name)
-        html = template.render(title=title, status=status, created_when=createDate, details=details)
-        current_dir = os.getcwd()
-        output_dir = f'{current_dir}/resources/output'+os.sep
+        # 检查模板文件是否存在
+        template_path = os.path.join(templates_dir, template_name)
+        if not os.path.exists(template_path):
+            raise ValueError(f"模板文件 {template_path} 未找到。")
+        else:
+            # 尝试加载模板
+            try:
+                template = env.get_template(template_name)
+                # 渲染模板
+                html = template.render(title=title, status=status, created_when=createDate, details=details)
+            except Exception as e:
+                print(f"加载模板时出错：{e}")
+        output_dir = os.path.join(Config.project_root_dir, "output"+os.sep)
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
         os.chdir(output_dir)
         report_name = 'TestRport_'+str(createDate).replace(' ','_').replace(':','')+'.html'
         with open(report_name, 'w', encoding='utf-8') as fileObjct:
             fileObjct.writelines(html)
-        return output_dir+report_name
+        return report_name
 
     def _upgradeError(self,eachInfo):
         text =''
         if eachInfo:
-            text = text +'<div style="width: 100%;word-break: break-word;"> <b>URL</b>: ' + eachInfo['url'] + '</div><br>'
             if 'contentList' in eachInfo:
                 for content in eachInfo['contentList']:
                     if len(content['expect']) == len(content['actual']):
@@ -78,7 +88,7 @@ class ReportUtil:
                             if content['expect'][i] != content['actual'][i] : n = i
                         text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'][n])+"</span><b> 实际:</b><span class='fail'> "+str(content['actual'][n])+'</span><br><br>'
                     else:
-                        text = text + "路径: "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际数量不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'])+"</span><b> 实际:</b><span class='fail'> "+str(content['actual'])+'</span><br><br>'
+                        text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际数量不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'])+"</span><b> 实际:</b><span class='fail'> "+str(content['actual'])+'</span><br><br>'
             elif eachInfo.get("status") == "fail":
                 text = '<p class="fail">失败</p>'
             elif eachInfo.get("status") == "ignore":
@@ -580,4 +590,4 @@ if __name__ == '__main__':
     "urlTotal": 52
 }
 
-    print(ReportUtil().createReport(data))
+    print(ReportUtil().createReport("模块",data))
