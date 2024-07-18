@@ -4,10 +4,8 @@ manager :
   username : admin
   password : autotest
   deviceType : WEB
-  scope : autotest
 normal :
   realname : 冒烟测试用户
   username : test
   password : test
   deviceType : WEB
-  scope : autotest

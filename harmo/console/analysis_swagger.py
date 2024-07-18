@@ -119,7 +119,11 @@ class AnalysisSwaggerJson():
             self.base_url = f"{server_url.scheme}://{server_url.netloc}"
         title = res.get("info").get("title")  # 获取接口的标题
         http_interface_group["config"]["name"] = title  # 在初始化用例集字典更新值
-        http_interface_group["config"]["name_en"] = self.basePath.replace("/","")
+        # 确保方法名以字母或下划线开始
+        name_en = self.basePath.replace("/", "").replace(".", "").replace("#", "").replace("%", "")
+        if not name_en[0].isalpha() and name_en[0] != "_":
+            name_en = "_" + name_en
+        http_interface_group["config"]["name_en"] = name_en
         http_interface_group["config"]["base_url"] = self.base_url
         http_interface_group["config"]["version"] = self.version
         if isinstance(paths, dict):  # 判断接口返回的paths数据类型是否dict类型
@@ -241,7 +245,10 @@ class AnalysisSwaggerJson():
         if not unique_list:
             unique_list.extend(startswith_equal_path_list)
         unique_list.append(method)
-        name_en = "_".join(unique_list).replace("-", "_")
+        name_en = "_".join(unique_list).replace("-", "_").replace(".","").replace("#", "").replace("%", "")
+        # 确保方法名以字母或下划线开始
+        if not name_en[0].isalpha() and name_en[0] != "_":
+            name_en = "_" + name_en
         http_interface["name_en"] = name_en
         http_interface["method"] = method.upper()
         http_interface["uri"] = uri
