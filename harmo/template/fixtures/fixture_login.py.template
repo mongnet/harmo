@@ -20,7 +20,7 @@ def token():
     数据管理平台获取管理员登录凭证
     :return:
     '''
-    resule = public_login.Token(username=Global_Map.get('manager').get('username'), password=Global_Map.get('manager').get('password'),scope=Global_Map.get('manager').get('scope'),deviceType=Global_Map.get('manager').get('deviceType'))
+    resule = public_login.Token(username=Global_Map.get('manager').get('username'), password=Global_Map.get('manager').get('password'),deviceType=Global_Map.get('manager').get('deviceType'))
     yield  resule.login()
     if Global_Map.get("difference_marker"):
         resule.logout()
@@ -44,7 +44,7 @@ def normal_token():
     数据管理平台获取普通用户登录凭证
     :return:
     '''
-    resule = public_login.Token(username=Global_Map.get('normal').get('username'), password=Global_Map.get('normal').get('password'),scope=Global_Map.get('normal').get('scope'),deviceType=Global_Map.get('normal').get('deviceType'))
+    resule = public_login.Token(username=Global_Map.get('normal').get('username'), password=Global_Map.get('normal').get('password'),deviceType=Global_Map.get('normal').get('deviceType'))
     yield  resule.login()
     if Global_Map.get("difference_marker"):
         resule.logout()

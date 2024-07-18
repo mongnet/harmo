@@ -21,9 +21,7 @@ class NoiseReduction:
         self.config = self.getConfig()
         self.rules_IGNORE_CONTAIN,self.rules_IGNORE_EXECT,self.rules_GET,self.rules_DOC = [],[],[],[]
         self.ts =str(int(time.time()))
-        self.rules = yaml_file.get_yaml_data(base_utils.file_absolute_path("conifg/rules.yaml"))
-        filter = yaml_file.get_yaml_data(base_utils.file_absolute_path("conifg/filter.yaml"))
-        self.filter = [ each for each in filter.get('FilterConfig') if each.get('Status')]
+        self.rules = Global_Map.get()
 
     def createTestCase(self,modelName:str):
         scriptPathlist =[]
@@ -37,7 +35,7 @@ class NoiseReduction:
             scriptPathlist = self.config['path']
         return scriptPathlist
 
-    def createScript(self,scriptPath):
+    def getFlowData(self, scriptPath):
         if str(scriptPath).endswith('.json'):
             execPath = scriptPath
         else:
@@ -49,30 +47,6 @@ class NoiseReduction:
         else:
             flowData = json_file.get_json_data(execPath)
         flowDataDeepCopy = [each for each in flowData if each != {} and self.__specialFlowStatus(each)]
-        flowData_urlList = [each['url'] for each in flowDataDeepCopy]
-        if self.filter:
-            for each in self.filter:
-                filterStatus = False
-                for i in range(len(flowData_urlList)):
-                    if each['StepList'][0] in flowData_urlList[i] and filterStatus==False:
-                        num =-1
-                        for g in range(len(each['StepList'])):
-                            k = i+g
-                            if each['StepList'][g] in flowData_urlList[k]:
-                                num = num+1
-                            if num ==g and num==len(each['StepList'])-1:
-                                filterStatus = True
-                                end = i + len(each['StepList'])
-                                headers = {
-                                    'access-token' : 'MockAccessToken',
-                                    'Content-Type' : 'application/json'
-                                }
-                                Mock = {'location': each['Mock'], 'method': "MOCK",
-                                        'flow': flowDataDeepCopy[i],'id':"MockId",
-                                        'url':'MockUrl','headers':headers,'body':'MockData',
-                                        'MockName':each['Name'],'path':'MockPath'}
-                                flowDataDeepCopy =flowDataDeepCopy[:i]+[Mock]+flowDataDeepCopy[end:]
-                                break
         return flowDataDeepCopy
 
     def getValue(self,data,rules):
@@ -91,9 +65,9 @@ class NoiseReduction:
         return value
 
     def getRules(self,scriptPath):
-        flowData,recond =self.createScript(scriptPath),[]
+        flowData,recond =self.getFlowData(scriptPath),[]
         if self.rules:
-            for eachRule in self.rules['Rules']:
+            for eachRule in self.rules.get('Rules'):
                 if str(eachRule['Type']).upper() == 'GETVALUE':
                     eachRule['value'],id =[],self.getValueId(flowData,eachRule)
                     for data in flowData:

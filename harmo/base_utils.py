@@ -14,6 +14,8 @@ import string
 import uuid
 import subprocess
 import time
+from urllib.parse import urlparse
+
 import jsonpath
 from datetime import datetime, timedelta
 from typing import Union, Optional, List
@@ -672,16 +674,32 @@ def is_internal_url(url: str) -> bool:
     :param url:
     :return:
     '''
-    from urllib.parse import urlparse
     parsed_url = urlparse(url)
     hostname = parsed_url.hostname
     if not hostname:
         return False
     return is_private_ip(hostname)
 
-def remove_adjacent_duplicates(lst):
+def is_valid_url(url) -> bool:
+    """
+    判断是否为有效的URL
+    :param url:
+    :return:
+    """
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
+
+def remove_adjacent_duplicates(lst) -> list:
     """
     从列表中删除相邻的重复项，不支持嵌套列表
+    example:
+        lst = [2222,2222,222.2,222.2,'project',2222, 'tree', 'Tree', 'comPonentdetail', 'Tree']
+        result = ['2222', 222.2, 'project', 2222, 'tree', 'comPonentdetail', 'Tree']
+    :param lst:
+    :return:
     """
     if not isinstance(lst, list):
         raise TypeError("Input must be a list")
@@ -694,6 +712,15 @@ def remove_adjacent_duplicates(lst):
             yield item
             last = item_str
 
+def extract_base_url(full_url):
+    """
+    提取URL的基地址
+    :param full_url:
+    :return:
+    """
+    parsed_url = urlparse(full_url)
+    return f"{parsed_url.scheme}://{parsed_url.netloc}"
+
 if __name__ == "__main__":
     pass
     # dict1 = {"projId": 113692, "ppid": 130817, "projName": "BW接口用工程-勿删160711"}
@@ -702,6 +729,7 @@ if __name__ == "__main__":
     # list1 = [1111, 'adfaf', '胡彪']
     original_list = [2222,2222,222.2,222.2,'project',2222, 'tree', 'Tree', 'comPonentdetail', 'Tree', 'ppid', 'ppid']
     print(list(remove_adjacent_duplicates(original_list)))
+    print(is_valid_url("http://192.168.13.172:19900:19900/auth/oauth2/logout"))
     # list2 = [1111, '胡彪', 'adfaf']
     # str2 = {'hu': 'adf'}
     # list3 = ['89010001#89', '89010001#89', '89010001#89', '96003010#96']

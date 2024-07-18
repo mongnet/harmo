@@ -61,8 +61,7 @@ class Replay:
     流量回放
     """
     def __init__(self):
-        Global_Map.sets(yaml_file.get_yaml_data_all(os.path.join(Config.project_root_dir, "config")))
-        Global_Map.sets(yaml_file.get_yaml_data(base_utils.file_absolute_path("conifg/config.yaml")))
+        Global_Map.sets(yaml_file.get_yaml_data_all(base_utils.file_absolute_path("conifg")))
         self.noiseReduction = NoiseReduction()
         self.data = {}
         self.diff = None
@@ -87,52 +86,54 @@ class Replay:
             self.rulesIgnoreExect = self.data.get("rulesIgnoreExect", {})
             self.rulesIgnoreContain = self.data.get("rulesIgnoreContain", {})
             self.rulesGet = self.data.get("rulesGet", {})
-            flowData = self.noiseReduction.createScript(scriptPath)
-            for i in range(len(flowData)):
-                FLOW_LIST.append({'id':base_utils.generate_random_str(16),'url':flowData[i]['url'],'method':flowData[i]['method']})
-                result = self.callAPI(flowData[i])
+            flowDatas = self.noiseReduction.getFlowData(scriptPath)
+            filter_urls = Global_Map.get('Setting').get('filterUrl')
+            for flowData in flowDatas:
+                FLOW_LIST.append({'id':base_utils.generate_random_str(16),'url':flowData['url'],'method':flowData['method']})
+                respObj = self.callAPI(flowData)
                 urlTotal += 1
                 result_dict = {}
-                # 过滤url
-                from urllib.parse import urlparse
-                filter_urls = Global_Map.get('Setting').get('filterUrl')
-                parsed_url = urlparse(flowData[i]['url'])
-                if filter_urls and any(parsed_url.path.endswith(filteUrl) or flowData[i]['url'].startswith(filteUrl) for filteUrl in filter_urls):
+                # 忽略校验的url
+                parsed_url = urlparse(flowData['url'])
+                if filter_urls and any(parsed_url.path.endswith(filteUrl) or flowData['url'].startswith(filteUrl) for filteUrl in filter_urls):
                     result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
-                        flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'ignore'
+                        flowData['id'], flowData['url'], flowData['method'], 'ignore'
                     RESULT_LIST.append(result_dict)
                     continue
+                try:
+                    if respObj:
+                        if respObj.status_code in [200, 500]:
+                            if 'PNG' not in respObj.text:
+                                val = respObj.json()
+                except Exception as e:
+                    print(f"脚本报错！result json 失败:{e}")
+                    return None
                 for rule in self.rulesGet:
-                    try:
-                        if result:
-                            if result.status_code in [200, 500]:
-                                if 'PNG' not in result.text:
-                                    val = result.json()
-                    except Exception as e:
-                        print(f"脚本报错！result json 失败:{e}")
-                        return None
                     whetherCheck = False
-                    id = self.noiseReduction.getValueId(flowData,rule)
-                    if id == flowData[i]['id']:
+                    id = self.noiseReduction.getValueId(flowDatas,rule)
+                    if id == flowData['id']:
                         whetherCheck = True
                         for loc in rule['Location'].split('.')[1:]:
-                            try: loc = int(loc)
-                            except:pass
                             try:
+                                loc = int(loc)
+                            except:
+                                pass
+                            try:
+                                loc = int(loc)
                                 val = val[loc]
                             except:
                                 pass
                     if val not in [None, []] and whetherCheck == True:
                         if len(rule['value']) != 0:
                             # GLOBAL[rule['Location']] = val
-                            flowData = eval(str(flowData).replace(str(rule['value'][0]), val))
+                            flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), val))
                             rule['value'].remove(rule['value'][0])
-                if result:
-                    if result.status_code in [200,500]:
-                        if 'PNG' not in result.text:
-                            self.diff = assert_json(result.json(), flowData[i]['resp'])
+                if respObj:
+                    if respObj.status_code in [200,500]:
+                        if 'PNG' not in respObj.text:
+                            self.diff = assert_json(respObj.json(), flowData['resp'])
                             if self.diff:
-                                diff_afterRules = self.main(flowData[i])
+                                diff_afterRules = self.main(flowData)
                                 if diff_afterRules:
                                     for eachdiff in self.diff:
                                         if "{" in eachdiff["expect"]:
@@ -142,18 +143,18 @@ class Replay:
                                             except:
                                                 pass
                                     if self.diff:
-                                        result_dict['id'],result_dict['url'],result_dict['method'],result_dict['status'],result_dict['contentList'] = flowData[i]['id'],flowData[i]['url'],flowData[i]['method'],'fail',self.diff
+                                        result_dict['id'],result_dict['url'],result_dict['method'],result_dict['status'],result_dict['contentList'] = flowData['id'],flowData['url'],flowData['method'],'fail',self.diff
                                         RESULT_LIST.append(result_dict)
                                     else:
-                                        result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'pass'
+                                        result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = flowData['id'], flowData['url'], flowData['method'], 'pass'
                                         RESULT_LIST.append(result_dict)
                                 else:
                                     result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
-                                    flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'pass'
+                                    flowData['id'], flowData['url'], flowData['method'], 'pass'
                                     RESULT_LIST.append(result_dict)
                             else:
                                 result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
-                                flowData[i]['id'], flowData[i]['url'], flowData[i]['method'], 'pass'
+                                flowData['id'], flowData['url'], flowData['method'], 'pass'
                                 RESULT_LIST.append(result_dict)
             if RESULT_LIST:
                 if str(scriptPath).endswith('.json'):
