@@ -21,14 +21,11 @@ def env_conf(pytestconfig):
 @pytest.fixture(scope="session")
 def base_url(pytestconfig):
     '''
-    base URL
+    base URL 优先获取环境变量中的值，方便在docker容器中配置
     :return:
     '''
     _base_url = os.getenv("h_base_url", None) if os.getenv("h_base_url", None) else pytestconfig.getoption("--h-base-url")
-    if _base_url:
-        return _base_url
-    else:
-        raise RuntimeError("--h-base-url not found")
+    return _base_url
 
 if __name__ == '__main__':
     pass

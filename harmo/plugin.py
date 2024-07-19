@@ -8,18 +8,13 @@
 import inspect
 import os
 import time
-from pathlib2 import Path
-
 import pytest
-import types
-from _pytest.python import Module
 from pytest_metadata.plugin import metadata_key
 from harmo.global_map import Global_Map
 from harmo.msg.robot import WeiXin
 from harmo.operation import yaml_file
 from harmo.base_utils import file_absolute_path
 from harmo.config import Config
-from py._xmlgen import html
 
 def pytest_addhooks(pluginmanager):
     from harmo import hooks
@@ -69,7 +64,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     '''
-    获取配置信息
+    获取配置信息，优先获取环境变量中的值，方便在docker容器中配置
     :param config:
     :return:
     '''
@@ -267,8 +262,6 @@ def pytest_runtest_makereport(item, call):
                 if Global_Map.get("temp_user_properties"):
                     if Global_Map.get("temp_user_properties").get("url"):
                         md += f'''\n>接口URL：<font color="comment">{Global_Map.get("temp_user_properties").get("url")}</font>'''
-                    if Global_Map.get("temp_user_properties").get("status_code"):
-                        md += f'''\n>响应码：<font color="comment">{Global_Map.get("temp_user_properties").get("status_code")}</font>'''
                 if len(md.encode()) > 4096:
                     print("最长不能超过4096个字节")
                 else:
@@ -276,14 +269,6 @@ def pytest_runtest_makereport(item, call):
     # 删除临时变量
     Global_Map.del_key("temp_user_properties")
 
-# def pytest_html_results_table_header(cells):
-#     cells.insert(2, html.th("Description"))
-#     cells.pop()
-#
-# def pytest_html_results_table_row(report, cells):
-#     cells.insert(2, html.td(report.description))
-#     cells.pop()
-#
 # @pytest.fixture(scope="session")
 # def browser(pytestconfig):
 #     '''
