@@ -1,0 +1,35 @@
+Setting :
+  Status : NOW
+  Url : https://lubantest.sg.luban.cn
+  weixin_robot : "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
+  Scope :
+    - 龙门吊-设备管理_测试脚本文件夹_1670811570
+  login :
+    url : /auth-server/auth/token
+    rule : resp.data
+  filterMethod :
+    - options
+  filterFile :
+    - .js
+    - .png
+    - .jpg
+    - .ico
+    - .html
+    - .htm
+    - .woff2
+    - .io
+    - .css
+    - .map
+  filterUrl :
+    - service/auth/login
+    - https://lubantest.sg.luban.cn/?refreshToken
+    - service/ent-admin-user/biz/user
+  replaceDict :
+    null : ~
+    true : True
+    false : False
+  allowRecording :
+    - lbuilder.cn
+    - luban.cn
+  headers :
+    access-token: X2HC0WeabtWTaL8iTD8f1P8nh4MvKD8LbYyFlpXkbGeJQbDWJHXCmehcEW9a5prN

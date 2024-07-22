@@ -11,7 +11,6 @@ from harmo.mitm.NoiseReduction import NoiseReduction
 from harmo.mitm.report import ReportUtil
 from harmo.msg.robot import WeiXin
 from harmo.operation import yaml_file
-from harmo.config import Config
 from harmo import http_requests, extract, base_utils
 from harmo.global_map import Global_Map
 from urllib.parse import urlparse
@@ -119,7 +118,6 @@ class Replay:
                             except:
                                 pass
                             try:
-                                loc = int(loc)
                                 val = val[loc]
                             except:
                                 pass
