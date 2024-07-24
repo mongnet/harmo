@@ -76,7 +76,7 @@ class Replay:
         :return:
         """
         scriptPathlist = self.noiseReduction.createTestCase(modelName)
-        FLOW_LIST,ALL_RESULT_LIST=[],[]
+        ALL_RESULT_LIST=[]
         urlTotal = 0
         for scriptPath in scriptPathlist:
             RESULT_LIST =[]
@@ -87,51 +87,26 @@ class Replay:
             self.rulesGet = self.data.get("rulesGet", {})
             flowDatas = self.noiseReduction.getFlowData(scriptPath)
             filter_urls = Global_Map.get('Setting').get('filterUrl')
-            for flowData in flowDatas:
-                FLOW_LIST.append({'id':base_utils.generate_random_str(16),'url':flowData['url'],'method':flowData['method']})
-                respObj = self.callAPI(flowData)
+            for i in range(len(flowDatas)):
+                respObj = self.callAPI(flowDatas[i])
                 urlTotal += 1
                 result_dict = {}
+                # 默认 result_dict 为 ignore 状态
+                result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = flowDatas[i]['id'], flowDatas[i]['url'], flowDatas[i]['method'], 'ignore'
                 # 忽略校验的url
-                parsed_url = urlparse(flowData['url'])
-                if filter_urls and any(parsed_url.path.endswith(filteUrl) or flowData['url'].startswith(filteUrl) for filteUrl in filter_urls):
-                    result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
-                        flowData['id'], flowData['url'], flowData['method'], 'ignore'
+                parsed_url = urlparse(flowDatas[i]['url'])
+                if filter_urls and any(parsed_url.path.endswith(filteUrl) or flowDatas[i]['url'].startswith(filteUrl) for filteUrl in filter_urls):
                     RESULT_LIST.append(result_dict)
                     continue
                 try:
                     if respObj:
-                        if respObj.status_code in [200, 500]:
-                            if 'PNG' not in respObj.text:
-                                val = respObj.json()
-                except Exception as e:
-                    print(f"脚本报错！result json 失败:{e}")
-                    return None
-                for rule in self.rulesGet:
-                    whetherCheck = False
-                    id = self.noiseReduction.getValueId(flowDatas,rule)
-                    if id == flowData['id']:
-                        whetherCheck = True
-                        for loc in rule['Location'].split('.')[1:]:
-                            try:
-                                loc = int(loc)
-                            except:
-                                pass
-                            try:
-                                val = val[loc]
-                            except:
-                                pass
-                    if val not in [None, []] and whetherCheck == True:
-                        if len(rule['value']) != 0:
-                            # GLOBAL[rule['Location']] = val
-                            flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), val))
-                            rule['value'].remove(rule['value'][0])
-                if respObj:
-                    if respObj.status_code in [200,500]:
-                        if 'PNG' not in respObj.text:
-                            self.diff = assert_json(respObj.json(), flowData['resp'])
+                        if respObj.headers.get('Content-Type') and 'application/json' in respObj.headers.get('Content-Type'):
+                            val = respObj.json()
+                            self.diff = assert_json(val, flowDatas[i]['resp'])
+                            # 默认对比状态为 pass
+                            result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = flowDatas[i]['id'], flowDatas[i]['url'], flowDatas[i]['method'], 'pass'
                             if self.diff:
-                                diff_afterRules = self.main(flowData)
+                                diff_afterRules = self.main(flowDatas[i])
                                 if diff_afterRules:
                                     for eachdiff in self.diff:
                                         if "{" in eachdiff["expect"]:
@@ -141,19 +116,41 @@ class Replay:
                                             except:
                                                 pass
                                     if self.diff:
-                                        result_dict['id'],result_dict['url'],result_dict['method'],result_dict['status'],result_dict['contentList'] = flowData['id'],flowData['url'],flowData['method'],'fail',self.diff
+                                        result_dict['id'],result_dict['url'],result_dict['method'],result_dict['status'],result_dict['contentList'] = flowDatas[i]['id'],flowDatas[i]['url'],flowDatas[i]['method'],'fail',self.diff
                                         RESULT_LIST.append(result_dict)
                                     else:
-                                        result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = flowData['id'], flowData['url'], flowData['method'], 'pass'
                                         RESULT_LIST.append(result_dict)
                                 else:
-                                    result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
-                                    flowData['id'], flowData['url'], flowData['method'], 'pass'
                                     RESULT_LIST.append(result_dict)
                             else:
-                                result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = \
-                                flowData['id'], flowData['url'], flowData['method'], 'pass'
                                 RESULT_LIST.append(result_dict)
+                            # 数据替换
+                            for rule in self.rulesGet:
+                                whetherCheck = False
+                                id = self.noiseReduction.getValueId(flowDatas, rule)
+                                if id == flowDatas[i]['id']:
+                                    whetherCheck = True
+                                    for loc in rule['Location'].split('.')[1:]:
+                                        try:
+                                            loc = int(loc)
+                                        except:
+                                            pass
+                                        try:
+                                            val = val[loc]
+                                        except:
+                                            pass
+                                if val not in [None, []] and whetherCheck:
+                                    if len(rule['value']) != 0:
+                                        # GLOBAL[rule['Location']] = val
+                                        flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), str(val)))
+                                        rule['value'].remove(rule['value'][0])
+                        else:
+                            RESULT_LIST.append(result_dict)
+                    else:
+                        RESULT_LIST.append(result_dict)
+                except Exception as e:
+                    print(f"json解析失败:{e}")
+                    return None
             if RESULT_LIST:
                 if str(scriptPath).endswith('.json'):
                     key = str(str(scriptPath).split('\\')[0]).split('_测试脚本')[0]

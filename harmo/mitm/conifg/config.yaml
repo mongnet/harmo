@@ -22,7 +22,6 @@ Setting :
     - .map
   filterUrl :
     - service/auth/login
-    - https://lubantest.sg.luban.cn/?refreshToken
     - service/ent-admin-user/biz/user
   replaceDict :
     null : ~
@@ -32,4 +31,4 @@ Setting :
     - lbuilder.cn
     - luban.cn
   headers :
-    access-token: X2HC0WeabtWTaL8iTD8f1P8nh4MvKD8LbYyFlpXkbGeJQbDWJHXCmehcEW9a5prN
+    access-token: OL26YFZBaOmwrt5QtCeEL5iRaONEMDULsENTuOZZwpnR5M2qQz3NaCoE8xEotXbx

@@ -75,6 +75,7 @@ class Counter:
                 flow.customField.update({"time_gap": flow.end_time - flow.start_time})
             except Exception:
                 flow.customField.update({"time_gap": ""})
+            flow.customField.update({"status_code": flow.response.status_code})
             clean_result = self.clean_data(flow.customField)
             if clean_result:
                 self.interfaces.append(clean_result)
@@ -90,11 +91,12 @@ class Counter:
         """
         data_json = {}
         if isinstance(interface,dict):
-            data_json['id'] = base_utils.generate_random_str(randomlength=10)
+            data_json['id'] = base_utils.generate_random_str(randomlength=16)
             data_json['url'] = interface.get("url")
             data_json['path'] = interface.get("path")
             data_json['method'] = interface.get("method")
             data_json['headers'] = interface.get("headers")
+            data_json['status_code'] = interface.get("status_code")
             try:
                 if isinstance(interface.get("body"),(dict,list)):
                     base_utils.recursion_replace_dict_value(interface.get("body"), Global_Map.get("Setting").get("replaceDict"))

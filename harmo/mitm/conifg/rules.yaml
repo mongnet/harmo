@@ -45,6 +45,13 @@ Rules:
     AfterAPI :
       Path: /luban-data-manage/data/form/create
       Method: POST
+  - Path: /service/ent-admin-org/supplier/supplier-list
+    Method: POST
+    Location: resp.data
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/ent-admin-org/supplier
+      Method: POST
   - Path: /luban-data-manage/data/form/page?
     Method: GET
     Location: resp.data.result.-1.formInstanceId

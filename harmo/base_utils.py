@@ -560,7 +560,7 @@ def recursion_replace_dict_value(source: Union[dict,list], replaceDict: dict) ->
         result = {"ex": None,"state": False,"age": 38}
     :param source: 需要替换的字典或字典组成的列表
     :param replaceDict: 要检查并替换的字段，key为要检查的值，value为需要替换的值
-    :return:
+    :return: 没有返回值，直接修改source
     '''
     if not isinstance(replaceDict,dict):
         raise TypeError("replaceDict 必需是dict类型")
@@ -587,7 +587,7 @@ def recursion_replace_dict_key_value(source: Union[dict,list], replaceDict: dict
         result = {"ex": None,"state": False,"age": 38}
     :param source: 需要替换的字典或字典组成的列表
     :param replaceDict: 要检查并替换的字段，key为要检查的key名，value为需要替换的值
-    :return:
+    :return: 没有返回值，直接修改source
     '''
     if not isinstance(replaceDict,dict):
         raise TypeError("replaceDict 必需是dict类型")
@@ -729,7 +729,8 @@ if __name__ == "__main__":
     # dict1 = {"projId": 113692, "ppid": 130817, "projName": "BW接口用工程-勿删160711"}
     # dict2 = {"projId": 113692, "projName": "BW接口用工程-勿删160711", "ppid": 130817}
     # dict3 = {'hu': [1111, 'adfaf', '胡彪']}
-    # list1 = [1111, 'adfaf', '胡彪']
+    list1 = [['1111', 'adfaf','1111'],['1111','1111', 'adfaf', '胡彪']]
+    print(coincide_list(list1))
     original_list = [2222,2222,222.2,222.2,'project',2222, 'tree', 'Tree', 'comPonentdetail', 'Tree', 'ppid', 'ppid']
     print(list(remove_adjacent_duplicates(original_list)))
     print(is_valid_url("http://192.168.13.172:19900:19900/auth/oauth2/logout"))

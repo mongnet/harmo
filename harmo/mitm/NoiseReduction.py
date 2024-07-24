@@ -65,12 +65,12 @@ class NoiseReduction:
         return value
 
     def getRules(self,scriptPath):
-        flowData,recond =self.getFlowData(scriptPath),[]
+        flowDatas,recond =self.getFlowData(scriptPath),[]
         if self.rules:
             for eachRule in self.rules.get('Rules'):
                 if str(eachRule['Type']).upper() == 'GETVALUE':
-                    eachRule['value'],id =[],self.getValueId(flowData,eachRule)
-                    for data in flowData:
+                    eachRule['value'],id =[],self.getValueId(flowDatas,eachRule)
+                    for data in flowDatas:
                         if id == data['id'] and id!=None:
                             eachRule['value'].append(self.getValue(data,eachRule))
                         recond.append({'id':data['id'],'url':data['url'],'method':data['method']})
@@ -84,7 +84,7 @@ class NoiseReduction:
                     self.rules_DOC.append(eachRule)
             return {'rules': self.rules['Rules'],'status':self.config['whetherRecord'],
                     'model': self.config['Model'], 'NotifyUser': self.config['NotifyUser'],
-                    'ts':self.ts,'flowData':flowData,'rulesIgnoreContain':self.rules_IGNORE_CONTAIN,
+                    'ts':self.ts,'flowData':flowDatas,'rulesIgnoreContain':self.rules_IGNORE_CONTAIN,
                     'rulesIgnoreExect':self.rules_IGNORE_EXECT,'rulesGet':self.rules_GET,
                     'rulesDoc':self.rules_DOC}
 
@@ -93,8 +93,8 @@ class NoiseReduction:
         if 'AfterAPI' in rule.keys() :
             for i in range(len(flowdata)):
                 if str(rule['AfterAPI']['Method']).upper()!='MOCK':
-                    if str(rule['AfterAPI']['Method']).upper()==str(flowdata[i]['method']).upper() and rule['AfterAPI']['Path'] in flowdata[i]['path']:
-                        id=flowdata[i+1]['id']
+                    if str(rule['AfterAPI']['Method']).upper() == str(flowdata[i]['method']).upper() and rule['AfterAPI']['Path'] == flowdata[i]['path']:
+                        id=flowdata[i]['id']
                 else:
                     if 'MockName' in flowdata[i].keys():
                         if rule['AfterAPI']['Path'] == flowdata[i]['MockName']:
@@ -108,7 +108,7 @@ class NoiseReduction:
     def __specialFlowStatus(self,flowdata):
         status = True
         if 'resp' in flowdata.keys():
-            if flowdata['resp'] ==None:
+            if flowdata['resp'] == None:
                 status=False
         return status
 
