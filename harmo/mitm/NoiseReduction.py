@@ -50,7 +50,9 @@ class NoiseReduction:
         return flowDataDeepCopy
 
     def getValue(self,data,rules):
-        location_list = str(dict(rules)['Location']).split('.')
+        if not isinstance(rules,dict):
+            raise ValueError(f"{rules} 规则格式错误(需要是dict类型)，请检查后重新执行！")
+        location_list = str(rules.get('Location')).split('.')
         value = copy.deepcopy(data)
         for path in location_list:
             try:
@@ -68,20 +70,24 @@ class NoiseReduction:
         flowDatas,recond =self.getFlowData(scriptPath),[]
         if self.rules:
             for eachRule in self.rules.get('Rules'):
-                if str(eachRule['Type']).upper() == 'GETVALUE':
-                    eachRule['value'],id =[],self.getValueId(flowDatas,eachRule)
+                if not eachRule.get('Type'):
+                    raise ValueError(f"{eachRule} 未定义规则类型，请检查后重新执行！")
+                elif str(eachRule.get('Type')).upper() == 'GETVALUE':
+                    eachRule['value'],id = [],self.getValueId(flowDatas,eachRule)
                     for data in flowDatas:
-                        if id == data['id'] and id!=None:
+                        if id == data.get('id') and id:
                             eachRule['value'].append(self.getValue(data,eachRule))
-                        recond.append({'id':data['id'],'url':data['url'],'method':data['method']})
+                        recond.append({'id':data.get('id'),'url':data.get('url'),'method':data.get('method')})
                     self.rules_GET.append(eachRule)
-                if str(eachRule['Type']).upper() == 'IGNORE':
-                    if eachRule['Contain']:
+                elif str(eachRule.get('Type')).upper() == 'IGNORE':
+                    if eachRule.get('Contain'):
                         self.rules_IGNORE_CONTAIN.append(eachRule)
                     else:
                         self.rules_IGNORE_EXECT.append(eachRule)
-                if str(eachRule['Type']).upper() == 'DOC':
+                elif str(eachRule.get('Type')).upper() == 'DOC':
                     self.rules_DOC.append(eachRule)
+                else:
+                    raise ValueError(f"出现未支持的规则类型 '{eachRule.get('Type')}' ，请检查后重新执行！")
             return {'rules': self.rules['Rules'],'status':self.config['whetherRecord'],
                     'model': self.config['Model'], 'NotifyUser': self.config['NotifyUser'],
                     'ts':self.ts,'flowData':flowDatas,'rulesIgnoreContain':self.rules_IGNORE_CONTAIN,
@@ -90,25 +96,28 @@ class NoiseReduction:
 
     def getValueId(self,flowdata,rule):
         id =None
-        if 'AfterAPI' in rule.keys() :
+        if 'AfterAPI' in rule.keys():
             for i in range(len(flowdata)):
                 if str(rule['AfterAPI']['Method']).upper()!='MOCK':
                     if str(rule['AfterAPI']['Method']).upper() == str(flowdata[i]['method']).upper() and rule['AfterAPI']['Path'] == flowdata[i]['path']:
                         id=flowdata[i]['id']
+
                 else:
                     if 'MockName' in flowdata[i].keys():
                         if rule['AfterAPI']['Path'] == flowdata[i]['MockName']:
-                            id = flowdata[i+1]['id']
+                            id = flowdata[i]['id']
+
         else:
             for data in flowdata:
                 if rule['Path'] in data['path']:
                     id = data['id']
+
         return id
 
     def __specialFlowStatus(self,flowdata):
         status = True
         if 'resp' in flowdata.keys():
-            if flowdata['resp'] == None:
+            if flowdata.get('resp') == None:
                 status=False
         return status
 
@@ -116,10 +125,10 @@ class NoiseReduction:
         result = {}
         configInfo = Global_Map.get()
         result['whetherRecord'], result['path'] = False, []
-        if str(configInfo['Setting']['Status']).upper() == 'NOW':
+        if str(configInfo.get('Setting').get('Status')).upper() == 'NOW':
             result['path'], result['whetherRecord'] = ['record_results.json'], True
-        elif str(configInfo['Setting']['Status']).upper() == 'DEBUG':
-            for value in configInfo['Setting']['Scope']:
+        elif str(configInfo.get('Setting').get('Status')).upper() == 'DEBUG':
+            for value in configInfo.get('Setting').get('Scope'):
                 path = os.path.join(Config.project_root_dir, value)
                 if not os.path.exists(path):
                     raise ValueError(f"{path} 文件夹没找到，请检查后在执行！")
