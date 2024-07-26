@@ -5,11 +5,12 @@
 # @Email   : 250021520@qq.com
 
 import os
+from datetime import datetime
+
 import jsonpath
 
 from harmo.mitm.NoiseReduction import NoiseReduction
 from harmo.mitm.report import ReportUtil
-from harmo.msg.robot import WeiXin
 from harmo.operation import yaml_file
 from harmo import http_requests, extract, base_utils
 from harmo.global_map import Global_Map
@@ -61,8 +62,6 @@ class Replay:
     """
     def __init__(self):
         Global_Map.sets(yaml_file.get_yaml_data_all(base_utils.file_absolute_path("conifg")))
-        self.noiseReduction = NoiseReduction()
-        self.data = {}
         self.diff = None
         self.rulesDoc = {}
         self.rulesIgnoreExect = {}
@@ -75,17 +74,18 @@ class Replay:
         :param modelName:
         :return:
         """
-        scriptPathlist = self.noiseReduction.createTestCase(modelName)
+        noiseReduction = NoiseReduction(modelName)
+        scriptPathlist = noiseReduction.createTestCase()
         ALL_RESULT_LIST=[]
         urlTotal = 0
+        start_time = datetime.now()
         for scriptPath in scriptPathlist:
             RESULT_LIST =[]
-            self.data = self.noiseReduction.getRules(scriptPath)
-            self.rulesDoc = self.data.get("rulesDoc", {})
-            self.rulesIgnoreExect = self.data.get("rulesIgnoreExect", {})
-            self.rulesIgnoreContain = self.data.get("rulesIgnoreContain", {})
-            self.rulesGet = self.data.get("rulesGet", {})
-            flowDatas = self.noiseReduction.getFlowData(scriptPath)
+            data = noiseReduction.getRules(scriptPath)
+            self.rulesIgnoreExect = data.get("rulesIgnoreExect", {})
+            self.rulesIgnoreContain = data.get("rulesIgnoreContain", {})
+            self.rulesGet = data.get("rulesGet", {})
+            flowDatas = data.get("flowDatas", {})
             filter_urls = Global_Map.get('Setting').get('filterUrl')
             for i in range(len(flowDatas)):
                 respObj = self.callAPI(flowDatas[i])
@@ -127,7 +127,7 @@ class Replay:
                             # 数据替换
                             for rule in self.rulesGet:
                                 whetherCheck = False
-                                id = self.noiseReduction.getValueId(flowDatas, rule)
+                                id = noiseReduction.getValueId(flowDatas, rule)
                                 if id == flowDatas[i]['id']:
                                     whetherCheck = True
                                     for loc in rule['Location'].split('.')[1:]:
@@ -157,16 +157,15 @@ class Replay:
                 else:
                     key = str(str(scriptPath).split('\\')[-1]).split('_测试脚本')[0]
                 ALL_RESULT_LIST.append({'moduleName':key,'info':RESULT_LIST})
+        end_time = datetime.now()
+        totalTimes = base_utils.time_difference(start_time, end_time)
         moduleNameList = jsonpath.jsonpath(ALL_RESULT_LIST,'$..[?(@.moduleName)]..moduleName')
         moduleCaseTotal =[]
         if ALL_RESULT_LIST:
             for module in jsonpath.jsonpath(ALL_RESULT_LIST,'$..[?(@.moduleName)]'):
                 moduleCaseTotal.append(len(module.get('info')))
-        replayResult ={'result': ALL_RESULT_LIST,'moduleNameList':moduleNameList,'moduleCaseTotal':moduleCaseTotal,'urlTotal':urlTotal}
-        weixin_robot = Global_Map.get('Setting').get('weixin_robot')
-        result = ReportUtil().createReport(modelName,replayResult)
-        if weixin_robot:
-            WeiXin().send_file(hookkey=weixin_robot, file=result)
+        replayResult ={'result': ALL_RESULT_LIST,'moduleNameList':moduleNameList,'moduleCaseTotal':moduleCaseTotal,'urlTotal':urlTotal, 'totalTimes':totalTimes}
+        ReportUtil().createReport(modelName,replayResult)
 
     def callAPI(self,flowData):
         '''
@@ -228,7 +227,7 @@ class Replay:
         :return:
         '''
         if self.diff:
-            for diffeach in self.diff[:]:
+            for diffeach in self.diff:
                 self.execRulesIgnoreExect(diffeach,flowData)
                 self.execRulesIgnoreContain(diffeach,flowData)
                 self.execRulesGet(diffeach,flowData)

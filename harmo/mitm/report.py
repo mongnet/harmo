@@ -9,19 +9,19 @@ import time,yaml
 import jsonpath
 from jinja2 import Environment, FileSystemLoader
 
-from harmo import base_utils
 from harmo.config import Config
 from harmo.global_map import Global_Map
+from harmo.msg.robot import WeiXin
 
 
 class ReportUtil:
     def __init__(self):
-        pass
+        self.details = {}
 
-    def createReport(self,modelName,replayResult):
+    def createReport(self,modelName:str,replayResult:dict):
         createDate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         reporter = "那个谁"
-        title = f"{modelName}流量回放报告"
+        title = f"{modelName} 流量回放报告" if modelName else f"集成测试流量回放报告"
         templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources","templates")
         env = Environment(loader=FileSystemLoader(templates_dir))
         template_name = 'testRport_template.ejs'
@@ -29,7 +29,7 @@ class ReportUtil:
         failed = len(jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="fail")]')) if jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="fail")]') else 0
         Pass = len(jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="pass")]')) if jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="pass")]') else 0
         ignore = len(jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="ignore")]')) if jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="ignore")]') else 0
-        details = {
+        self.details = {
             'createdate' : createDate,
             # 'reporter' : reporter,
             'title' : title,
@@ -40,7 +40,8 @@ class ReportUtil:
             'ignore': ignore,
             'caseList':[],
 			'moduleNameList': replayResult.get('moduleNameList'),
-			'moduleCaseTotal':replayResult.get('moduleCaseTotal')
+			'moduleCaseTotal':replayResult.get('moduleCaseTotal'),
+            'totalTimes': replayResult.get('totalTimes')
 		}
         nmber = 0
         for each in replayResult.get('result'):
@@ -55,7 +56,7 @@ class ReportUtil:
                     else:
                         caseEach['status'] = '<p class="ignore">忽略</p>'
                     caseEach['url'] = eachInfo.get("url")
-                    details['caseList'].append(caseEach)
+                    self.details['caseList'].append(caseEach)
         # 检查模板文件是否存在
         template_path = os.path.join(templates_dir, template_name)
         if not os.path.exists(template_path):
@@ -65,7 +66,7 @@ class ReportUtil:
             try:
                 template = env.get_template(template_name)
                 # 渲染模板
-                html = template.render(title=title, status=status, created_when=createDate, details=details)
+                html = template.render(title=title, status=status, created_when=createDate, details=self.details)
             except Exception as e:
                 print(f"加载模板时出错：{e}")
         output_dir = os.path.join(Config.project_root_dir, "output"+os.sep)
@@ -75,7 +76,36 @@ class ReportUtil:
         report_name = 'TestRport_'+str(createDate).replace(' ','_').replace(':','')+'.html'
         with open(report_name, 'w', encoding='utf-8') as fileObjct:
             fileObjct.writelines(html)
+        self._send_report(report_name)
         return report_name
+
+    def _send_report(self,file):
+        weixin_robot = Global_Map.get('Setting').get('weixin_robot')
+        if weixin_robot:
+            if self.details.get('failed') + self.details.get('failed') != 0:
+                markdown_content = f'''
+                                    # 警告！`{self.details.get('title')}` 回放出现异常
+                                    >通知范围：@所有人
+                                    >本次共执行 **{self.details.get('total')}** 条接口
+                                    >有 <font color=\'info\'>**{self.details.get('pass')}**</font> 条执行成功
+                                    >有 `**{self.details.get('failed')}**` 条执行失败
+                                    >有 <font color=\'comment\'>**{self.details.get('ignore')}**</font> 条被忽略
+                                    >共耗时 <font color=\'comment\'>**{round(self.details.get('totalTimes'), 2)}**</font> 秒
+                                    >
+                                    >可点击下方 report 文件查看详情'''
+                WeiXin().send_message_markdown(hookkey=weixin_robot, content=markdown_content)
+                if file:
+                    WeiXin().send_file(hookkey=weixin_robot, file=file)
+            else:
+                markdown_content = f'''
+                                    # 恭喜 <font color=\'info\'>{self.details.get('title')}</font> 回放通过!
+                                    >通知范围：@所有人
+                                    >本次共执行 **{self.details.get('total')}** 条接口，<font color=\'info\'>**全部执行通过**</font>，耗时 **{round(self.details.get('totalTimes'), 2)}** 秒
+                                    >
+                                    >可点击下方 report 文件查看详情'''
+                WeiXin().send_message_markdown(hookkey=weixin_robot, content=markdown_content)
+                if file:
+                    WeiXin().send_file(hookkey=weixin_robot, file=file)
 
     def _upgradeError(self,eachInfo):
         text =''

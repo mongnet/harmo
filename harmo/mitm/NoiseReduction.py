@@ -17,16 +17,17 @@ import time
 from typing import Optional
 
 class NoiseReduction:
-    def __init__(self):
+    def __init__(self,modelName:str):
+        self.modelName = modelName
         self.config = self.getConfig()
         self.rules_IGNORE_CONTAIN,self.rules_IGNORE_EXECT,self.rules_GET,self.rules_DOC = [],[],[],[]
         self.ts =str(int(time.time()))
         self.rules = Global_Map.get()
 
-    def createTestCase(self,modelName:str):
+    def createTestCase(self):
         scriptPathlist =[]
         if self.config['whetherRecord']:
-            name = 'NoName_测试脚本文件夹_'.replace('NoName',modelName)+self.ts if modelName else 'NoName_测试脚本文件夹_'+self.ts
+            name = 'NoName_测试脚本文件夹_'.replace('NoName',self.modelName)+self.ts if self.modelName else 'NoName_测试脚本文件夹_'+self.ts
             path =  os.path.join(os.getcwd(), name)
             if not os.path.exists(path):
                 os.mkdir(path)
@@ -84,15 +85,12 @@ class NoiseReduction:
                         self.rules_IGNORE_CONTAIN.append(eachRule)
                     else:
                         self.rules_IGNORE_EXECT.append(eachRule)
-                elif str(eachRule.get('Type')).upper() == 'DOC':
-                    self.rules_DOC.append(eachRule)
                 else:
                     raise ValueError(f"出现未支持的规则类型 '{eachRule.get('Type')}' ，请检查后重新执行！")
             return {'rules': self.rules['Rules'],'status':self.config['whetherRecord'],
-                    'model': self.config['Model'], 'NotifyUser': self.config['NotifyUser'],
-                    'ts':self.ts,'flowData':flowDatas,'rulesIgnoreContain':self.rules_IGNORE_CONTAIN,
-                    'rulesIgnoreExect':self.rules_IGNORE_EXECT,'rulesGet':self.rules_GET,
-                    'rulesDoc':self.rules_DOC}
+                    'NotifyUser': self.config['NotifyUser'],
+                    'ts':self.ts,'flowDatas':flowDatas,'rulesIgnoreContain':self.rules_IGNORE_CONTAIN,
+                    'rulesIgnoreExect':self.rules_IGNORE_EXECT,'rulesGet':self.rules_GET}
 
     def getValueId(self,flowdata,rule):
         id =None
@@ -101,17 +99,14 @@ class NoiseReduction:
                 if str(rule['AfterAPI']['Method']).upper()!='MOCK':
                     if str(rule['AfterAPI']['Method']).upper() == str(flowdata[i]['method']).upper() and rule['AfterAPI']['Path'] == flowdata[i]['path']:
                         id=flowdata[i]['id']
-
                 else:
                     if 'MockName' in flowdata[i].keys():
                         if rule['AfterAPI']['Path'] == flowdata[i]['MockName']:
                             id = flowdata[i]['id']
-
         else:
             for data in flowdata:
                 if rule['Path'] in data['path']:
                     id = data['id']
-
         return id
 
     def __specialFlowStatus(self,flowdata):
@@ -135,19 +130,21 @@ class NoiseReduction:
                 else:
                     result['path'] = result['path'] + list(pathlib.Path(path).iterdir())
         else:
-            for eachPath in os.listdir():
-                if "_测试脚本集" in eachPath:
-                    path = os.getcwd() + os.sep + eachPath
-                    pathAbs = path + os.sep
-                    path_list = pathlib.Path(pathAbs)
-                    result['path'] = result['path']+list(path_list.iterdir())
+            # 获取当前目录下的所有文件和目录
+            files_and_directories = os.listdir()
+            # 过滤出仅包含目录
+            directories = [item for item in files_and_directories if os.path.isdir(item)]
+            for eachPath in directories:
+                # if self.modelName in eachPath:
+                #     path = os.path.join(Config.project_root_dir, eachPath)
+                #     result['path'] = result['path'] + list(pathlib.Path(path).iterdir())
+                if "_测试脚本文件夹_" in eachPath:
+                    path = os.path.join(Config.project_root_dir, eachPath)
+                    result['path'] = result['path'] + list(pathlib.Path(path).iterdir())
         if result['path'] == []:
             raise ValueError(f"{result['path']} 文件夹没找到，请检查后在执行！")
-        result['Model'] = configInfo.get('Setting').get('Model')
         result['Url'], result['User'], result['PSW'], result['NotifyUser'] = configInfo.get('Setting').get('Url'), \
             configInfo.get('Setting').get('User'), \
             configInfo.get('Setting').get('PSW'), \
             configInfo.get('Setting').get('NotifyUser')
         return result
-
-

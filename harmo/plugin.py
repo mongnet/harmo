@@ -204,7 +204,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
             elif success_message:
                 markdown_content = f'''
                                     # 恭喜 <font color=\'info\'>{JOB_NAME}</font> 巡检通过，请放心
-                                    >通知范围：@全部成员
+                                    >通知范围：@所有人
                                     >本次共执行 **{total}** 条用例，<font color=\'info\'>**全部执行通过**</font>，耗时 **{round(total_times,2)}** 秒
                                     >
                                     >可点击下方 report 文件查看详情'''
