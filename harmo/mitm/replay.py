@@ -11,6 +11,7 @@ import jsonpath
 
 from harmo.mitm.NoiseReduction import NoiseReduction
 from harmo.mitm.report import ReportUtil
+from harmo.msg.robot import WeiXin
 from harmo.operation import yaml_file
 from harmo import http_requests, extract, base_utils
 from harmo.global_map import Global_Map
@@ -62,6 +63,8 @@ class Replay:
     """
     def __init__(self):
         Global_Map.sets(yaml_file.get_yaml_data_all(base_utils.file_absolute_path("conifg")))
+        self.noiseReduction = NoiseReduction()
+        self.data = {}
         self.diff = None
         self.rulesDoc = {}
         self.rulesIgnoreExect = {}
@@ -74,18 +77,18 @@ class Replay:
         :param modelName:
         :return:
         """
-        noiseReduction = NoiseReduction(modelName)
-        scriptPathlist = noiseReduction.createTestCase()
+        scriptPathlist = self.noiseReduction.createTestCase(modelName)
         ALL_RESULT_LIST=[]
         urlTotal = 0
         start_time = datetime.now()
         for scriptPath in scriptPathlist:
             RESULT_LIST =[]
-            data = noiseReduction.getRules(scriptPath)
-            self.rulesIgnoreExect = data.get("rulesIgnoreExect", {})
-            self.rulesIgnoreContain = data.get("rulesIgnoreContain", {})
-            self.rulesGet = data.get("rulesGet", {})
-            flowDatas = data.get("flowDatas", {})
+            self.data = self.noiseReduction.getRules(scriptPath)
+            self.rulesDoc = self.data.get("rulesDoc", {})
+            self.rulesIgnoreExect = self.data.get("rulesIgnoreExect", {})
+            self.rulesIgnoreContain = self.data.get("rulesIgnoreContain", {})
+            self.rulesGet = self.data.get("rulesGet", {})
+            flowDatas = self.data.get("flowDatas", {})
             filter_urls = Global_Map.get('Setting').get('filterUrl')
             for i in range(len(flowDatas)):
                 respObj = self.callAPI(flowDatas[i])
@@ -127,7 +130,7 @@ class Replay:
                             # 数据替换
                             for rule in self.rulesGet:
                                 whetherCheck = False
-                                id = noiseReduction.getValueId(flowDatas, rule)
+                                id = self.noiseReduction.getValueId(flowDatas, rule)
                                 if id == flowDatas[i]['id']:
                                     whetherCheck = True
                                     for loc in rule['Location'].split('.')[1:]:
@@ -166,6 +169,7 @@ class Replay:
                 moduleCaseTotal.append(len(module.get('info')))
         replayResult ={'result': ALL_RESULT_LIST,'moduleNameList':moduleNameList,'moduleCaseTotal':moduleCaseTotal,'urlTotal':urlTotal, 'totalTimes':totalTimes}
         ReportUtil().createReport(modelName,replayResult)
+
 
     def callAPI(self,flowData):
         '''

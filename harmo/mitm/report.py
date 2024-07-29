@@ -21,7 +21,7 @@ class ReportUtil:
     def createReport(self,modelName:str,replayResult:dict):
         createDate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
         reporter = "那个谁"
-        title = f"{modelName} 流量回放报告" if modelName else f"集成测试流量回放报告"
+        title = f"{modelName} " if modelName else f"集成测试"
         templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources","templates")
         env = Environment(loader=FileSystemLoader(templates_dir))
         template_name = 'testRport_template.ejs'

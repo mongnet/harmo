@@ -26,7 +26,7 @@ def run_mitmdump_script():
             process.terminate()
             print(f"录制异常终止: {e}")
         finally:
-            print(f"录制结束.")
+            print(f"录制已结束.")
 
 if __name__ == '__main__':
     run_mitmdump_script()

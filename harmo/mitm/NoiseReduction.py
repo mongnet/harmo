@@ -17,17 +17,16 @@ import time
 from typing import Optional
 
 class NoiseReduction:
-    def __init__(self,modelName:str):
-        self.modelName = modelName
+    def __init__(self):
         self.config = self.getConfig()
-        self.rules_IGNORE_CONTAIN,self.rules_IGNORE_EXECT,self.rules_GET,self.rules_DOC = [],[],[],[]
+        self.rules_IGNORE_CONTAIN,self.rules_IGNORE_EXECT,self.rules_GET = [],[],[]
         self.ts =str(int(time.time()))
         self.rules = Global_Map.get()
 
-    def createTestCase(self):
+    def createTestCase(self,modelName:str):
         scriptPathlist =[]
         if self.config['whetherRecord']:
-            name = 'NoName_测试脚本文件夹_'.replace('NoName',self.modelName)+self.ts if self.modelName else 'NoName_测试脚本文件夹_'+self.ts
+            name = 'NoName_测试脚本文件夹_'.replace('NoName',modelName)+self.ts if modelName else 'NoName_测试脚本文件夹_'+self.ts
             path =  os.path.join(os.getcwd(), name)
             if not os.path.exists(path):
                 os.mkdir(path)
@@ -73,20 +72,20 @@ class NoiseReduction:
             for eachRule in self.rules.get('Rules'):
                 if not eachRule.get('Type'):
                     raise ValueError(f"{eachRule} 未定义规则类型，请检查后重新执行！")
-                elif str(eachRule.get('Type')).upper() == 'GETVALUE':
+                if str(eachRule.get('Type')).upper() not in ['GETVALUE','IGNORE']:
+                    raise ValueError(f"出现未支持的规则类型 '{eachRule.get('Type')}' ，请检查后重新执行！")
+                if str(eachRule.get('Type')).upper() == 'GETVALUE':
                     eachRule['value'],id = [],self.getValueId(flowDatas,eachRule)
                     for data in flowDatas:
                         if id == data.get('id') and id:
                             eachRule['value'].append(self.getValue(data,eachRule))
                         recond.append({'id':data.get('id'),'url':data.get('url'),'method':data.get('method')})
                     self.rules_GET.append(eachRule)
-                elif str(eachRule.get('Type')).upper() == 'IGNORE':
+                if str(eachRule.get('Type')).upper() == 'IGNORE':
                     if eachRule.get('Contain'):
                         self.rules_IGNORE_CONTAIN.append(eachRule)
                     else:
                         self.rules_IGNORE_EXECT.append(eachRule)
-                else:
-                    raise ValueError(f"出现未支持的规则类型 '{eachRule.get('Type')}' ，请检查后重新执行！")
             return {'rules': self.rules['Rules'],'status':self.config['whetherRecord'],
                     'NotifyUser': self.config['NotifyUser'],
                     'ts':self.ts,'flowDatas':flowDatas,'rulesIgnoreContain':self.rules_IGNORE_CONTAIN,

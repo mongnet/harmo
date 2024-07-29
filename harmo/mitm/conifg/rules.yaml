@@ -1,8 +1,4 @@
 Rules:
-  - Path: /auth-server/auth/token
-    Method: POST
-    Location: resp.data
-    Type: GETVALUE
   - Path: ALL
     Method: ALL
     Location: createAt
@@ -25,7 +21,7 @@ Rules:
     Contain: True
   - Path: ALL
     Method: ALL
-    Location: date
+    Location: data
     Type: IGNORE
     Contain: True
   - Path: ALL
@@ -33,80 +29,24 @@ Rules:
     Location: downloadUrls
     Type: IGNORE
     Contain: False
-  - Path: /pdscommon/rs/fileaddress/downloadURLs
-    Method: POST
-    Location: downloadUrls
-    Type: IGNORE
-    Contain: False
-  - Path: /luban-data-manage/data/form/page?
-    Method: GET
-    Location: resp.data.result.-1.id
+  - Path:
+    Method:
+    Location: resp.data
     Type: GETVALUE
     AfterAPI :
-      Path: /luban-data-manage/data/form/create
+      Path: /service/ent-admin-org/cmp-org/create-node
       Method: POST
-  - Path: /service/ent-admin-org/supplier/supplier-list
-    Method: POST
+  - Path:
+    Method:
     Location: resp.data
     Type: GETVALUE
     AfterAPI :
       Path: /service/ent-admin-org/supplier
       Method: POST
-  - Path: /luban-data-manage/data/form/page?
-    Method: GET
-    Location: resp.data.result.-1.formInstanceId
-    Type: GETVALUE
-    AfterAPI :
-      Path : /luban-data-manage/data/form/create
-      Method : POST
-  - Path: /luban-data-manage/data/form/page?
-    Method: GET
-    Location: resp.data.result.-1.fileId
-    Type: GETVALUE
-    AfterAPI :
-      Path: EditAdvanceForm
-      Method: MOCK
-  - Path: /luban-data-manage/data/form/page?
-    Method: GET
-    Location: resp.data.result.-1.processInstanceId
-    Type: GETVALUE
-    AfterAPI :
-      Path: EditAdvanceForm
-      Method: MOCK
-  - Path: /luban-data-manage/data/form/page?
-    Method: GET
-    Location: resp.data.result.-1.fileName
-    Type: GETVALUE
-    AfterAPI :
-      Path: EditAdvanceForm
-      Method: MOCK
-  - Path: /luban-data-manage/data/form/page?
-    Method: GET
-    Location: resp.data.result.-1.md5
-    Type: GETVALUE
-    AfterAPI :
-      Path: EditAdvanceForm
-      Method: MOCK
-  - Path: /luban-data-manage/data/form/page?
-    Method: GET
-    Location: md5
-    Type: IGNORE
-    Contain: False
-  - Path: /luban-data-manage/data/form/page?
-    Method: GET
-    Location: resp.data.result.-1.processInstanceId
-    Type: GETVALUE
-    AfterAPI :
-      Path: /luban-data-manage/common/data/form/DATA_FORM/v1/launch
-      Method: POST
-  - Path: /luban-data-manage/data/form/page?
-    Method: GET
-    Location: resp.data.result.-1.processNodeId
-    Type: GETVALUE
-    AfterAPI :
-      Path: /luban-data-manage/common/data/form/DATA_FORM/v1/launch
-      Method: POST
-  - Path: /ent-admin/cmp-org/create-node
-    Method: POST
-    Type: GETVALUE
+  - Path:
+    Method:
     Location: resp.data
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/ent-admin-org/project/create-proj
+      Method: POST
