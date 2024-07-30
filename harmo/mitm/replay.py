@@ -89,7 +89,7 @@ class Replay:
             self.rulesIgnoreContain = self.data.get("rulesIgnoreContain", {})
             self.rulesGet = self.data.get("rulesGet", {})
             flowDatas = self.data.get("flowDatas", {})
-            filter_urls = Global_Map.get('Setting').get('filterUrl')
+            filter_urls = Global_Map.get('setting').get('filterUrl')
             for i in range(len(flowDatas)):
                 respObj = self.callAPI(flowDatas[i])
                 urlTotal += 1
@@ -178,15 +178,15 @@ class Replay:
         :return:
         '''
         req = http_requests.HttpRequests(flowData['url'])
-        if Global_Map.get("Setting").get("headers") and isinstance(Global_Map.get("Setting").get("headers"),dict):
-            flowData['headers'].update(Global_Map.get("Setting").get("headers"))
-        if Global_Map.get("access-token"):
-            flowData['headers']['access-token'] = Global_Map.get("access-token")
+        if Global_Map.get("setting").get("headers") and isinstance(Global_Map.get("setting").get("headers"),dict):
+            flowData['headers'].update(Global_Map.get("setting").get("headers"))
+        if Global_Map.get(Global_Map.get('setting').get('login').get("header")):
+            flowData['headers'][Global_Map.get('setting').get('login').get("header")] = Global_Map.get(Global_Map.get('setting').get('login').get("header"))
         resp = req.send_request(method=flowData['method'],url=flowData['url'],payload=flowData['body'], header=flowData['headers']).get("response_obj")
         parsed_url = urlparse(flowData.get('url'))
-        if parsed_url.path.endswith(Global_Map.get('Setting').get('login').get("url")):
-            token = extract.extract_by_object(resp, Global_Map.get('Setting').get('login').get("rule"))
-            Global_Map.set("access-token",token)
+        if parsed_url.path.endswith(Global_Map.get('setting').get('login').get("url")):
+            token = extract.extract_by_object(resp, Global_Map.get('setting').get('login').get("rule"))
+            Global_Map.set(Global_Map.get('setting').get('login').get("header"),token)
         return resp
 
     def execRulesIgnoreExect(self,data,flowData):

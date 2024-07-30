@@ -87,7 +87,6 @@ class NoiseReduction:
                     else:
                         self.rules_IGNORE_EXECT.append(eachRule)
             return {'rules': self.rules['Rules'],'status':self.config['whetherRecord'],
-                    'NotifyUser': self.config['NotifyUser'],
                     'ts':self.ts,'flowDatas':flowDatas,'rulesIgnoreContain':self.rules_IGNORE_CONTAIN,
                     'rulesIgnoreExect':self.rules_IGNORE_EXECT,'rulesGet':self.rules_GET}
 
@@ -119,10 +118,10 @@ class NoiseReduction:
         result = {}
         configInfo = Global_Map.get()
         result['whetherRecord'], result['path'] = False, []
-        if str(configInfo.get('Setting').get('Status')).upper() == 'NOW':
+        if str(configInfo.get('setting').get('status')).upper() == 'NOW':
             result['path'], result['whetherRecord'] = ['record_results.json'], True
-        elif str(configInfo.get('Setting').get('Status')).upper() == 'DEBUG':
-            for value in configInfo.get('Setting').get('Scope'):
+        elif str(configInfo.get('setting').get('status')).upper() == 'DEBUG':
+            for value in configInfo.get('setting').get('scope'):
                 path = os.path.join(Config.project_root_dir, value)
                 if not os.path.exists(path):
                     raise ValueError(f"{path} 文件夹没找到，请检查后在执行！")
@@ -142,8 +141,5 @@ class NoiseReduction:
                     result['path'] = result['path'] + list(pathlib.Path(path).iterdir())
         if result['path'] == []:
             raise ValueError(f"{result['path']} 文件夹没找到，请检查后在执行！")
-        result['Url'], result['User'], result['PSW'], result['NotifyUser'] = configInfo.get('Setting').get('Url'), \
-            configInfo.get('Setting').get('User'), \
-            configInfo.get('Setting').get('PSW'), \
-            configInfo.get('Setting').get('NotifyUser')
+        result['baseUrl'] = configInfo.get('setting').get('baseUrl')
         return result

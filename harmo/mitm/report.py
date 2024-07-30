@@ -33,7 +33,7 @@ class ReportUtil:
             'createdate' : createDate,
             # 'reporter' : reporter,
             'title' : title,
-            'host' : Global_Map.get('Setting').get('Url'),
+            'host' : Global_Map.get('setting').get('baseUrl'),
             'total': Pass+failed+ignore,
             'pass': Pass,
             'failed': failed,
@@ -55,7 +55,7 @@ class ReportUtil:
                         caseEach['status'] = '<p class="fail">失败</p>'
                     else:
                         caseEach['status'] = '<p class="ignore">忽略</p>'
-                    caseEach['url'] = eachInfo.get("url")
+                    caseEach['url'] = f'[{eachInfo.get("method")}] {eachInfo.get("url")}'
                     self.details['caseList'].append(caseEach)
         # 检查模板文件是否存在
         template_path = os.path.join(templates_dir, template_name)
@@ -80,7 +80,7 @@ class ReportUtil:
         return report_name
 
     def _send_report(self,file):
-        weixin_robot = Global_Map.get('Setting').get('weixin_robot')
+        weixin_robot = Global_Map.get('setting').get('weixin_robot')
         if weixin_robot:
             if self.details.get('failed') + self.details.get('failed') != 0:
                 markdown_content = f'''

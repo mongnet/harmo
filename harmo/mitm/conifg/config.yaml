@@ -1,12 +1,13 @@
-Setting :
-  Status : NOdW
-  Url : https://lubantest.sg.luban.cn
+setting :
+  status : NOdW
+  baseUrl : https://lubantest.sg.luban.cn
   weixin_robot : "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
-  Scope :
+  scope :
     - 龙门吊-设备管理_测试脚本文件夹_1670811570
   login :
     url : /auth-server/auth/token
     rule : resp.data
+    header : access-token
   filterMethod :
     - options
   filterFile :
@@ -31,4 +32,4 @@ Setting :
     - lbuilder.cn
     - luban.cn
   headers :
-    access-token: UHBa51gfYovL7kSB3g1ounlnx5ddOyrUsEKREWvGDeIRmQ2lRHksM4A6zQvi3bku
+    access-token: DKXbBEKi6yDQSKH9D7XxTL1Lvn74DT6TnbEHTXBMr6Go0lm3nKOSroWpi4xvv3DV

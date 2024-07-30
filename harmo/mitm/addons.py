@@ -18,7 +18,7 @@ class Counter:
     def __init__(self,domains):
         self.domains = domains
         self.interfaces = []
-        self.filterFiles = Global_Map.get("Setting").get("filterFile")
+        self.filterFiles = Global_Map.get("setting").get("filterFile")
 
     def request(self, flow: http.HTTPFlow):
         """
@@ -46,7 +46,7 @@ class Counter:
             ctx.log.error("必须配置允许录制的域名列表")
             exit(-1)
         # 跳过不录制的请求方法,如：options
-        if isinstance(Global_Map.get("Setting").get("filterMethod"), list) and flow.request.method.lower() in Global_Map.get("Setting").get("filterMethod"):
+        if isinstance(Global_Map.get("setting").get("filterMethod"), list) and flow.request.method.lower() in Global_Map.get("setting").get("filterMethod"):
             return False
         # 过滤不录制的域名和请求
         for domain in self.domains:
@@ -99,7 +99,7 @@ class Counter:
             data_json['status_code'] = interface.get("status_code")
             try:
                 if isinstance(interface.get("body"),(dict,list)):
-                    base_utils.recursion_replace_dict_value(interface.get("body"), Global_Map.get("Setting").get("replaceDict"))
+                    base_utils.recursion_replace_dict_value(interface.get("body"), Global_Map.get("setting").get("replaceDict"))
                     data_json['body'] = interface.get("body")
                 elif 'WebKitFormBoundary' not in str(interface.get("body")):
                     if interface.get("body") !='' :
@@ -120,7 +120,7 @@ class Counter:
             except:
                 data_json['body'] = None
             try:
-                base_utils.recursion_replace_dict_value(interface.get("resp"), Global_Map.get("Setting").get("replaceDict"))
+                base_utils.recursion_replace_dict_value(interface.get("resp"), Global_Map.get("setting").get("replaceDict"))
                 data_json['resp'] = interface.get("resp")
             except:
                 data_json['resp'] = None
@@ -131,10 +131,10 @@ def getAllowRecording() -> list:
     获取允许录制的域名列表
     :return:
     """
-    AllowRecording = Global_Map.get("Setting").get("allowRecording")
+    AllowRecording = Global_Map.get("setting").get("allowRecording")
     if isinstance(AllowRecording, list) and AllowRecording:
         return AllowRecording
-    raise ValueError("允许录制的域名列表为空，请确认 config.yaml 中 Setting.allowRecording 是否配置")
+    raise ValueError("允许录制的域名列表为空，请确认 config.yaml 中 setting.allowRecording 是否配置")
 
 addons = [
     Counter(
