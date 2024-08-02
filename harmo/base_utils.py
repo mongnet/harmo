@@ -716,7 +716,7 @@ def extract_base_url(full_url):
     """
     提取URL的基地址
     example:
-        full_url = "https://miao.baidu.com/abdr?_o=https%3A%2F%2Flubantest.sg.luban.cn"
+        full_url = "https://miao.baidu.com/abdr?_o=luban.cn"
         result = "https://miao.baidu.com"
     :param full_url:
     :return:

@@ -97,20 +97,20 @@ class Counter:
             data_json['method'] = interface.get("method")
             data_json['headers'] = interface.get("headers")
             data_json['status_code'] = interface.get("status_code")
+            data_json['time_gap'] = interface.get("time_gap")
             try:
+                base_utils.recursion_replace_dict_value(interface.get("body"),Global_Map.get("setting").get("replaceDict"))
                 if isinstance(interface.get("body"),(dict,list)):
-                    base_utils.recursion_replace_dict_value(interface.get("body"), Global_Map.get("setting").get("replaceDict"))
                     data_json['body'] = interface.get("body")
                 elif 'WebKitFormBoundary' not in str(interface.get("body")):
                     if interface.get("body") !='' :
-                        data_json['body'] = eval(str(interface.get("body")).replace('null','None').replace('true','True').replace('false','False'))
-                        # data_json['body'] = interface.get("body")
+                        data_json['body'] = interface.get("body")
                     else:
                         data_json['body'] = None
                 else:
                     body = str(interface.get("body"))
                     bodylist = body.split('\r\n')
-                    data_json['body']={}
+                    data_json['body'] = {}
                     for each in bodylist:
                         if 'name=' in each:
                             if 'file' not in str(each) and 'attachment' not in str(each):

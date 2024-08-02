@@ -1,5 +1,5 @@
 setting :
-  status : NOdW
+  status : NOW
   baseUrl : https://lubantest.sg.luban.cn
   weixin_robot : "ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42"
   scope :
@@ -31,5 +31,6 @@ setting :
   allowRecording :
     - lbuilder.cn
     - luban.cn
+    - 47.103.139.42
   headers :
-    access-token: DKXbBEKi6yDQSKH9D7XxTL1Lvn74DT6TnbEHTXBMr6Go0lm3nKOSroWpi4xvv3DV
+    access-token: Ssm16c1gMKfOmozHmFv12nqdCyKUdTfNWbPcQ7T5x0DFV5kw8B6eBElHbM0nkh8K

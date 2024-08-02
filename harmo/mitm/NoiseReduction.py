@@ -12,21 +12,25 @@ import pathlib
 from harmo import base_utils
 from harmo.config import Config
 from harmo.global_map import Global_Map
-from harmo.operation import json_file, yaml_file
+from harmo.operation import json_file
 import time
-from typing import Optional
 
 class NoiseReduction:
     def __init__(self):
         self.config = self.getConfig()
-        self.rules_IGNORE_CONTAIN,self.rules_IGNORE_EXECT,self.rules_GET = [],[],[]
+        self.rules_IGNORE_CONTAIN, self.rules_IGNORE_EXECT, self.rules_GET = [], [], []
         self.ts =str(int(time.time()))
         self.rules = Global_Map.get()
 
-    def createTestCase(self,modelName:str):
+    def createTestCase(self, modelName: str):
+        """
+        创建测试用例文件夹
+        :param modelName:
+        :return:
+        """
         scriptPathlist =[]
         if self.config['whetherRecord']:
-            name = 'NoName_测试脚本文件夹_'.replace('NoName',modelName)+self.ts if modelName else 'NoName_测试脚本文件夹_'+self.ts
+            name = 'NoName_测试脚本文件夹_'.replace('NoName', modelName)+self.ts if modelName else 'NoName_测试脚本文件夹_'+self.ts
             path =  os.path.join(os.getcwd(), name)
             if not os.path.exists(path):
                 os.mkdir(path)
@@ -39,7 +43,7 @@ class NoiseReduction:
         if str(scriptPath).endswith('.json'):
             execPath = scriptPath
         else:
-            execPath = os.path.join(scriptPath,'record_results.json')
+            execPath = os.path.join(scriptPath, 'record_results.json')
         if self.config['whetherRecord']:
             flowData = json_file.get_json_data(base_utils.file_absolute_path('record_results.json'))
             with open(execPath, 'w') as ff:
