@@ -68,5 +68,5 @@ def no_token():
     不用token
     :return:
     '''
-    resule = public_login.Token(base_url=Global_Map.get('signature_url'))
-    yield  resule.http_instance
+    resule = http_requests.HttpRequests(Global_Map.get("base_url"))
+    yield  resule

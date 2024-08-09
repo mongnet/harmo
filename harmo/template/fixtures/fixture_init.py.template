@@ -58,7 +58,7 @@ def designatedAll_body_init(name,tagId):
     创建流程模版:包含4个节点，发起人自己>指定审批人>上一步指定(职位)>上一步指定（角色）
     """
     create_random_key = gen_random_key()
-    filepath = r'data\process\template\template_designatedAll.txt'
+    filepath = r'data/process/template/template_designatedAll.txt'
     contents = readXml(filepath,create_random_key)
     body = {
         "name": name,
@@ -215,7 +215,7 @@ def initialize(token,process_token):
                         if proj_name == proj.get('name'):
                             Global_Map.set('proj_node_id', proj.get('id'))
                 if not Global_Map.get('proj_node_id'):
-                    response = EntAdminOrgProject().project_create_proj_post(token, name=proj_name, cmpOrgId=Global_Map.get('cmp_node_id'), builderContactName="测试人", builderContactPhone="13916829124", shortName="测试项目简称", status="ZJ", nature="XJ", haveSection=True,type="JIJIAN",code="项目编号XD",approvalType="HZ")
+                    response = EntAdminOrgProject().project_create_proj_post(token, name=proj_name, cmpOrgId=Global_Map.get('cmp_node_id'), builderContactName="测试人", builderContactPhone="13916829124", shortName="测试项目简称", status="ZJ", nature="XJ", haveSection=True,type="JIJIAN",code="项目编号XD",approvalType="HZ",supplierId=Global_Map.get('supplier_node_id'),contactName='供应商负责人',contactPhone='13916829124')
                     Assertions.assert_code(response, response.get("status_code"), 200)
                     Assertions.assert_code(response, response.get("code")[0], 200)
                     Assertions.assert_isNotEmpty(response.get("data")[0])
@@ -239,9 +239,7 @@ def initialize(token,process_token):
                 if not Global_Map.get('section_node_id'):
                     body = {
                         'name': section_name, 'projectId': Global_Map.get('proj_node_id'), 'shortName' : "测试标段简称", 'contactName' : "测试人", 'contactPhone' : "13916829124", 'baseBidBudget' : 100000, 'contractAmount' : 100000, 'contractCode' : "测试合同编号", 'startDate' : "2022-01-01", 'endDate' : "2022-01-01", 'type' : "SG", 'code' : "A001",
-                        'supplierRefSaveParamList' : [
-                            {'supplierId': Global_Map.get('supplier_node_id'), 'contactName': '测试人',
-                             'contactPhone': '13916829124'}],
+                        'supplierRefSaveParamList' : [{'supplierId': Global_Map.get('supplier_node_id'), 'contactName': '测试人','contactPhone': '13916829124'}],
                         'builderUnit' : {'supplierId': Global_Map.get('supplier_node_id'), 'contactName': '测试人','contactPhone': '13916829124'},
                     }
                     response = EntAdminOrgSection().section_create_section_post(token, body_kwargs = body)
@@ -275,7 +273,7 @@ def initialize(token,process_token):
                     Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
                     Assertions.assert_in_value(jsonpath.jsonpath(proj_response.get("source_response"), "$..data[?(@.id)]..postName"), post_name)
             with allure.step('新建用户'):
-                user_response = EntAdminUserAdminUser().admin_user_post(token, pageSize=5000, pageNum=1, type=0, orgIds=[Global_Map.get('ent_node_id')])
+                user_response = EntAdminUserAdminUser().admin_user_post(token, pageSize=5000, pageNum=1, type=0, resId=Global_Map.get('ent_node_id'))
                 Assertions.assert_code(user_response, user_response.get("status_code"), 200)
                 Assertions.assert_code(user_response, user_response.get("code")[0], 200)
                 user_list = jsonpath.jsonpath(user_response.get("source_response"), f"$..items[?(@.username=='{Global_Map.get('normal').get('username')}')]")
@@ -287,13 +285,13 @@ def initialize(token,process_token):
                         if user_name == user.get('username'):
                             Global_Map.set('normal_user_id', user.get('id'))
                 if not Global_Map.get('normal_user_id'):
-                    response = EntAdminUserAdminUser().admin_user_add_user_post(token, type=0, orgId=Global_Map.get('ent_node_id'), realName=real_name, username=user_name, mobile=base_utils.generate_random_mobile(), postId=Global_Map.get('post_id'))
+                    response = EntAdminUserAdminUser().admin_user_add_user_post(token, type=0, resId=Global_Map.get('ent_node_id'), realName=real_name, username=user_name, mobile=base_utils.generate_random_mobile(), postId=Global_Map.get('post_id'))
                     Assertions.assert_code(response, response.get("status_code"), 200)
                     Assertions.assert_code(response, response.get("code")[0], 200)
                     message = response.get("source_response").get("data").get("message")
                     if "初始密码" in message:
                         Global_Map.set('normal', {"password": message.split("：")[-1]}, mode="append")
-                    proj_response = EntAdminUserAdminUser().admin_user_post(token, pageSize=5000, pageNum=1, type=0, orgIds=[Global_Map.get('ent_node_id')])
+                    proj_response = EntAdminUserAdminUser().admin_user_post(token, pageSize=5000, pageNum=1, type=0, resId=Global_Map.get('ent_node_id'))
                     Assertions.assert_code(proj_response, proj_response.get("status_code"), 200)
                     Assertions.assert_code(proj_response, proj_response.get("code")[0], 200)
                     user_list = jsonpath.jsonpath(user_response.get("source_response"), f"$..items[?(@.username=='{user_name}')]")
@@ -305,12 +303,9 @@ def initialize(token,process_token):
                 user_response = EntAdminUserAdminUser().admin_user_id_put(token, id=Global_Map.get('normal_user_id'),
                                                                           email=base_utils.generate_random_mail(),
                                                                           mobile=base_utils.generate_random_mobile(),
-                                                                          realName=Global_Map.get('normal').get(
-                                                                              'realname'),
-                                                                          username=Global_Map.get('normal').get(
-                                                                              'username'),
-                                                                          postId=Global_Map.get('post_id'), type=0,
-                                                                          orgId=Global_Map.get('ent_node_id'))
+                                                                          realName=Global_Map.get('normal').get('realname'),
+                                                                          username=Global_Map.get('normal').get('username'), type=0,
+                                                                          resId=Global_Map.get('ent_node_id'))
                 Assertions.assert_code(user_response, user_response.get("status_code"), 200)
                 Assertions.assert_code(user_response, user_response.get("code")[0], 200)
             with allure.step('新建角色'):
@@ -444,7 +439,7 @@ def initialize(token,process_token):
             # 删除用户
             if Global_Map.get('normal_user_id'):
                 # 清除用户的 角色/职务/邮箱 绑定
-                EntAdminUserAdminUser().admin_user_id_put(token, id=Global_Map.get('normal_user_id'), mobile=base_utils.generate_random_mobile(), realName=real_name, username=Global_Map.get('normal').get('username'), type=0, orgId=Global_Map.get('ent_node_id'))
+                EntAdminUserAdminUser().admin_user_id_put(token, id=Global_Map.get('normal_user_id'), mobile=base_utils.generate_random_mobile(), realName=real_name, username=Global_Map.get('normal').get('username'), type=0, resId=Global_Map.get('ent_node_id'))
                 # 清除用户的 标段/项目 绑定
                 EntAdminUser().role_user_delete_post(token, roleId=Global_Map.get('role_id'), userIds=[Global_Map.get("normal_user_id")])
             # 删除角色
@@ -458,8 +453,7 @@ def initialize(token,process_token):
                 EntAdminOrgSection().section_delete_section_post(token, sectionIds=[Global_Map.get('section_node_id')])
             # 删除项目
             if Global_Map.get('proj_node_id'):
-                body = {'projectId': Global_Map.get('proj_node_id'), 'projectOrgId': Global_Map.get('proj_node_id'),
-                        'nodeType': 'PROJECT'}
+                body = {'projectId': Global_Map.get('proj_node_id'), 'projectOrgId': Global_Map.get('proj_node_id'), 'nodeType': 'PROJECT'}
                 response = EntAdminOrgProjectUser().project_user_list_post(token, body_kwargs=body)
                 Assertions.assert_code(response, response.get("status_code"), 200)
                 Assertions.assert_code(response, response.get("code")[0], 200)

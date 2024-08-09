@@ -60,6 +60,10 @@ pip install harmo-1.0.0-py3-none-any.whl
 pip install git+https://github.com/mongnet/harmo@master
 ```
 
+注：
+
+1.harmo支持python 3.9 及以上版本，如安装时出现不支持的情况，请确认python版本是否正确（harmo 已在 python 3.9、3.10、3.11 下测试通过）
+
 ### 2.2 版本升级
 
 假如你之前已经安装过了 harmo，现在需要升级到最新版本，那么你可以使用 `-U` 参数。
@@ -154,7 +158,7 @@ harmo 框架项目结构如下：
 
 当前微信机器人消息封装了5种消息格式，分别为 `文本`、`卡片`、`markdown`  、`发送图片`  、`发送文件`  消息，可针对不同场景使用对应消息，消息样式如下
 
-![image-20210724192416549](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210724192416549.png)
+![image-20240805094958324](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805094958324.png)
 
 
 
@@ -178,8 +182,7 @@ send.send_message_text(hookkey,content,mentioned_mobile_list)
 from harmo.msg.robot import WeiXin
 
 send = WeiXin()
-send.send_message_text(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42", content="发现一个公众号：彪哥的测试之路，很不错。",
-                       mentioned_mobile_list=["13916829124"])
+send.send_message_text(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42", content="发现一个公众号：彪哥的测试之路，很不错。",mentioned_mobile_list=["13916829124"])
 ```
 
 
@@ -210,8 +213,7 @@ send.send_message_card(hookkey,title,url,content,picurl)
 from harmo.msg.robot import WeiXin
 
 send = WeiXin()
-send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42", title="测试开发",
-                       content="发现一个公众号：彪哥的测试之路，很不错，可以点击查看更多跳转到网页", url="http://")
+send.send_message_card(hookkey="ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42", title="测试开发", content="发现一个公众号：彪哥的测试之路，很不错，可以点击查看更多跳转到网页", url="http://")
 ```
 
 
@@ -1691,7 +1693,9 @@ harmo weixin <hookkey> <content> [options]
 
 > **-u**：点击后跳转的链接，`card` 消息时有效，可选参数
 
-> **-o**：消息类型，三种消息类型`text`、`card`、`markdown`，可选参数，类型为 `markdown` 时，content 支持微信机器人官方支持的 `markdown` 语法
+> **-o**：消息类型，三种消息类型`text`、`card`、`markdown`，默认为 `text` 消息，可选参数，类型为 `markdown` 时，content 支持微信机器人官方支持的 `markdown` 语法
+
+> **-p**：图文消息的图片链接，较好的效果为大图 1068 x 455，小图150 x 150，可选参数
 
 
 
@@ -1704,7 +1708,7 @@ harmo weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -m "13
 例：发送 `card` 消息
 
 ```python
-harmo weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "card" -t "测试开发" -u "http://demo.com"
+harmo weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "彪哥的测试之路" -o "card" -t "测试开发" -u "http://demo.com" -p "https://demo.com/assets/illustrations/rel4c.png"
 ```
 
 例：发送 `markdown` 消息
@@ -1715,66 +1719,140 @@ harmo weixin ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42 "# Hello！`彪哥的测试之
 
 
 
+#### 4.1.5 流量录制
+
+`harmo record`：流量录制命令，格式如下：
+
+```python
+harmo record [options]
+```
+
+> **-i**：初始化流量录制相关配置文件，可选
+
+**步骤一**：初始化录制，会在当前目录下创建 config 文件夹，文件夹中会生成 config.yaml 和 rules.yaml 二个yaml配置文件，默认情况需要进行  config.yaml 文件的配置，比如录制的域名，过滤的文件等等，只需要执行一次。
+
+```python
+harmo record -i
+```
+
+**步骤二**：开始录制
+
+```python
+harmo record
+```
+
+在命令行中输入如下命令，按回车键后，会提示录制已开始，按 ctrl+c 可结束录制。
+
+录制过程当中会在当前文件夹下生成 `record_results.json` 文件，这里面保存的是录制到的接口信息。
+
+config.yaml 配置文件的说明：
+
+> **status**：为 NOW 时会新增回放，每次回放都会生成一个文件夹，当为 DEBUG 时回放 scope 配置指定的目录，不指定时回放当前目录下所有满足条件的文件，非必填
+
+> **baseUrl**：基地址，报告中会显示当前运行的地址，非必填
+
+> **weixin_robot**：微信消息的webhook，非必填
+
+> **scope**：当 status 为 DEBUG 时回放这里指定的文件，非必填
+
+> **login**：登录接口的url、获取token的位置、应用到header中的名称，指定这三个参数后，会把对应接口返回的值设置到后续接口的header中，非必填
+
+> **filterMethod**：需要过滤的http请求访求，非必填
+
+> **filterFile**：需要过滤的文件，比如一些资源类型的文件，非必填
+
+> **filterUrl**：需要过滤不回放的url，非必填
+
+> **replaceDict**：参数替换，比如 true 必须替换成 True，必填
+
+> **allowRecording**：允许录制的域名，只有设置的域名请求的记录才会被记录，必填
+
+> **headers**：指定header参数，比如登录的token或其它特殊的参数，非必填
+
+**注：**录制功能基于 mitmproxy 实现，所以在录制流量前，需要做好代理配置，mitmproxy 在 harmo 中已集成，你只要配置代理即可，建议使用 SwitchyOmega 进行代理配置的管理。
+
+
+
+#### 4.1.6 流量回放
+
+`harmo replay`：流量回放命令，格式如下：
+
+```python
+harmo replay <modelName>
+```
+
+> **modelName**：场景或模块名称，用于归类用例，必填
+
+**例**：回放 职务管理 ，命令如下。
+
+```python
+harmo replay 职务管理
+```
+
+在命令行中输入如下命令，按回车键后，会提示录制已开始，按 ctrl+c 可以结束录制。
+
+
+
 ### 4.2 pytest命令行参数
 
 新增如下命令行参数：
 
-- `--lb-env`：环境配置文件，如 `dev`、`enterprise`、`preRelease`、`release`
+- `--h-env`：环境配置文件，如 `dev`、`enterprise`、`preRelease`、`release`
 
   通过如下方式可在命令行中指定需要测试的环境配置
 
   ```python
-  pytest --lb-env config/dev/config.yaml
+  pytest --h-env config/dev/config.yaml
   ```
 
-- `--lb-driver`： UI自动化时使用的 driver 类型可从命令行或配置文件浏览器
+- `--h-driver`： UI自动化时使用的 driver 类型可从命令行或配置文件浏览器
 
   ```
-  pytest --lb-driver firefox
+  pytest --h-driver firefox
   ```
 
-- `--lb-base-url`： UI自动化或接口自动化时可从命令行或配置文件指定url地址
+- `--h-base-url`： UI自动化或接口自动化时可从命令行或配置文件指定url地址
 
   ```
-  pytest --lb-base-url http://www.lbuilder.cn
+  pytest --h-base-url http://www.lbuilder.cn
   ```
 
-- `--lb-robot`： 指定机器人消息id，当执行失败时，发消息到企业微信
+- `--h-robot`： 指定机器人消息id，当执行失败时，发消息到企业微信
 
   ```
-  pytest --lb-robot ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42
+  pytest --h-robot ae0fdeb8-8b10-4388-8abb-d8ae21ab8d42
   ```
 
-- `--lb-msg-name`： 指定机器人消息标题
+- `--h-msg-name`： 指定机器人消息标题
 
   ```
-  pytest --lb-msg-name "彪哥有情提醒"
+  pytest --h-msg-name "彪哥有情提醒"
   ```
 
-  ![image-20230613143927218](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20230613143927218.png)
+  ![image-20240805095050379](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095050379.png)
 
-- `--lb-case-tag`： 运行指定 tag 的用例
+- `--h-case-tag`： 运行指定 tag 的用例
 
   ```python
   # 单个tag
-  pytest --lb-case-tag smoking
+  pytest --h-case-tag smoking
   # 多个tag
-  pytest --lb-case-tag smoking --lb-case-tag unit
+  pytest --h-case-tag smoking --h-case-tag unit
   ```
 
 **注意**
 
-  	`--lb-env` 参数是必须指定的参数
+  	`--h-env` 参数是必须指定的参数
 
-  	`--lb-robot` 参数指定后会替换 `--lb-env` 配置文件中的 robot ，且会忽略 `message_switch` 配置
+  	`--h-robot` 参数指定后会替换 `--h-env` 配置文件中的 robot ，且会忽略 `message_switch` 配置
 
 如果参数不常变，也可直接写在 `pytest.ini` 中，类似如下形式
 
 ```yaml
 [pytest]
 addopts =
-      --lb-env=config/release/config.yaml
-      --lb-driver=firefox
+      --h-env=config/release/config.yaml
+      --h-driver=firefox
 ```
 
 
@@ -1784,9 +1862,12 @@ addopts =
 在 `pytest.ini` 文件中新增如下配置：
 
 - `is_local` ：是否走本地初始化，为True时走本地配置文件，为False时走线上初始化数据，默认为False
+- `is_clear` ： 用例执行成功后是否清理数据，默认为True
 - `message_switch` ：消息通知开关，True为开启消息通知，Flase为关闭消息通知，默认为Flase
 - `success_message` ： 成功时是否发送消息通知，默认为False
-- `is_clear` ： 用例执行成功后是否清理数据，默认为True
+- `case_message` ： 单用例执行失败时是否发送消息通知，默认为False
+- `schema_check` ： 是否开启 schema 检查，默认为False（暂未实现）
+- `custom_config` ：自定义配置，可以按 key:value 的的形式定义配置，后续在测试中可通过 Global_Map.get("custom_config") 方式获取到
 - 默认使用 `pytest-html` 插件生成报告，生成在当前执行目录的 `reports/report.html` 中
 - 其它，指定了 `pytest` 的最低版本号为 `7.0` ，只到 `testcases`、 `testsuites` 下搜索用例
 
@@ -1798,7 +1879,7 @@ addopts =
 
 #### 4.4.1 env_conf
 
-环境配置，合并了 `pytest.ini` 配置中 `--lb-env` 和 `config/global` 文件夹中的 yaml 数据，使用字典的方式取值，使用方法为：
+环境配置，合并了 `pytest.ini` 配置中 `--h-env` 和 `config/global` 文件夹中的 yaml 数据，使用字典的方式取值，使用方法为：
 
 ```python
 env_conf.get("center").get("username")
@@ -1830,7 +1911,7 @@ class Token:
 
 #### 4.4.2 base_url
 
-基础URL， `base_url `  获取的是  `--lb-base-url` 的值，可在 `pytest.ini` 中指定，或在cmd命令中使用  `--lb-base-url` 指定，使用时只要把 `base_url ` 当参数传入对应的函数即可，使用方法为：
+基础URL， `base_url `  获取的是  `--h-base-url` 的值，可在 `pytest.ini` 中指定，或在cmd命令中使用  `--h-base-url` 指定，使用时只要把 `base_url ` 当参数传入对应的函数即可，使用方法为：
 
 ```
 web框架时使用，暂未使用到
@@ -2239,7 +2320,7 @@ pytest
 **指定环境执行**：在命令行中输入如下命令，表示使用 `dev` 环境配置执行测试
 
 ```python
-pytest --lb-env config/dev/config.yaml
+pytest --h-env config/dev/config.yaml
 ```
 
 
@@ -2266,7 +2347,7 @@ harmo new iworksweb
 
 在 CMD 中进入 `iworksweb` 目录，然后找到要生成case的 swagger 接口地址，如下图
 
-![image-20200901200704750](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901200704750.png)
+![image-20240805095137482](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095137482.png)
 
 > 第1个是swagger地址
 
@@ -2278,21 +2359,21 @@ harmo new iworksweb
 harmo swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan plan
 ```
 
-![image-20210918145537477](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918145537477.png)
+![image-20240805095157984](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095157984.png)
 
 看到 `Successfully generate` 表示接口生成成功，我们用 pycharm 打开 `iworksweb` 项目，生成后的样子如下
 
-![image-20210918153406255](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153406255.png)
+![image-20240805095329682](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095329682.png)
 
 打开 `webPlanCalendar.py` 接口文件，看看生成的接口方法是什么样子，查看到 `setPlanCalenDar` 方法如下
 
-![image-20210918153115409](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153115409.png)
+![image-20240805095355245](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095355245.png)
 
 生成好的接口文件就可以直接在用例中调用了，调用方式和程序的类和方法调用方式一样没有区别.
 
 打开 `test_webPlanCalendar.py` 文件，看看生成的测试用例是什么样子，查看到 `test_setPlanCalenDar` 测试用例如下
 
-![image-20210918153630759](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20210918153630759.png)
+![image-20240805095416477](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095416477.png)
 
 生成的测试用例中，默认会带有请求体（如果有），也可以不生成，只要在生成用例时添加-b 参数即可，可根据自己的实际情况确定是否生成
 
@@ -2308,7 +2389,7 @@ harmo swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 进入 config 目录，由于现在演示的这个项目是企业部署项目，所以我们进入了 enterprise 目录，我复制了一个 yaml 配置文件，命名为 202_config.yaml ，修改后的配置内容如下
 
-![](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901210924480.png)
+![image-20240805095447120](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095447120.png)
 
 > **注意**：账号和地址信息必须要按默认文件的方式，建议大家在不了解运行机制时，只修改登录地址、用户名、密码，不要调整格式，如果需要添加信息，按已有样式添加即可
 
@@ -2316,11 +2397,9 @@ harmo swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 #### 6.1.5 修改pytest.ini配置文件
 
-在 `iworksweb` 根目录找到 `pytest.ini` 文件，定位到 `--lb-env` 配置，把 `--lb-env` 配置修改为我们刚新建的 `Config/enterprise/202_config.yaml` 调整后的样子如下图
+在 `iworksweb` 根目录找到 `pytest.ini` 文件，定位到 `--h-env` 配置，把 `--h-env` 配置修改为我们刚新建的 `Config/enterprise/202_config.yaml` 调整后的样子如下图
 
-![](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20230219165838091.png)
-
-
+![image-20240805095508664](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095508664.png)
 
 
 
@@ -2338,6 +2417,6 @@ harmo swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 
 一般情况不需要调整全局配置文件，由于之前没有把 iworksweb 的产品ID加进来，所以我们要加一下，进入 config 目录，找到 globalConf.yaml 配置文件，这是一个全局配置文件，把不变的配置都放在这里，比如产品ID，请求头信息等，加了一个 `iworksWebProductId: 192` 的配置，修改后的配置内容如下
 
-![image-20200901212519261](C:\Users\admin\AppData\Roaming\Typora\typora-user-images\image-20200901212519261.png)
+![image-20240805095529185](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095529185.png)
 
 > **注意**：建议大家在不了解运行机制时，不要调整格式，如果要添加产品ID，按已有样式添加即可

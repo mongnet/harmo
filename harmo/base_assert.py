@@ -276,7 +276,7 @@ class Assertions:
         if not actual_value:
             assert True
         else:
-            assert False, f"校验值不为空,值为:{actual_value}" if not msg else f"{msg},校验值为:{actual_value}"
+            assert False, f"校验失败,值为:{actual_value}" if not msg else f"{msg},校验值为:{actual_value}"
 
     @classmethod
     @allure.step("校验不为空（None、False、空字符串""、0、空列表[]、空字典{}、空元组()都会判定为空）")
@@ -290,7 +290,7 @@ class Assertions:
         if actual_value:
             assert True
         else:
-            assert False, f"校验值为空,值为:{actual_value}" if not msg else f"{msg},校验值为:{actual_value}"
+            assert False, f"校验失败,值为:{actual_value}" if not msg else f"{msg},校验值为:{actual_value}"
 
     @classmethod
     @allure.step("校验时间小于预期,实际值为:{2},预期值为:{3}")

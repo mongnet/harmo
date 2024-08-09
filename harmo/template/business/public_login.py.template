@@ -12,7 +12,7 @@ from harmo.base_assert import Assertions
 from harmo.global_map import Global_Map
 
 from swagger.auth.auth import Auth
-from swagger.ent_admin_basic_data.ent_admin_basic_data_tenant import EntAdminBasicDataTenant
+from swagger.ent_admin_basic_data.ent_admin_basic_data_tenant_config import EntAdminBasicDataTenantConfig
 
 
 class Token:
@@ -40,7 +40,7 @@ class Token:
         获取scope
         '''
         body = {'domain': base_utils.extract_base_url(self.base_url)}
-        response = EntAdminBasicDataTenant().tenant_config_post(self.http_instance, body_kwargs=body)
+        response = EntAdminBasicDataTenantConfig().tenant_config_post(self.http_instance, body_kwargs=body)
         Assertions.assert_code(response, response.get("status_code"), 200)
         Assertions.assert_code(response, response.get("code")[0], 200)
         Assertions.assert_isNotEmpty(response.get("source_response").get("data"))
