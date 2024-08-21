@@ -193,6 +193,11 @@ class CasesCommand(Command):
                                 # file already exists.
                                 self.line(f'<fg=red>{group["file_name"]}.py</> file already exists, Don"t replace')
                                 continue
+                            for interface in group['interfaces']:
+                                if 'params_args' in interface.keys() and 'params_kwargs' in interface.keys():
+                                    for i in interface['params_kwargs']:
+                                        if i.split('=')[0] in interface['params_args']:
+                                            interface['params_kwargs'].remove(i)
                             group = {**group,**{"generated_time":datetime.now().strftime("%Y/%m/%d %H:%M")}}
                             # generate file
                             with open(f"{current_path}/../config/interface.mustache", "r") as mustache:
