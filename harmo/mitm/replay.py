@@ -194,16 +194,22 @@ class Replay:
         req = http_requests.HttpRequests(flowData['url'])
         if Global_Map.get('setting').get('headers') and isinstance(Global_Map.get('setting').get('headers'),dict):
             flowData['headers'].update(Global_Map.get('setting').get('headers'))
-        if Global_Map.get(Global_Map.get('setting').get('login').get('header')):
-            flowData['headers'][Global_Map.get('setting').get('login').get("header")] = Global_Map.get(Global_Map.get('setting').get('login').get('header'))
+        # 设置登录header
+        if Global_Map.get('setting').get('login'):
+            for login in Global_Map.get('setting').get('login'):
+                if isinstance(login,dict) and Global_Map.get(login.get('header')):
+                    flowData['headers'][login.get("header")] = Global_Map.get(login.get('header'))
         resp = req.send_request(method=flowData['method'],url=flowData['url'],payload=flowData['body'], header=flowData['headers']).get("response_obj")
         parsed_url = urlparse(flowData.get('url'))
-        if parsed_url.path.endswith(Global_Map.get('setting').get('login').get('url')):
-            token = extract.extract_by_object(resp, Global_Map.get('setting').get('login').get('rule'))
-            if isinstance(token,(str,int,bool)):
-                Global_Map.set(Global_Map.get('setting').get('login').get('header'), token)
-            else:
-                raise ValueError(f"config中的 {Global_Map.get('setting').get('login').get('rule')} 不是 str、int、bool 类型")
+        # 循环提取登录信息
+        if Global_Map.get('setting').get('login'):
+            for login in Global_Map.get('setting').get('login'):
+                if isinstance(login,dict) and (parsed_url.path.endswith(login.get('url')) or parsed_url.geturl().endswith(login.get('url'))):
+                    token = extract.extract_by_object(resp, login.get('rule'))
+                    if isinstance(token,(str,int,bool)):
+                        Global_Map.set(login.get('header'), token)
+                    else:
+                        raise ValueError(f"config中的 {login.get('rule')} 不是 str、int、bool 类型")
         return resp
 
     def execRulesIgnoreExect(self,data,flowData):
