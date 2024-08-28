@@ -9,6 +9,7 @@ import hashlib
 import hmac
 import ipaddress
 import os
+import re
 import secrets
 import string
 import uuid
@@ -619,11 +620,11 @@ def coincide_list(lists: list) -> list:
             break
     return match
 
-def get_match_text(url, textKey: str, split_str_list: Optional[list]=None, **kwargs) -> list:
+def get_match_text(url, textKeys: List[str], split_str_list: Optional[list]=None, **kwargs) -> list:
     """
     获取匹配文本
     :param url: 请求地址
-    :param textKey: 匹配关键字
+    :param textKeys: 匹配关键字
     :param split_str_list: 匹配关键字前需要分割的字符串列表
     :param kwargs:
     :return:
@@ -642,13 +643,34 @@ def get_match_text(url, textKey: str, split_str_list: Optional[list]=None, **kwa
             for split_str in split_str_list:
                 for comma in textLine.split(f"{split_str}"):
                     if not comma.startswith("/") and comma.isprintable() and comma:
-                        if comma.__contains__(textKey):
-                            match_list.append(comma)
+                        for textKey in textKeys:
+                            if comma.__contains__(textKey):
+                                match_list.append(comma)
         else:
             if not textLine.startswith("/") and textLine.isprintable() and textLine:
-                if textLine.__contains__(textKey):
-                    match_list.append(textLine)
+                for textKey in textKeys:
+                    if textLine.__contains__(textKey):
+                        match_list.append(textLine)
     return match_list
+
+def extract_urls(dataList: List[str]) -> list:
+    '''
+    从给定的字符串列表中提取所有URL地址。
+    :param dataList: 包含URL的字符串列表。
+    :return: 提取的URL列表
+    '''
+    # URL的正则表达式模式
+    url_pattern = re.compile(r'http[s]?://[^"]+')
+    # 用于存储所有找到的URL
+    urls = []
+    # 遍历数据，提取URL
+    for item in dataList:
+        # 对于列表中的每个元素，查找所有匹配的URL
+        found_urls = url_pattern.findall(item)
+        for url in found_urls:
+            # 将找到的URL添加到列表中
+            urls.append(url.strip().split('"')[0].split("'")[0])
+    return urls
 
 def is_private_ip(ip: str) -> bool:
     '''
@@ -806,6 +828,10 @@ if __name__ == "__main__":
     recursion_replace_dict_key_value(alist,replaceDict)
     print(source)
     print(alist)
+    matc = get_match_text("http://192.168.13.172/service/luban-file/video/view/5aa0b8944759472789e1b9183941cf32?readOnly=true&access-token=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJHWkFDUHoxVlBjIiwiYXBwIjoiYnVpbGRlci1iYXNlIiwiaWF0IjoxNzI0ODI3ODI4LCJzdWIiOiJcdTgwZTFcdTVmNmEiLCJuYW1lIjoiYnVpbGRlci1iYXNlIiwiZXhwIjoxNzI0ODg3ODI4LCJhdWQiOm51bGwsImFjdCI6IkFMTCIsIm1ldGEiOnsicG5hbWUiOiJsdWJhbi1idWlsZGVyLWFwcCIsInRpZCI6OTAwMDExNTB9LCJyZXMiOm51bGwsImRhdGEiOnsidGVuYW50SWQiOjkwMDAxMTUwLCJjdXN0b21lcktleSI6bnVsbCwiY3VzdG9tZXJJZCI6bnVsbH19.YEKRhpXCrDWi82rCdImIg1kQGcaPgWvQh5zEV0WV470rFUfrm0G0FWv86xuawXQAnRWTJSXlZMUOS_GwmJVT1FekaazUUbGgdWCHzkZaPcbXsBRbzCmrlB2IL-JvPSLI1Jwcyp5nkFKZvpz1YChq8Ke0v2OKyKbvYofaZXBmsQTD0aVhoFy92VK4Y9LGd1YJ8meeHhdgn-vvvV8AxUgPrr1La0Jhm20VD3tUZRVpeNb-l8s5zSDXJqw7ncDFJ6wDXwZXD14c6jGBIr73yTFoWrc4PU5l-iYmz8pnPbCYsOmmHF__GTVrIyTgLvonW2KatYsTv9B24nWASPBdGJZ-aGB4rWlbxQ13lNg4Qi7AkHDk4to-KrVXeq_MR3-OZAS6siFXXfIQtz69SFC-TPAntdKS2QgFzM_uaMycOVjKQMRfhnJm1R1rQzcbltmpIstrcz1dQwCgQmYKlsUjmRE4MB-JBbhbDYft8OwBL0x0_cKYMO216Q7gWGofxHjQD3GlsQLT6yZiyQrXdefY_ZJhT1TK02yKyTj_Zj4JUVMxzhOWJJi31m20Id_x664eAl31JKFSfM3muyARbf91Njm_ZM-tQ1_CvQw3MIDKBCAr4c6-hmj3xherXeBJ6QlDf0Ckmj9gLVSDJvo8Kqy3aioq5AZXti1ukreW2sv0iXgO4Ek&fileIds=25a182bf50624f5694b4311e2ad445a2",textKeys=["url","previewUrl","window.fileUrl","video:"], split_str_list=[";"])
+    print(matc)
+    print(extract_urls(matc))
+
     # TextLineContains(f"http://etlview.lbuilder.cn/center-new/config.js", "serviceUrl", f"http://etlview.lbuilder.cn/api","etlview config.js 配置未修改")
 
 
