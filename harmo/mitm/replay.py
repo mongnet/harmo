@@ -95,10 +95,11 @@ class Replay:
                 urlTotal += 1
                 result_dict = {}
                 # 默认 result_dict 为 ignore 状态
-                result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = flowDatas[i]['id'], flowDatas[i]['url'], flowDatas[i]['method'], 'ignore'
+                result_dict['id'], result_dict['url'], result_dict['method'] = flowDatas[i]['id'], flowDatas[i]['url'], flowDatas[i]['method']
                 # 忽略校验的url
                 parsed_url = urlparse(flowDatas[i]['url'])
                 if filter_urls and any(parsed_url.path.endswith(filteUrl) or flowDatas[i]['url'].startswith(filteUrl) for filteUrl in filter_urls):
+                    result_dict['status'] = 'ignore'
                     RESULT_LIST.append(result_dict)
                     continue
                 try:
@@ -148,8 +149,21 @@ class Replay:
                                         flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), str(val)))
                                         rule['value'].remove(rule['value'][0])
                         else:
+                            # 非json数据的对比
+                            if respObj.content.decode("utf-8") == flowDatas[i]['resp']:
+                                result_dict['status'] = 'pass'
+                            else:
+                                from difflib import Differ
+                                result_dict['status'] = 'fail'
+                                expected_lines = flowDatas[i]['resp'].strip().split('\n')
+                                actual_lines = respObj.content.decode("utf-8").strip().split('\r\n')
+                                d = Differ()
+                                diff = list(d.compare(expected_lines, actual_lines))
+                                diff_lines = [line for line in diff if line.startswith('- ') or line.startswith('+ ')]
+                                result_dict['contentList'] = [{'diff_lines': diff_lines, 'key': 'resp.diff'}]
                             RESULT_LIST.append(result_dict)
                     else:
+                        result_dict['status'] = 'fail'
                         RESULT_LIST.append(result_dict)
                 except Exception as e:
                     print(f"json解析失败:{e}")
@@ -178,15 +192,18 @@ class Replay:
         :return:
         '''
         req = http_requests.HttpRequests(flowData['url'])
-        if Global_Map.get("setting").get("headers") and isinstance(Global_Map.get("setting").get("headers"),dict):
-            flowData['headers'].update(Global_Map.get("setting").get("headers"))
-        if Global_Map.get(Global_Map.get('setting').get('login').get("header")):
-            flowData['headers'][Global_Map.get('setting').get('login').get("header")] = Global_Map.get(Global_Map.get('setting').get('login').get("header"))
+        if Global_Map.get('setting').get('headers') and isinstance(Global_Map.get('setting').get('headers'),dict):
+            flowData['headers'].update(Global_Map.get('setting').get('headers'))
+        if Global_Map.get(Global_Map.get('setting').get('login').get('header')):
+            flowData['headers'][Global_Map.get('setting').get('login').get("header")] = Global_Map.get(Global_Map.get('setting').get('login').get('header'))
         resp = req.send_request(method=flowData['method'],url=flowData['url'],payload=flowData['body'], header=flowData['headers']).get("response_obj")
         parsed_url = urlparse(flowData.get('url'))
-        if parsed_url.path.endswith(Global_Map.get('setting').get('login').get("url")):
-            token = extract.extract_by_object(resp, Global_Map.get('setting').get('login').get("rule"))
-            Global_Map.set(Global_Map.get('setting').get('login').get("header"),token)
+        if parsed_url.path.endswith(Global_Map.get('setting').get('login').get('url')):
+            token = extract.extract_by_object(resp, Global_Map.get('setting').get('login').get('rule'))
+            if isinstance(token,(str,int,bool)):
+                Global_Map.set(Global_Map.get('setting').get('login').get('header'), token)
+            else:
+                raise ValueError(f"config中的 {Global_Map.get('setting').get('login').get('rule')} 不是 str、int、bool 类型")
         return resp
 
     def execRulesIgnoreExect(self,data,flowData):

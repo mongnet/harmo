@@ -79,7 +79,7 @@ class Counter:
             clean_result = self.clean_data(flow.customField)
             if clean_result:
                 self.interfaces.append(clean_result)
-                ctx.log.info(f"收集到第： {len(self.interfaces)} 个请求")
+                ctx.log.info(f"收集到第 {len(self.interfaces)} 个请求")
                 with open('record_results.json','w',encoding='utf-8') as f:
                     f.write(json.dumps(self.interfaces, ensure_ascii=False))
 

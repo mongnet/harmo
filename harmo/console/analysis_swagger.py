@@ -766,6 +766,7 @@ if __name__ == "__main__":
     url47 = "http://192.168.13.178:8864/sphere/v3/api-docs"
     url48 = "http://192.168.13.172:19901/ent-admin-org/v3/api-docs/swagger-config"
     url49 = "http://192.168.13.172:19904/acl/v3/api-docs/接口文档"
+    url50 = "http://192.168.13.172:19912/luban-quota/v3/api-docs/%E6%8E%A5%E5%8F%A3%E6%96%87%E6%A1%A3"
 
 
 
@@ -793,3 +794,4 @@ if __name__ == "__main__":
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url47))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url48))
     # print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url49,header={"Authorization": "Basic YWRtaW46MTExMTEx"}))
+    print(AnalysisSwaggerJson().analysis_json_data(swaggerUrl=url50))

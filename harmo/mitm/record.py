@@ -11,8 +11,9 @@ def run_mitmdump_script():
     addons_py_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "addons.py")
     command = ['mitmdump', '-s', addons_py_path]
     print("录制已开始，请设置好代理并开始操作，按 ctrl+C 结束录制.")
+    env = os.environ.copy()
     # 使用 subprocess.Popen 来启动命令并获取输出
-    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=os.environ) as process:
+    with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env) as process:
         try:
             # 实时获取并打印 mitmdump 的输出
             for line in process.stdout:
@@ -26,6 +27,8 @@ def run_mitmdump_script():
             process.terminate()
             print(f"录制异常终止: {e}")
         finally:
+            if process.stdout:
+                process.stdout.close()
             print(f"录制已结束.")
 
 if __name__ == '__main__':

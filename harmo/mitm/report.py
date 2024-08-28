@@ -112,13 +112,20 @@ class ReportUtil:
         if eachInfo:
             if 'contentList' in eachInfo:
                 for content in eachInfo['contentList']:
-                    if len(content['expect']) == len(content['actual']):
+                    if content['key'] == 'resp.diff':
+                        text = '<b>数据 diff 失败:</b></br></br>'
+                        for line in content['diff_lines']:
+                            if line.startswith('- '):
+                                text = text+"<span class='line_old'>"+line.replace("<", "&lt;").replace(">", "&gt;")+'</span></br>'
+                            else:
+                                text = text+"<span class='line_new'>"+line.replace("<", "&lt;").replace(">", "&gt;")+'</span></br>'
+                    elif len(content['expect']) == len(content['actual']):
                         n = 0
                         for i in range(len(content['expect'])):
                             if content['expect'][i] != content['actual'][i] : n = i
-                        text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'][n])+"</span><b> 实际:</b><span class='fail'> "+str(content['actual'][n])+'</span><br><br>'
+                        text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'][n])+"</span><br><b> 实际:</b><span class='fail'> "+str(content['actual'][n])+'</span><br><br>'
                     else:
-                        text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际数量不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'])+"</span><b> 实际:</b><span class='fail'> "+str(content['actual'])+'</span><br><br>'
+                        text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'])+"</span><br><b> 实际:</b><span class='fail'> "+str(content['actual'])+'</span><br><br>'
             elif eachInfo.get("status") == "fail":
                 text = '<p class="fail">失败</p>'
             elif eachInfo.get("status") == "ignore":

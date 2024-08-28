@@ -1,4 +1,8 @@
-__pycache__
+*/__pycache__/
+*.pyc
+*.egg-info
+*.logs
+*.reports
 .DS_Store
 .cache
 .eggs
@@ -8,9 +12,3 @@ __pycache__
 .pypirc
 .venv
 .tox
-*.pyc
-*.egg-info
-dist
-tmp
-logs
-reports

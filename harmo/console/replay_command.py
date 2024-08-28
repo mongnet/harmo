@@ -21,16 +21,14 @@ class ReplayCommand(Command):
     def handle(self):
         # 模块名称
         modelName = self.argument("modelName")
-        if modelName:
-            ret = re.findall(f'[/:*?"<>|]',modelName)
-            if ret:
-                raise RuntimeError(
-                    f'Destination <fg=yellow>{self.option("case-directory")}</> '
-                    "The case directory Contains illegal characters, "
-                    f"Illegal characters: {ret}"
-                )
-        else:
-            modelName = None
+        ret = re.findall(f'[/:*?"<>|]',modelName)
+        if ret:
+            raise RuntimeError(
+                f'Destination <fg=yellow>{self.argument("modelName")}</> '
+                "The model name Contains illegal characters, "
+                f"Illegal characters: {ret}"
+            )
+
         # 执行
         replay.Replay().run(modelName)
 

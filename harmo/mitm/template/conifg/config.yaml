@@ -5,7 +5,7 @@ setting :
   scope :
     - 龙门吊-设备管理_测试脚本文件夹_1670811570
   login :
-    url : /auth-server/auth/token
+    url : service/auth/login
     rule : resp.data
     header : access-token
   filterMethod :
