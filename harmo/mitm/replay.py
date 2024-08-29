@@ -3,11 +3,10 @@
 # @TIME    : 2024/4/3 15:00
 # @Author  : hubiao
 # @Email   : 250021520@qq.com
-
-import os
 from datetime import datetime
 
 import jsonpath
+import requests
 
 from harmo.mitm.NoiseReduction import NoiseReduction
 from harmo.mitm.report import ReportUtil
@@ -71,6 +70,18 @@ class Replay:
         self.rulesIgnoreContain = {}
         self.rulesGet = {}
 
+    def isJson(self,data: requests) -> bool:
+        '''
+        判断对象是否能进行json序列化
+        :param data:
+        :return:
+        '''
+        try:
+            data.json()
+        except Exception as e:
+            return False
+        return True
+
     def run(self,modelName):
         """
         执行回放
@@ -104,7 +115,7 @@ class Replay:
                     continue
                 try:
                     if respObj:
-                        if respObj.headers.get('Content-Type') and 'application/json' in respObj.headers.get('Content-Type'):
+                        if respObj.headers.get('Content-Type') and ('application/json' in respObj.headers.get('Content-Type') or self.isJson(respObj)):
                             val = respObj.json()
                             self.diff = assert_json(val, flowDatas[i]['resp'])
                             # 默认对比状态为 pass

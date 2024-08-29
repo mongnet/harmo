@@ -100,9 +100,15 @@ class HttpRequests(requests.Session):
                     del request_header["Content-Type"]
             else:
                 raise TypeError("files参数格式错误,files必须为dict类型，且必须包含file")
-        # 判断payload不为str时，dumps成str类型
-        elif isinstance(payload,list) or (not isinstance(payload,str) and payload):
-            payload = json.dumps(payload)
+        # 判断payload不为str时，dumps成str类型，如果已经是str格式，尝试反序列化后再序列化
+        if isinstance(payload,list) or (not isinstance(payload,str) and payload):
+            payload = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+        elif isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+                payload = json.dumps(payload, ensure_ascii=False).encode('utf-8')
+            except Exception as e:
+                payload = payload
         res = {}
         try:
             # 发送POST请求
@@ -119,7 +125,7 @@ class HttpRequests(requests.Session):
                 logging.info("请求的Url: " + self.Response.url)
                 logging.info("持续时间: " + str(self.Response.elapsed.total_seconds()))
                 logging.info("请求头: " + str(self.Response.request.headers))
-                logging.info("请求数据: " + str(payload).encode("utf-8").decode("unicode_escape"))
+                logging.info("请求数据: " + str(payload.decode('utf-8') if payload else payload))
                 logging.info("响应状态: " + str(self.Response.status_code))
                 logging.info("响应内容: "+ self.Response.text if "text/html" not in str(self.Response.headers.get("Content-Type")) else "响应内容: 内容为html，隐藏")
                 logging.info("结束分割线end: ".center(60, "#"))
@@ -130,7 +136,7 @@ class HttpRequests(requests.Session):
                 res["request_url"] = self.Response.url
                 res["request_method"] = str(self.Response.request.method)
                 res["request_params"] = params
-                res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")
+                res["request_payload"] = payload.decode('utf-8') if payload else payload
                 res["response_obj"] = self.Response
             except BaseException as e:
                 logging.error("获取请求和响应信息出现异常：" + str(e))
@@ -155,7 +161,7 @@ class HttpRequests(requests.Session):
         except requests.exceptions.RequestException as e:
             logging.error("RequestException异常开始分割线start: ".center(60, "#"))
             logging.error("请求的Url: " + self.Url)
-            logging.error("请求数据: " + str(payload).encode("utf-8").decode("unicode_escape"))
+            logging.error("请求数据: " + str(payload.decode('utf-8') if payload else payload))
             logging.error("发送请求出现异常: " + str(e))
             logging.error("RequestException异常结束分割线end: ".center(60, "#"))
             res["status_code"] = None
@@ -163,7 +169,7 @@ class HttpRequests(requests.Session):
             res["request_url"] = self.Url
             res["request_method"] = method
             res["request_params"] = params
-            res["request_payload"] = str(payload).encode("utf-8").decode("unicode_escape")
+            res["request_payload"] = payload.decode('utf-8') if payload else payload
             res["Response_text"] = "发送请求出现异常，异常信息为: " + str(e)
         Global_Map.sets({"temp_user_properties": {"url":res.get("request_url",None),"status_code":res.get("status_code",None),"source_response":res.get("source_response",None)}})
         return res
