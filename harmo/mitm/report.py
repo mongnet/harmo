@@ -119,9 +119,9 @@ class ReportUtil:
                                 text = text+"<span class='line_old'>"+line.replace("<", "&lt;").replace(">", "&gt;")+'</span></br>'
                             else:
                                 text = text+"<span class='line_new'>"+line.replace("<", "&lt;").replace(">", "&gt;")+'</span></br>'
-                    elif len(content['expect']) == len(content['actual']):
+                    elif content.get('expect',None) == content.get('actual',None):
                         n = 0
-                        for i in range(len(content['expect'])):
+                        for i in range(len(content.get('expect'))):
                             if content['expect'][i] != content['actual'][i] : n = i
                         text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'][n])+"</span><br><b> 实际:</b><span class='fail'> "+str(content['actual'][n])+'</span><br><br>'
                     else:

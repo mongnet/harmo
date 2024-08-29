@@ -28,30 +28,35 @@ def assert_json(actual, expect):
     errorList = []
     del actual['source_response']
     del expect['source_response']
-    actual = dict(eval(str(actual).replace('true', 'True').replace('false', 'False')))
-    for key in actual.keys():
+    base_utils.recursion_replace_dict_value(actual, {'null': None, 'false': False, 'true': True})
+    base_utils.recursion_replace_dict_value(expect, {'null': None, 'false': False, 'true': True})
+    for key in expect.keys():
         temp_dict = {}
-        if '{' not in str(actual[key]):
-            if len(actual[key]) != 0:
-                for i in range(len(actual[key])):
-                    if actual[key][i] == 'null': actual[key][i] = 'None'
-                    if 'false' in str(actual[key][i]): actual[key][i] = str(actual[key][i]).replace('false', 'False')
-                    if 'true' in str(actual[key][i]): actual[key][i] = str(actual[key][i]).replace('true', 'True')
-                if isinstance(actual[key][0], (str, float, int)):
+        if '{' not in str(expect[key]):
+            if len(expect[key]) != 0:
+                if isinstance(expect[key][0], (str, float, int)):
                     try:
-                        if len(actual[key]) == len(expect[key]):
-                            if list(set(actual[key]).difference(set(expect[key]))) != []:
+                        actual_val = actual[key]
+                    except:
+                        actual_val = actual.get(key, None)
+                    try:
+                        expect_val = expect[key]
+                    except:
+                        expect_val = expect.get(key, None)
+                    try:
+                        if actual_val == expect_val:
+                            if list(set(actual_val).difference(set(expect_val))) != []:
                                 temp_dict['key'] = key
-                                temp_dict['expect'] = expect[key]
-                                temp_dict['actual'] = actual[key]
+                                temp_dict['expect'] = expect_val
+                                temp_dict['actual'] = actual_val
                         else:
                             temp_dict['key'] = key
-                            temp_dict['expect'] = expect[key]
-                            temp_dict['actual'] = actual[key]
+                            temp_dict['expect'] = expect_val
+                            temp_dict['actual'] = actual_val
                     except:
                         temp_dict['key'] = key
-                        temp_dict['expect'] = str(expect)
-                        temp_dict['actual'] = actual[key]
+                        temp_dict['expect'] = expect_val
+                        temp_dict['actual'] = actual_val
         if temp_dict != {}:
             errorList.append(temp_dict)
     return errorList
@@ -244,7 +249,8 @@ class Replay:
         for each in self.rulesIgnoreContain:
             if str(each['Location']).upper() in str(data['key']).upper() and (flowData["path"] == each['Path'] or each['Path'] == 'ALL'):
                 tempkey = [v['key']  for v in self.diff if self.diff ]
-                if data['key'] in tempkey : self.diff.remove(data)
+                if data['key'] in tempkey :
+                    self.diff.remove(data)
 
     def execRulesGet(self,data,flowData):
         '''

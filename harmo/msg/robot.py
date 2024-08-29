@@ -234,7 +234,7 @@ class Feishu:
                         "tag": "lark_md"
                     }
                 }, {
-                    "actions": [{"tag":"button","text":{"content":f"更多详情:UPPERLEFT:这里","tag":"lark_md"},"url":url,"type":"default","value":{}}] if url else [],
+                    "actions": [{"tag":"button","text":{"content":f"更多详情:UPPERLEFT:","tag":"lark_md"},"url":url,"type":"default","value":{}}] if url else [],
                     "tag": "action"
                 }],
                 "header": {

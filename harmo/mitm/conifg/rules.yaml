@@ -13,7 +13,7 @@ Rules:
     Method: ALL
     Location: size
     Type: IGNORE
-    Contain: True
+    Contain: False
   - Path: ALL
     Method: ALL
     Location: time
@@ -23,7 +23,7 @@ Rules:
     Method: ALL
     Location: data
     Type: IGNORE
-    Contain: True
+    Contain: False
   - Path: ALL
     Method: ALL
     Location: downloadUrls
@@ -49,4 +49,18 @@ Rules:
     Type: GETVALUE
     AfterAPI :
       Path: /service/ent-admin-org/project/create-proj
+      Method: POST
+  - Path:
+    Method:
+    Location: resp.data.0.fileId
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/builder-base/file/upload-url
+      Method: POST
+  - Path:
+    Method:
+    Location: resp.data
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/sphere/rest/responsibility/simpleSave
       Method: POST
