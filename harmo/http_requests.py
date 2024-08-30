@@ -101,7 +101,7 @@ class HttpRequests(requests.Session):
             else:
                 raise TypeError("files参数格式错误,files必须为dict类型，且必须包含file")
         # 判断payload不为str时，dumps成str类型，如果已经是str格式，尝试反序列化后再序列化
-        if isinstance(payload,list) or (not isinstance(payload,str) and payload):
+        elif isinstance(payload,list) or (not isinstance(payload,str) and payload):
             payload = json.dumps(payload, ensure_ascii=False).encode('utf-8')
         elif isinstance(payload, str):
             try:

@@ -208,24 +208,30 @@ class Replay:
         :return:
         '''
         req = http_requests.HttpRequests(flowData['url'])
+        parsed_url = urlparse(flowData.get('url'))
+        # 强制指定header
         if Global_Map.get('setting').get('headers') and isinstance(Global_Map.get('setting').get('headers'),dict):
             flowData['headers'].update(Global_Map.get('setting').get('headers'))
         # 设置登录header
         if Global_Map.get('setting').get('login'):
             for login in Global_Map.get('setting').get('login'):
-                if isinstance(login,dict) and Global_Map.get(login.get('header')):
-                    flowData['headers'][login.get("header")] = Global_Map.get(login.get('header'))
+                header_key = '_'.join([login.get('url').replace(' ', '').replace('-', '_').replace('/', '_'), login.get('header')])
+                if isinstance(login, dict) and Global_Map.get(header_key):
+                    if login.get('scope'):
+                        if [s for s in login.get('scope') if s in parsed_url.path]:
+                            flowData['headers'][login.get('header')] = Global_Map.get(header_key)
+                    else:
+                        flowData['headers'][login.get('header')] = Global_Map.get(header_key)
+        # 发送请求
         resp = req.send_request(method=flowData['method'],url=flowData['url'],payload=flowData['body'], header=flowData['headers']).get("response_obj")
-        parsed_url = urlparse(flowData.get('url'))
         # 循环提取登录信息
         if Global_Map.get('setting').get('login'):
             for login in Global_Map.get('setting').get('login'):
                 if isinstance(login,dict) and (parsed_url.path.endswith(login.get('url')) or parsed_url.geturl().endswith(login.get('url'))):
                     token = extract.extract_by_object(resp, login.get('rule'))
                     if isinstance(token,(str,int,bool)):
-                        Global_Map.set(login.get('header'), token)
-                    else:
-                        raise ValueError(f"config中的 {login.get('rule')} 不是 str、int、bool 类型")
+                        header_key = '_'.join([login.get('url').replace(' ', '').replace('-', '_').replace('/', '_'),login.get('header')])
+                        Global_Map.set(header_key, token)
         return resp
 
     def execRulesIgnoreExect(self,data,flowData):
