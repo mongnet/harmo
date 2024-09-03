@@ -3,6 +3,7 @@
 # @TIME    : 2024/4/3 15:00
 # @Author  : hubiao
 # @Email   : 250021520@qq.com
+import copy
 from datetime import datetime
 
 import jsonpath
@@ -146,24 +147,24 @@ class Replay:
                                 RESULT_LIST.append(result_dict)
                             # 数据替换
                             for rule in self.rulesGet:
-                                whetherCheck = False
-                                id = self.noiseReduction.getValueId(flowDatas, rule)
-                                if id == flowDatas[i]['id']:
-                                    whetherCheck = True
-                                    for loc in rule['Location'].split('.')[1:]:
-                                        try:
-                                            loc = int(loc)
-                                        except:
-                                            pass
-                                        try:
-                                            val = val[loc]
-                                        except:
-                                            pass
-                                if val not in [None, []] and whetherCheck:
-                                    if len(rule['value']) != 0:
-                                        # GLOBAL[rule['Location']] = val
-                                        flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), str(val)))
-                                        rule['value'].remove(rule['value'][0])
+                                if rule.get('AfterAPI').get("Path") in flowDatas[i]['url']:
+                                    val_deepcopy = copy.deepcopy(val)
+                                    id = self.noiseReduction.getValueId(flowDatas, rule)
+                                    if id and flowDatas[i]['id'] in id:
+                                        for loc in rule['Location'].split('.')[1:]:
+                                            try:
+                                                loc = int(loc)
+                                            except:
+                                                pass
+                                            try:
+                                                val_deepcopy = val_deepcopy[loc]
+                                            except:
+                                                pass
+                                        if val_deepcopy not in [None, []]:
+                                            if len(rule['value']) != 0:
+                                                # GLOBAL[rule['Location']] = val
+                                                flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), str(val_deepcopy)))
+                                                rule['value'].remove(rule['value'][0])
                         else:
                             # 非json数据的对比
                             if respObj.content.decode("utf-8") == flowDatas[i]['resp']:
@@ -242,7 +243,7 @@ class Replay:
         :return:
         '''
         for each in self.rulesIgnoreExect:
-            if data['key'] == each['Location'] and (flowData["path"] == each['Path'] or each['Path'] == 'ALL'):
+            if data['key'] == each['Location'] and (each['Path'] == 'ALL' or each['Path'] in flowData["path"]):
                 self.diff.remove(data)
 
     def execRulesIgnoreContain(self,data,flowData):
@@ -253,7 +254,7 @@ class Replay:
         :return:
         '''
         for each in self.rulesIgnoreContain:
-            if str(each['Location']).upper() in str(data['key']).upper() and (flowData["path"] == each['Path'] or each['Path'] == 'ALL'):
+            if str(each['Location']).upper() in str(data['key']).upper() and (each['Path'] == 'ALL' or each['Path'] in flowData["path"]):
                 tempkey = [v['key']  for v in self.diff if self.diff ]
                 if data['key'] in tempkey :
                     self.diff.remove(data)
@@ -266,8 +267,7 @@ class Replay:
         :return:
         '''
         for each in self.rulesGet:
-            if ('_').join(str(each['Location']).split('.')[1:]).upper() in str(data['key']).upper() and (
-                    flowData["path"] == each['Path'] or each['Path'] == 'ALL'):
+            if ('_').join(str(each['Location']).split('.')[1:]).upper() in str(data['key']).upper() and (flowData["path"] == each['Path'] or each['Path'] == 'ALL'):
                 self.diff.remove(data)
 
     def main(self,flowData):
@@ -276,8 +276,9 @@ class Replay:
         :param flowData:
         :return:
         '''
-        if self.diff:
-            for diffeach in self.diff:
+        diff_afterRules = copy.deepcopy(self.diff)
+        if diff_afterRules:
+            for diffeach in diff_afterRules:
                 self.execRulesIgnoreExect(diffeach,flowData)
                 self.execRulesIgnoreContain(diffeach,flowData)
                 self.execRulesGet(diffeach,flowData)

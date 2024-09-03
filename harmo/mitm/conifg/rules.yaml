@@ -11,6 +11,21 @@ Rules:
     Contain: True
   - Path: ALL
     Method: ALL
+    Location: createDate
+    Type: IGNORE
+    Contain: True
+  - Path: ALL
+    Method: ALL
+    Location: updateDate
+    Type: IGNORE
+    Contain: True
+  - Path: ALL
+    Method: ALL
+    Location: processStartDate
+    Type: IGNORE
+    Contain: True
+  - Path: ALL
+    Method: ALL
     Location: size
     Type: IGNORE
     Contain: False
@@ -24,9 +39,39 @@ Rules:
     Location: data
     Type: IGNORE
     Contain: False
+  - Path: /service/process/instance/start
+    Method: ALL
+    Location: data_id
+    Type: IGNORE
+    Contain: False
+  - Path: /service/process/task/node/process
+    Method: ALL
+    Location: data_taskId
+    Type: IGNORE
+    Contain: False
+  - Path: /service/process/task/node/process
+    Method: ALL
+    Location: data_taskKey
+    Type: IGNORE
+    Contain: False
+  - Path: /service/process/task/node/process
+    Method: ALL
+    Location: data_flowTemplateId
+    Type: IGNORE
+    Contain: False
+  - Path: /service/process/task/comment/record
+    Method: ALL
+    Location: data_id
+    Type: IGNORE
+    Contain: False
   - Path: ALL
     Method: ALL
     Location: downloadUrls
+    Type: IGNORE
+    Contain: False
+  - Path: /service/builder-base/file/upload-url
+    Method: ALL
+    Location: data_fileId
     Type: IGNORE
     Contain: False
   - Path:
@@ -64,3 +109,45 @@ Rules:
     AfterAPI :
       Path: /service/sphere/rest/responsibility/simpleSave
       Method: POST
+  - Path:
+    Method:
+    Location: resp.data
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/sphere/rest/accident/simpleSave
+      Method: POST
+  - Path:
+    Method:
+    Location: resp.data.id
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/process/instance/start
+      Method: POST
+  - Path:
+    Method:
+    Location: resp.data.templateId
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/process/instance/start
+      Method: POST
+  - Path:
+    Method:
+    Location: resp.data.-1.id
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/process/task/comment/record
+      Method: POST
+  - Path:
+    Method:
+    Location: resp.data.-1.taskId
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/process/task/node/process
+      Method: GET
+  - Path:
+    Method:
+    Location: resp.data.-1.taskKey
+    Type: GETVALUE
+    AfterAPI :
+      Path: /service/process/task/node/process
+      Method: GET

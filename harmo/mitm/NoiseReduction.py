@@ -81,7 +81,7 @@ class NoiseReduction:
                 if str(eachRule.get('Type')).upper() == 'GETVALUE':
                     eachRule['value'],id = [],self.getValueId(flowDatas,eachRule)
                     for data in flowDatas:
-                        if id == data.get('id') and id:
+                        if id and data.get('id') in id:
                             eachRule['value'].append(self.getValue(data,eachRule))
                         recond.append({'id':data.get('id'),'url':data.get('url'),'method':data.get('method')})
                     self.rules_GET.append(eachRule)
@@ -95,20 +95,20 @@ class NoiseReduction:
                     'rulesIgnoreExect':self.rules_IGNORE_EXECT,'rulesGet':self.rules_GET}
 
     def getValueId(self,flowdata,rule):
-        id =None
+        id = []
         if 'AfterAPI' in rule.keys():
             for i in range(len(flowdata)):
                 if str(rule['AfterAPI']['Method']).upper()!='MOCK':
-                    if str(rule['AfterAPI']['Method']).upper() == str(flowdata[i]['method']).upper() and rule['AfterAPI']['Path'] == flowdata[i]['path']:
-                        id=flowdata[i]['id']
+                    if str(rule['AfterAPI']['Method']).upper() == str(flowdata[i]['method']).upper() and rule['AfterAPI']['Path'] in flowdata[i]['path']:
+                        id.append(flowdata[i]['id'])
                 else:
                     if 'MockName' in flowdata[i].keys():
                         if rule['AfterAPI']['Path'] == flowdata[i]['MockName']:
-                            id = flowdata[i]['id']
+                            id.append(flowdata[i]['id'])
         else:
             for data in flowdata:
                 if rule['Path'] in data['path']:
-                    id = data['id']
+                    id.append(data['id'])
         return id
 
     def __specialFlowStatus(self,flowdata):
