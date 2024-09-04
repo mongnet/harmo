@@ -119,13 +119,29 @@ class ReportUtil:
                                 text = text+"<span class='line_old'>"+line.replace("<", "&lt;").replace(">", "&gt;")+'</span></br>'
                             else:
                                 text = text+"<span class='line_new'>"+line.replace("<", "&lt;").replace(">", "&gt;")+'</span></br>'
-                    elif content.get('expect',None) and content.get('actual',None) and len(content.get('expect')) != len(content.get('actual')):
-                        n = 0
-                        for i in range(len(content.get('expect'))):
-                            if content['expect'][i] != content['actual'][i] : n = i
-                        text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际值数量不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'][n])+"</span><br><b> 实际:</b><span class='fail'> "+str(content['actual'][n])+'</span><br><br>'
+                    elif content.get('expect',None) and content.get('actual',None):
+                        difference_text = ""
+                        if len(content.get('expect')) == len(content.get('actual')):
+                            for i in range(len(content.get('expect'))):
+                                if content['expect'][i] != content['actual'][i]:
+                                    difference_text += f" <b>预期:</b><span class='pass'> {str(content['expect'][i])} </span><br> <b>实际:</b><span class='fail'> {str(content['actual'][i])} </span><br>"
+                            text += "<b>路径:</b> " + str(content['key']).replace('_','.') + '<br>' + " 预期与实际值不一致" + '<br>' + difference_text + '<br>'
+                        else:
+                            if len(content.get('expect')) > len(content.get('actual')):
+                                difference_nmber = len(content.get('expect')) - len(content.get('actual'))
+                                difference_text = f"预期与实际数量不一致<br>预期中多了：<span class='fail'>{content.get('expect')[-difference_nmber:]}</span><br>"
+                                for i in range(len(content.get('actual'))):
+                                    if content['expect'][i] != content['actual'][i]:
+                                        difference_text += f" <b>预期:</b><span class='pass'> {str(content['expect'][i])} </span><br> <b>实际:</b><span class='fail'> {str(content['actual'][i])} </span><br>"
+                            else:
+                                difference_nmber = len(content.get('actual')) - len(content.get('expect'))
+                                difference_text =  f"预期与实际数量不一致<br>实际中多了：<span class='fail'>{content.get('actual')[-difference_nmber:]}</span><br>"
+                                for i in range(len(content.get('expect'))):
+                                    if content['expect'][i] != content['actual'][i]:
+                                        difference_text += f" <b>预期:</b><span class='pass'> {str(content['expect'][i])} </span><br> <b>实际:</b><span class='fail'> {str(content['actual'][i])} </span><br>"
+                            text += "<b>路径:</b> " + str(content['key']).replace('_','.') + '<br>' + difference_text + '<br>'
                     else:
-                        text = text+"<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'])+"</span><br><b> 实际:</b><span class='fail'> "+str(content['actual'])+'</span><br><br>'
+                        text += "<b>路径:</b> "+str(content['key']).replace('_','.')+'<br>'+" 预期与实际值不一致"+'<br>'+" <b>预期:</b><span class='pass'> "+str(content['expect'])+"</span><br><b> 实际:</b><span class='fail'> "+str(content['actual'])+'</span><br><br>'
             elif eachInfo.get("status") == "fail":
                 text = '<p class="fail">失败</p>'
             elif eachInfo.get("status") == "ignore":
