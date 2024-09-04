@@ -16,8 +16,10 @@ def get_json_data(file_path: str) -> dict:
     '''
     file = base_utils.file_is_exist(file_path)
     if Path(file).suffix in (".json"):
-        with open(file, 'r', encoding='utf-8-sig') as f:
-            json_data = json.load(f)
+        json_data = {}
+        if os.path.getsize(file_path) > 0:
+            with open(file, 'r', encoding='utf-8-sig') as f:
+                json_data = json.load(f)
         return json_data
     else:
         raise TypeError("The file type must be json")
@@ -36,9 +38,11 @@ def get_json_data_all(catalogue: str,filter: Optional[List[str]]=None) -> dict:
                 if filter is not None and file in filter:
                     continue
                 _full_path = os.path.join(root, file)
-                with open(_full_path,'r',encoding='utf-8-sig') as f:
-                    _full_path = json.load(f)
-                    _all_date = {**_full_path,**_all_date}
+                json_data = {}
+                if os.path.getsize(_full_path) > 0:
+                    with open(_full_path,'r',encoding='utf-8-sig') as f:
+                        json_data = json.load(f)
+                _all_date = {**json_data,**_all_date}
     return _all_date
 
 def writer_json(file: str,json_data: Union[dict,list]) -> None:
@@ -60,7 +64,7 @@ def writer_json(file: str,json_data: Union[dict,list]) -> None:
 if __name__ == '__main__':
     pass
     # 读取信息
-    # yamldata = get_json_data(file_path='../../data/config.yaml')
+    # yamldata = get_json_data(file_path='../../data/source.json')
     # print(yamldata)
     # print(type(yamldata))
     # yamldataall = get_json_data_all(catalogue='../../data',filter=["swagger_ent_admin.json"])
