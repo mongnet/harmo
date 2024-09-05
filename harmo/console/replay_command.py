@@ -11,24 +11,28 @@ from cleo.helpers import argument, option
 class ReplayCommand(Command):
     name = "replay"
     description = "流量回放"
-    arguments = [
-        argument(
+    arguments = []
+    options = [
+        option(
             "modelName",
-            description="场景或模块名称，用于归类用例，必填"
+            "m",
+            description="场景或模块名称，用于归类用例，可选",
+            default=None,
+            flag=True
         )
     ]
 
     def handle(self):
         # 模块名称
-        modelName = self.argument("modelName")
-        ret = re.findall(f'[/:*?"<>|]',modelName)
-        if ret:
-            raise RuntimeError(
-                f'Destination <fg=yellow>{self.argument("modelName")}</> '
-                "The model name Contains illegal characters, "
-                f"Illegal characters: {ret}"
-            )
-
+        modelName = self.option("modelName")
+        if modelName:
+            ret = re.findall(f'[/:*?"<>|]',modelName)
+            if ret:
+                raise RuntimeError(
+                    f'Destination <fg=yellow>{self.option("modelName")}</> '
+                    "The model name Contains illegal characters, "
+                    f"Illegal characters: {ret}"
+                )
         # 执行
         replay.Replay().run(modelName)
 

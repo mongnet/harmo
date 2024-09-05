@@ -39,6 +39,11 @@ Rules:
     Location: data
     Type: IGNORE
     Contain: False
+  - Path: ALL
+    Method: ALL
+    Location: downloadUrls
+    Type: IGNORE
+    Contain: False
   - Path: /service/process/instance/start
     Method: ALL
     Location: data_id
@@ -64,90 +69,52 @@ Rules:
     Location: data_id
     Type: IGNORE
     Contain: False
-  - Path: ALL
-    Method: ALL
-    Location: downloadUrls
-    Type: IGNORE
-    Contain: False
   - Path: /service/builder-base/file/upload-url
     Method: ALL
     Location: data_fileId
     Type: IGNORE
     Contain: False
-  - Path:
-    Method:
+  - Path: /service/ent-admin-org/cmp-org/create-node
+    Method: POST
     Location: resp.data
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/ent-admin-org/cmp-org/create-node
-      Method: POST
-  - Path:
-    Method:
+  - Path: /service/ent-admin-org/supplier
+    Method: POST
     Location: resp.data
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/ent-admin-org/supplier
-      Method: POST
-  - Path:
-    Method:
+  - Path: /service/ent-admin-org/project/create-proj
+    Method: POST
     Location: resp.data
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/ent-admin-org/project/create-proj
-      Method: POST
-  - Path:
-    Method:
+  - Path: /service/builder-base/file/upload-url
+    Method: POST
     Location: resp.data.0.fileId
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/builder-base/file/upload-url
-      Method: POST
-  - Path:
-    Method:
+  - Path: /service/sphere/rest/responsibility/simpleSave
+    Method: POST
     Location: resp.data
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/sphere/rest/responsibility/simpleSave
-      Method: POST
-  - Path:
-    Method:
+  - Path: /service/sphere/rest/accident/simpleSave
+    Method: POST
     Location: resp.data
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/sphere/rest/accident/simpleSave
-      Method: POST
-  - Path:
-    Method:
+  - Path: /service/process/instance/start
+    Method: POST
     Location: resp.data.id
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/process/instance/start
-      Method: POST
-  - Path:
-    Method:
+  - Path: /service/process/instance/start
+    Method: POST
     Location: resp.data.templateId
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/process/instance/start
-      Method: POST
-  - Path:
-    Method:
+  - Path: /service/process/task/comment/record
+    Method: POST
     Location: resp.data.-1.id
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/process/task/comment/record
-      Method: POST
-  - Path:
-    Method:
+  - Path: /service/process/task/node/process
+    Method: GET
     Location: resp.data.-1.taskId
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/process/task/node/process
-      Method: GET
-  - Path:
-    Method:
+  - Path: /service/process/task/node/process
+    Method: GET
     Location: resp.data.-1.taskKey
     Type: GETVALUE
-    AfterAPI :
-      Path: /service/process/task/node/process
-      Method: GET

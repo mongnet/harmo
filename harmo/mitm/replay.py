@@ -5,6 +5,7 @@
 # @Email   : 250021520@qq.com
 import copy
 from datetime import datetime
+from typing import Optional
 
 import jsonpath
 import requests
@@ -88,7 +89,7 @@ class Replay:
             return False
         return True
 
-    def run(self,modelName):
+    def run(self,modelName: Optional[str]=None):
         """
         执行回放
         :param modelName:
@@ -147,7 +148,7 @@ class Replay:
                                 RESULT_LIST.append(result_dict)
                             # 数据替换
                             for rule in self.rulesGet:
-                                if rule.get('AfterAPI').get("Path") in flowDatas[i]['url']:
+                                if rule.get("Path") in flowDatas[i]['url']:
                                     val_deepcopy = copy.deepcopy(val)
                                     id = self.noiseReduction.getValueId(flowDatas, rule)
                                     if id and flowDatas[i]['id'] in id:
@@ -187,9 +188,9 @@ class Replay:
                     return None
             if RESULT_LIST:
                 if str(scriptPath).endswith('.json'):
-                    key = str(str(scriptPath).split('\\')[0]).split('_测试脚本')[0]
+                    key = str(str(scriptPath).split('\\')[0]).split('_流量回放结果')[0]
                 else:
-                    key = str(str(scriptPath).split('\\')[-1]).split('_测试脚本')[0]
+                    key = str(str(scriptPath).split('\\')[-1]).split('_流量回放结果')[0]
                 ALL_RESULT_LIST.append({'moduleName':key,'info':RESULT_LIST})
         end_time = datetime.now()
         totalTimes = base_utils.time_difference(start_time, end_time)
@@ -235,40 +236,42 @@ class Replay:
                         Global_Map.set(header_key, token)
         return resp
 
-    def execRulesIgnoreExect(self,data,flowData):
+    def execRulesIgnoreExect(self,diffeach,flowData):
         '''
 
-        :param data:
+        :param diffeach:
         :param flowData:
         :return:
         '''
         for each in self.rulesIgnoreExect:
-            if data['key'] == each['Location'] and (each['Path'] == 'ALL' or each['Path'] in flowData["path"]):
-                self.diff.remove(data)
+            if diffeach['key'] == each['Location'] and (each['Path'] == 'ALL' or each['Path'] in flowData["path"]):
+                if diffeach in self.diff:
+                    self.diff.remove(diffeach)
 
-    def execRulesIgnoreContain(self,data,flowData):
+    def execRulesIgnoreContain(self,diffeach,flowData):
         '''
 
-        :param data:
+        :param diffeach:
         :param flowData:
         :return:
         '''
         for each in self.rulesIgnoreContain:
-            if str(each['Location']).upper() in str(data['key']).upper() and (each['Path'] == 'ALL' or each['Path'] in flowData["path"]):
+            if str(each['Location']).upper() in str(diffeach['key']).upper() and (each['Path'] == 'ALL' or each['Path'] in flowData["path"]):
                 tempkey = [v['key']  for v in self.diff if self.diff ]
-                if data['key'] in tempkey :
-                    self.diff.remove(data)
+                if diffeach['key'] in tempkey :
+                    self.diff.remove(diffeach)
 
-    def execRulesGet(self,data,flowData):
+    def execRulesGet(self,diffeach,flowData):
         '''
 
-        :param data:
+        :param diffeach:
         :param flowData:
         :return:
         '''
         for each in self.rulesGet:
-            if ('_').join(str(each['Location']).split('.')[1:]).upper() in str(data['key']).upper() and (flowData["path"] == each['Path'] or each['Path'] == 'ALL'):
-                self.diff.remove(data)
+            if ('_').join(str(each['Location']).split('.')[1:]).upper() in str(diffeach['key']).upper() and (flowData["path"] == each['Path'] or each['Path'] == 'ALL'):
+                if diffeach in self.diff:
+                    self.diff.remove(diffeach)
 
     def main(self,flowData):
         '''
@@ -285,4 +288,4 @@ class Replay:
         return self.diff
 
 if __name__ == '__main__':
-    Replay().run('职务管理-编辑职务')
+    Replay().run()

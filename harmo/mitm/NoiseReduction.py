@@ -30,8 +30,9 @@ class NoiseReduction:
         """
         scriptPathlist =[]
         if self.config['whetherRecord']:
-            name = 'NoName_测试脚本文件夹_'.replace('NoName', modelName)+self.ts if modelName else 'NoName_测试脚本文件夹_'+self.ts
-            path =  os.path.join(os.getcwd(), name)
+            playback_folder = 'NoName_流量回放结果_'.replace('NoName', modelName)+self.ts if modelName else 'NoName_流量回放结果_'+self.ts
+            Global_Map.set('playback_folder',playback_folder)
+            path =  os.path.join(os.getcwd(), playback_folder)
             if not os.path.exists(path):
                 os.mkdir(path)
             scriptPathlist.append(path)
@@ -90,20 +91,20 @@ class NoiseReduction:
                         self.rules_IGNORE_CONTAIN.append(eachRule)
                     else:
                         self.rules_IGNORE_EXECT.append(eachRule)
-            return {'rules': self.rules['Rules'],'status':self.config['whetherRecord'],
+            return {'rules': self.rules.get('Rules'),'status':self.config['whetherRecord'],
                     'ts':self.ts,'flowDatas':flowDatas,'rulesIgnoreContain':self.rules_IGNORE_CONTAIN,
                     'rulesIgnoreExect':self.rules_IGNORE_EXECT,'rulesGet':self.rules_GET}
 
     def getValueId(self,flowdata,rule):
         id = []
-        if 'AfterAPI' in rule.keys():
+        if 'GETVALUE' in rule.get('Type'):
             for i in range(len(flowdata)):
-                if str(rule['AfterAPI']['Method']).upper()!='MOCK':
-                    if str(rule['AfterAPI']['Method']).upper() == str(flowdata[i]['method']).upper() and rule['AfterAPI']['Path'] in flowdata[i]['path']:
+                if str(rule['Method']).upper()!='MOCK':
+                    if str(rule['Method']).upper() == str(flowdata[i]['method']).upper() and rule['Path'] in flowdata[i]['path']:
                         id.append(flowdata[i]['id'])
                 else:
                     if 'MockName' in flowdata[i].keys():
-                        if rule['AfterAPI']['Path'] == flowdata[i]['MockName']:
+                        if rule['Path'] == flowdata[i]['MockName']:
                             id.append(flowdata[i]['id'])
         else:
             for data in flowdata:
@@ -140,7 +141,7 @@ class NoiseReduction:
                 # if self.modelName in eachPath:
                 #     path = os.path.join(Config.project_root_dir, eachPath)
                 #     result['path'] = result['path'] + list(pathlib.Path(path).iterdir())
-                if "_测试脚本文件夹_" in eachPath:
+                if "_流量回放结果_" in eachPath:
                     path = os.path.join(Config.project_root_dir, eachPath)
                     result['path'] = result['path'] + list(pathlib.Path(path).iterdir())
         if result['path'] == []:

@@ -20,7 +20,6 @@ class ReportUtil:
 
     def createReport(self,modelName:str,replayResult:dict):
         createDate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        reporter = "那个谁"
         title = f"{modelName} " if modelName else f"集成测试"
         templates_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resources","templates")
         env = Environment(loader=FileSystemLoader(templates_dir))
@@ -31,7 +30,6 @@ class ReportUtil:
         ignore = len(jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="ignore")]')) if jsonpath.jsonpath(replayResult.get('result'),'$..info[?(@.status=="ignore")]') else 0
         self.details = {
             'createdate' : createDate,
-            # 'reporter' : reporter,
             'title' : title,
             'host' : Global_Map.get('setting').get('baseUrl'),
             'total': Pass+failed+ignore,
@@ -80,7 +78,7 @@ class ReportUtil:
         return report_name
 
     def _send_report(self,file):
-        weixin_robot = Global_Map.get('setting').get('weixin_robot')
+        weixin_robot = Global_Map.get('setting').get('robot')
         if weixin_robot:
             if self.details.get('failed') + self.details.get('failed') != 0:
                 markdown_content = f'''

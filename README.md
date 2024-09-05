@@ -1729,7 +1729,11 @@ harmo record [options]
 
 > **-i**：初始化流量录制相关配置文件，可选
 
-**步骤一**：初始化录制，会在当前目录下创建 config 文件夹，文件夹中会生成 config.yaml 和 rules.yaml 二个yaml配置文件，默认情况需要进行  config.yaml 文件的配置，比如录制的域名，过滤的文件等等，只需要执行一次。
+第一次开始录制时需要进行二步操作：
+
+**步骤一**：初始化录制
+
+初始化会在当前目录下创建 config 文件夹，文件夹中会生成 config.yaml 和 rules.yaml 二个yaml配置文件，默认情况需要进行  config.yaml 和 rules.yaml 文件的配置，比如录制的域名，过滤的文件等等，初始化每个项目只需要执行一次，命令格式如下：
 
 ```python
 harmo record -i
@@ -1737,39 +1741,39 @@ harmo record -i
 
 **步骤二**：开始录制
 
+在命令行中输入如下命令，按回车键后，会提示录制已开始，按 ctrl+c 可结束录制。
+
 ```python
 harmo record
 ```
 
-在命令行中输入如下命令，按回车键后，会提示录制已开始，按 ctrl+c 可结束录制。
-
-录制过程当中会在当前文件夹下生成 `record_results.json` 文件，这里面保存的是录制到的接口信息。
+录制过程当中会在当前文件夹下生成 `record_results.json` 文件，这里面保存的是录制到的接口信息，比如请求的url、请求头、请求体、响应体等。
 
 config.yaml 配置文件的说明：
 
-> **status**：为 NOW 时会新增回放，每次回放都会生成一个文件夹，当为 DEBUG 时回放 scope 配置指定的目录，不指定时回放当前目录下所有满足条件的文件，非必填
+> **status**：只对回放有效，可配置的值为 `NOW ` 、 `DEBUG` 和空，为 `NOW ` 时会新增回放，每次回放都会生成一个文件夹，当为 `DEBUG ` 时会回放 `scope` 中配置的目录，不指定 `status` 时回放当前目录下所有满足条件的文件，非必填
 
 > **baseUrl**：基地址，报告中会显示当前运行的地址，非必填
 
-> **weixin_robot**：微信消息的webhook，非必填
+> **robot**：消息通知的 `webhook`，测试完成后会发送html报告，非必填
 
-> **scope**：当 status 为 DEBUG 时回放这里指定的文件，非必填
+> **scope**：当 `status ` 为 `DEBUG ` 时有效，会回放这里指定的文件，非必填
 
-> **login**：登录接口的url、获取token的位置、应用到header中的名称，指定这三个参数后，会把对应接口返回的值设置到后续接口的header中，非必填
+> **login**：现在主要用来做自动登录自动设置 `header`，包含四个参数：`url`、`rule`、`header`、`scope`，指定这四个参数后，会把对应接口返回的值设置到后续接口的 `header` 中，当只有部分接口需要应用提取的数据时，一定要指定对应的 `scope` ，不然数据会应用到全部接口，非必填
 
-> **filterMethod**：需要过滤的http请求访求，非必填
+> **filterMethod**：需要过滤的 `http` 请求方法，比如 `options`，非必填
 
-> **filterFile**：需要过滤的文件，比如一些资源类型的文件，非必填
+> **filterFile**：需要过滤的文件，比如一些资源类型的文件，不需要回放的，可以写在这里，非必填
 
-> **filterUrl**：需要过滤不回放的url，非必填
+> **filterUrl**：需要过滤不校验的 `url`，建议写 `url` 中的 `path` 部分即可，匹配到的接口还是会跑，只是他不会做校验，报告中会显示为 `忽略` , `rules.yaml` 中也有类似功能，只是 `filterUrl` 是按 `url` 过滤， `rules.yaml` 是按字段路径来过滤，非必填
 
-> **replaceDict**：参数替换，比如 true 必须替换成 True，必填
+> **replaceDict**：参数替换，比如 `true` 必须替换成 `True`，默认配置的3个参数不要修改，必填
 
-> **allowRecording**：允许录制的域名，只有设置的域名请求的记录才会被记录，必填
+> **allowRecording**：允许录制的域名，只有设置的域名，请求的数据才会被记录，注意这里要写的是主机名，必填
 
-> **headers**：指定header参数，比如登录的token或其它特殊的参数，非必填
+> **headers**：强制指定 `header` 参数，比如调式时指定 `token` 或其它特殊的参数，但如果 `login` 配置中也出现对应参数时，会被 `login` 配置替换，非必填
 
-**注：**录制功能基于 mitmproxy 实现，所以在录制流量前，需要做好代理配置，mitmproxy 在 harmo 中已集成，你只要配置代理即可，建议使用 SwitchyOmega 进行代理配置的管理。
+**注：**流量录制功能基于 mitmproxy 实现，所以在流量录制前，需要做好代理配置，mitmproxy 在 harmo 中已集成，你只要配置代理即可，建议使用 SwitchyOmega 进行代理配置的管理。
 
 
 
@@ -1789,7 +1793,31 @@ harmo replay <modelName>
 harmo replay 职务管理
 ```
 
-在命令行中输入如下命令，按回车键后，会提示录制已开始，按 ctrl+c 可以结束录制。
+
+
+config.yaml 配置文件的说明：
+
+> **status**：只对回放有效，预设值为 `NOW ` 和 `DEBUG`，为 `NOW ` 时会新增回放，每次回放都会生成一个文件夹，当为 `DEBUG ` 时会回放 scope 中配置的目录，不指定 `status` 时回放当前目录下所有满足条件的文件，非必填
+
+> **baseUrl**：基地址，报告中会显示当前运行的地址，非必填
+
+> **robot**：微信消息的webhook，非必填
+
+> **scope**：当 `status ` 为 `DEBUG ` 时有效，会回放这里指定的文件，非必填
+
+> **login**：现在主要用来做自动登录自动设置header，包含三个参数：登录接口的url、获取token的位置、应用到header中的名称，指定这三个参数后，会把对应接口返回的值设置到后续接口的header中，非必填
+
+> **filterMethod**：需要过滤的http请求访求，比如 options，非必填
+
+> **filterFile**：需要过滤的文件，比如一些资源类型的文件，不需要回放的，可以写在这里，非必填
+
+> **filterUrl**：需要过滤不校验的url，非必填
+
+> **replaceDict**：参数替换，比如 true 必须替换成 True，必填
+
+> **allowRecording**：允许录制的域名，只有设置的域名，请求的数据才会被记录，必填
+
+> **headers**：指定header参数，比如调式时指定token或其它特殊的参数，非必填
 
 
 
