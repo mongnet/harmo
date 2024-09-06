@@ -80,6 +80,8 @@ class NoiseReduction:
                 if str(eachRule.get('Type')).upper() not in ['GETVALUE','IGNORE']:
                     raise ValueError(f"出现未支持的规则类型 '{eachRule.get('Type')}' ，请检查后重新执行！")
                 if str(eachRule.get('Type')).upper() == 'GETVALUE':
+                    if not eachRule.get('Location').startswith('resp.'):
+                        raise ValueError(f"{eachRule} GETVALUE 规则的Location字段必须以 resp. 开头，请检查后重新执行！")
                     eachRule['value'],id = [],self.getValueId(flowDatas,eachRule)
                     for data in flowDatas:
                         if id and data.get('id') in id:
@@ -87,6 +89,12 @@ class NoiseReduction:
                         recond.append({'id':data.get('id'),'url':data.get('url'),'method':data.get('method')})
                     self.rules_GET.append(eachRule)
                 if str(eachRule.get('Type')).upper() == 'IGNORE':
+                    # 和GETVALUE统一Location处理，IGNORE后续的数据是通过“_”来连接的
+                    if not eachRule.get('Contain') and not eachRule.get('Location').startswith('resp.'):
+                        raise ValueError(f"{eachRule} IGNORE 规则的Contain为False(绝对匹配)时，Location字段必须以 resp. 开头，请检查后重新执行！")
+                    if eachRule.get('Location').startswith('resp.'):
+                        eachRule['Location'] = eachRule.get('Location').replace('resp.','')
+                    eachRule['Location'] = eachRule.get('Location').replace('.','_')
                     if eachRule.get('Contain'):
                         self.rules_IGNORE_CONTAIN.append(eachRule)
                     else:

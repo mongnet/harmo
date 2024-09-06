@@ -1782,12 +1782,12 @@ config.yaml 配置文件的说明：
 `harmo replay`：流量回放命令，格式如下：
 
 ```python
-harmo replay <modelName>
+harmo replay -m
 ```
 
 > **modelName**：场景或模块名称，用于归类用例，必填
 
-**例**：回放 职务管理 ，命令如下。
+**例**：把这个回放命令为” 职务管理 “ ，命令如下。
 
 ```python
 harmo replay 职务管理
@@ -1795,31 +1795,31 @@ harmo replay 职务管理
 
 
 
-config.yaml 配置文件的说明：
+rules.yaml 配置文件的说明：
 
-> **status**：只对回放有效，预设值为 `NOW ` 和 `DEBUG`，为 `NOW ` 时会新增回放，每次回放都会生成一个文件夹，当为 `DEBUG ` 时会回放 scope 中配置的目录，不指定 `status` 时回放当前目录下所有满足条件的文件，非必填
+> **Path**：接口路径，当为 `ALL` 时表示匹配任何接口，必填。
 
-> **baseUrl**：基地址，报告中会显示当前运行的地址，非必填
+> **Method**：接口类型，配合 `Path` 确定唯一的接口，当为 `ALL` 时表示匹配任何接口类型，必填。
 
-> **robot**：微信消息的webhook，非必填
+> **Location**：字段的路径，`resp` 表示从 `response` 获取数据，以 `.` 风格，例如：`resp.data.id` 表示，从 `response` 中的 `data` 中找到 `id` ，如果 `data` 是一个列表，那定位方式为 `resp.data.-1.id` ，表示获取 `data` 数组中的最后一个对象的 `id` 值，必填。
 
-> **scope**：当 `status ` 为 `DEBUG ` 时有效，会回放这里指定的文件，非必填
+> **Type**：现只支持二个选项，`GETVALUE` 表示提取该字段，`IGNORE` 表示忽略该字段的校验，必填。
 
-> **login**：现在主要用来做自动登录自动设置header，包含三个参数：登录接口的url、获取token的位置、应用到header中的名称，指定这三个参数后，会把对应接口返回的值设置到后续接口的header中，非必填
+> **Contain**：是否模糊匹配字段，`False` 表示精确匹配， `True` 表示模糊匹配，非必填。
 
-> **filterMethod**：需要过滤的http请求访求，比如 options，非必填
+注：
 
-> **filterFile**：需要过滤的文件，比如一些资源类型的文件，不需要回放的，可以写在这里，非必填
+ 1. 当 Type 为 `GETVALUE` (也就是获取数据)时， `Location` 必须以 `resp` 开头，且此时他不支持 `Contain` 。
 
-> **filterUrl**：需要过滤不校验的url，非必填
+ 2. 当 Type 为 `IGNORE` (也就是忽略数据)时，分二种情况：
 
-> **replaceDict**：参数替换，比如 true 必须替换成 True，必填
+    2.1 当 `Contain` 为 `False` (绝对匹配)时，`Location` 字段必须以 `resp. ` 开头。
 
-> **allowRecording**：允许录制的域名，只有设置的域名，请求的数据才会被记录，必填
+    2.2 当 `Contain` 为 `True` 包含匹配时，`Location` 字段没有限制，但 `Location` 不能断层，例如 `resp.data.items.id` 就不能写成 `resp.data.id` ，中间少了`items` 这会导致匹配不到数据，你可以写成 `resp.data.items.id` 、 `data.items.id` 、 `items.id` 、 `id` ，但不建议把太泛的字段设置成包含匹配，比如前面的 `id` 这个就太泛了，容易误伤友军。
 
-> **headers**：指定header参数，比如调式时指定token或其它特殊的参数，非必填
+ 3. 当 Type 为 `IGNORE` (也就是忽略数据)时，如果数据是一个数组时， `Location` 路径中不能包含下标，因为他是整个字段忽略，不支持对数组内指定下标字段进行忽略，例如  `resp.data.-1.id` 写成  `resp.data.id` 即可，这样就会忽略整个 `data` 列表中的 `id` 字段了，如果有多层嵌套，例如 `resp.data.-1.items.2.id` 时，直接写成 `resp.data.items.id` 即可。
 
-
+    
 
 ### 4.2 pytest命令行参数
 

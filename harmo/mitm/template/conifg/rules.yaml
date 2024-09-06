@@ -28,7 +28,7 @@ Rules:
     Method: ALL
     Location: size
     Type: IGNORE
-    Contain: False
+    Contain: True
   - Path: ALL
     Method: ALL
     Location: time
@@ -36,42 +36,42 @@ Rules:
     Contain: True
   - Path: ALL
     Method: ALL
-    Location: data
+    Location: resp.data
     Type: IGNORE
     Contain: False
   - Path: ALL
     Method: ALL
-    Location: downloadUrls
+    Location: resp.downloadUrls
     Type: IGNORE
     Contain: False
   - Path: /service/process/instance/start
     Method: ALL
-    Location: data_id
+    Location: resp.data.id
     Type: IGNORE
     Contain: False
   - Path: /service/process/task/node/process
     Method: ALL
-    Location: data_taskId
+    Location: resp.data.taskId
     Type: IGNORE
     Contain: False
   - Path: /service/process/task/node/process
     Method: ALL
-    Location: data_taskKey
+    Location: resp.data.taskKey
     Type: IGNORE
     Contain: False
   - Path: /service/process/task/node/process
     Method: ALL
-    Location: data_flowTemplateId
+    Location: resp.data.flowTemplateId
     Type: IGNORE
     Contain: False
   - Path: /service/process/task/comment/record
     Method: ALL
-    Location: data_id
+    Location: resp.data.id
     Type: IGNORE
     Contain: False
   - Path: /service/builder-base/file/upload-url
     Method: ALL
-    Location: data_fileId
+    Location: resp.data.fileId
     Type: IGNORE
     Contain: False
   - Path: /service/ent-admin-org/cmp-org/create-node

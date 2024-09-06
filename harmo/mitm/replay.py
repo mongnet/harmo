@@ -4,6 +4,7 @@
 # @Author  : hubiao
 # @Email   : 250021520@qq.com
 import copy
+import json
 from datetime import datetime
 from typing import Optional
 
@@ -120,72 +121,73 @@ class Replay:
                     result_dict['status'] = 'ignore'
                     RESULT_LIST.append(result_dict)
                     continue
-                try:
-                    if respObj:
-                        if respObj.headers.get('Content-Type') and ('application/json' in respObj.headers.get('Content-Type') or self.isJson(respObj)):
-                            val = respObj.json()
-                            self.diff = assert_json(val, flowDatas[i]['resp'])
-                            # 默认对比状态为 pass
-                            result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = flowDatas[i]['id'], flowDatas[i]['url'], flowDatas[i]['method'], 'pass'
-                            if self.diff:
-                                diff_afterRules = self.main(flowDatas[i])
-                                if diff_afterRules:
-                                    for eachdiff in self.diff:
-                                        if "{" in eachdiff["expect"]:
-                                            try:
-                                                if dict(eval(eachdiff['expect']))[eachdiff['key']] == eachdiff['actual']:
-                                                    self.diff.remove(eachdiff)
-                                            except:
-                                                pass
-                                    if self.diff:
-                                        result_dict['id'],result_dict['url'],result_dict['method'],result_dict['status'],result_dict['contentList'] = flowDatas[i]['id'],flowDatas[i]['url'],flowDatas[i]['method'],'fail',self.diff
-                                        RESULT_LIST.append(result_dict)
-                                    else:
-                                        RESULT_LIST.append(result_dict)
+                # try:
+                if respObj:
+                    if respObj.headers.get('Content-Type') and ('application/json' in respObj.headers.get('Content-Type') or self.isJson(respObj)):
+                        val = respObj.json()
+                        self.diff = assert_json(val, flowDatas[i]['resp'])
+                        # 默认对比状态为 pass
+                        result_dict['id'], result_dict['url'], result_dict['method'], result_dict['status'] = flowDatas[i]['id'], flowDatas[i]['url'], flowDatas[i]['method'], 'pass'
+                        if self.diff:
+                            diff_afterRules = self.main(flowDatas[i])
+                            if diff_afterRules:
+                                for eachdiff in self.diff:
+                                    if "{" in eachdiff["expect"]:
+                                        try:
+                                            if dict(eval(eachdiff['expect']))[eachdiff['key']] == eachdiff['actual']:
+                                                self.diff.remove(eachdiff)
+                                        except:
+                                            pass
+                                if self.diff:
+                                    result_dict['id'],result_dict['url'],result_dict['method'],result_dict['status'],result_dict['contentList'] = flowDatas[i]['id'],flowDatas[i]['url'],flowDatas[i]['method'],'fail',self.diff
+                                    RESULT_LIST.append(result_dict)
                                 else:
                                     RESULT_LIST.append(result_dict)
                             else:
                                 RESULT_LIST.append(result_dict)
-                            # 数据替换
-                            for rule in self.rulesGet:
-                                if rule.get("Path") in flowDatas[i]['url']:
-                                    val_deepcopy = copy.deepcopy(val)
-                                    id = self.noiseReduction.getValueId(flowDatas, rule)
-                                    if id and flowDatas[i]['id'] in id:
-                                        for loc in rule['Location'].split('.')[1:]:
-                                            try:
-                                                loc = int(loc)
-                                            except:
-                                                pass
-                                            try:
-                                                val_deepcopy = val_deepcopy[loc]
-                                            except:
-                                                pass
-                                        if val_deepcopy not in [None, []]:
-                                            if len(rule['value']) != 0:
-                                                # GLOBAL[rule['Location']] = val
-                                                flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), str(val_deepcopy)))
-                                                rule['value'].remove(rule['value'][0])
                         else:
-                            # 非json数据的对比
-                            if respObj.content.decode("utf-8") == flowDatas[i]['resp']:
-                                result_dict['status'] = 'pass'
-                            else:
-                                from difflib import Differ
-                                result_dict['status'] = 'fail'
-                                expected_lines = flowDatas[i]['resp'].strip().split('\n')
-                                actual_lines = respObj.content.decode("utf-8").strip().split('\r\n')
-                                d = Differ()
-                                diff = list(d.compare(expected_lines, actual_lines))
-                                diff_lines = [line for line in diff if line.startswith('- ') or line.startswith('+ ')]
-                                result_dict['contentList'] = [{'diff_lines': diff_lines, 'key': 'resp.diff'}]
                             RESULT_LIST.append(result_dict)
+                        # 数据替换
+                        for rule in self.rulesGet:
+                            if rule.get("Path") in flowDatas[i]['url']:
+                                val_deepcopy = copy.deepcopy(val)
+                                id = self.noiseReduction.getValueId(flowDatas, rule)
+                                if id and flowDatas[i]['id'] in id:
+                                    for loc in rule['Location'].split('.')[1:]:
+                                        try:
+                                            loc = int(loc)
+                                        except:
+                                            pass
+                                        try:
+                                            val_deepcopy = val_deepcopy[loc]
+                                        except:
+                                            pass
+                                    if val_deepcopy not in [None, []]:
+                                        if len(rule['value']) != 0:
+                                            # GLOBAL[rule['Location']] = val
+                                            # flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), str(val_deepcopy)))
+                                            flowDatas = json.loads(json.dumps(flowDatas).replace(str(rule['value'][0]), str(val_deepcopy)))
+                                            rule['value'].remove(rule['value'][0])
                     else:
-                        result_dict['status'] = 'fail'
+                        # 非json数据的对比
+                        if respObj.content.decode("utf-8") == flowDatas[i]['resp']:
+                            result_dict['status'] = 'pass'
+                        else:
+                            from difflib import Differ
+                            result_dict['status'] = 'fail'
+                            expected_lines = flowDatas[i]['resp'].strip().split('\n')
+                            actual_lines = respObj.content.decode("utf-8").strip().split('\r\n')
+                            d = Differ()
+                            diff = list(d.compare(expected_lines, actual_lines))
+                            diff_lines = [line for line in diff if line.startswith('- ') or line.startswith('+ ')]
+                            result_dict['contentList'] = [{'diff_lines': diff_lines, 'key': 'resp.diff'}]
                         RESULT_LIST.append(result_dict)
-                except Exception as e:
-                    print(f"json解析失败:{e}")
-                    return None
+                else:
+                    result_dict['status'] = 'fail'
+                    RESULT_LIST.append(result_dict)
+                # except Exception as e:
+                #     print(f"json解析失败:{e}")
+                #     return None
             if RESULT_LIST:
                 if str(scriptPath).endswith('.json'):
                     key = str(str(scriptPath).split('\\')[0]).split('_流量回放结果')[0]
