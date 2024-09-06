@@ -1729,11 +1729,11 @@ harmo record [options]
 
 > **-i**：初始化流量录制相关配置文件，可选
 
-第一次开始录制时需要进行二步操作：
+第一次开始录制时需要进行三步操作：
 
 **步骤一**：初始化录制
 
-初始化会在当前目录下创建 config 文件夹，文件夹中会生成 config.yaml 和 rules.yaml 二个yaml配置文件，默认情况需要进行  config.yaml 和 rules.yaml 文件的配置，比如录制的域名，过滤的文件等等，初始化每个项目只需要执行一次，命令格式如下：
+初始化会在当前目录下创建 config 文件夹，文件夹中会生成 config.yaml 和 rules.yaml 二个初始化的yaml配置文件，默认情况需要进行  config.yaml 和 rules.yaml 文件的配置，比如录制的域名，过滤的文件等等，初始化每个项目只需要执行一次，命令格式如下：
 
 ```python
 harmo record -i
@@ -1747,7 +1747,15 @@ harmo record -i
 harmo record
 ```
 
-录制过程当中会在当前文件夹下生成 `record_results.json` 文件，这里面保存的是录制到的接口信息，比如请求的url、请求头、请求体、响应体等。
+**步骤三**：配置代理
+
+`harmo` 的流量录制功能基于 `mitmproxy ` 实现，所以在流量录制前，需要做好代理配置，`mitmproxy` 在 `harmo` 中已集成，不需要你再独立安装，你只要配置代理即可，浏览器代理推荐使用 `SwitchyOmega` 进行代理配置的管理。
+
+配置好代理后，就可以开始在浏览器中操作了，`harmo` 会记录匹配的流量，在命令行中显示收集到的接口数量，且会在当前文件夹下生成 `record_results.json` 文件，这里面保存的是录制到的接口信息，比如请求的url、请求头、请求体、响应体等。
+
+当操作完成后，按 ctrl+c 可结束录制。
+
+
 
 config.yaml 配置文件的说明：
 
@@ -1773,24 +1781,22 @@ config.yaml 配置文件的说明：
 
 > **headers**：强制指定 `header` 参数，比如调式时指定 `token` 或其它特殊的参数，但如果 `login` 配置中也出现对应参数时，会被 `login` 配置替换，非必填
 
-**注：**流量录制功能基于 mitmproxy 实现，所以在流量录制前，需要做好代理配置，mitmproxy 在 harmo 中已集成，你只要配置代理即可，建议使用 SwitchyOmega 进行代理配置的管理。
-
 
 
 #### 4.1.6 流量回放
 
-`harmo replay`：流量回放命令，格式如下：
+`harmo` 的流量回放就是简单的接口重放，不依赖 `mitmproxy `  ，命令格式如下：
 
 ```python
-harmo replay -m
+harmo replay [options]
 ```
 
-> **modelName**：场景或模块名称，用于归类用例，必填
+> **-m**：场景或模块名称，用于归类用例，必填
 
-**例**：把这个回放命令为” 职务管理 “ ，命令如下。
+**例**：回放场景名为” 职务管理 “ ，命令如下。
 
 ```python
-harmo replay 职务管理
+harmo replay -m 职务管理
 ```
 
 
@@ -1809,15 +1815,15 @@ rules.yaml 配置文件的说明：
 
 注：
 
- 1. 当 Type 为 `GETVALUE` (也就是获取数据)时， `Location` 必须以 `resp` 开头，且此时他不支持 `Contain` 。
+ 1. 当 Type 为 `GETVALUE` (获取数据)时， `Location` 必须以 `resp` 开头，且此时他不支持 `Contain` 。
 
- 2. 当 Type 为 `IGNORE` (也就是忽略数据)时，分二种情况：
+ 2. 当 Type 为 `IGNORE` (忽略数据)时，分二种情况：
 
     2.1 当 `Contain` 为 `False` (绝对匹配)时，`Location` 字段必须以 `resp. ` 开头。
 
     2.2 当 `Contain` 为 `True` 包含匹配时，`Location` 字段没有限制，但 `Location` 不能断层，例如 `resp.data.items.id` 就不能写成 `resp.data.id` ，中间少了`items` 这会导致匹配不到数据，你可以写成 `resp.data.items.id` 、 `data.items.id` 、 `items.id` 、 `id` ，但不建议把太泛的字段设置成包含匹配，比如前面的 `id` 这个就太泛了，容易误伤友军。
 
- 3. 当 Type 为 `IGNORE` (也就是忽略数据)时，如果数据是一个数组时， `Location` 路径中不能包含下标，因为他是整个字段忽略，不支持对数组内指定下标字段进行忽略，例如  `resp.data.-1.id` 写成  `resp.data.id` 即可，这样就会忽略整个 `data` 列表中的 `id` 字段了，如果有多层嵌套，例如 `resp.data.-1.items.2.id` 时，直接写成 `resp.data.items.id` 即可。
+ 3. 当 Type 为 `IGNORE` (忽略数据)时，如果数据是一个数组时， `Location` 路径中不能包含下标，因为他是整个字段忽略，不支持对数组内指定下标字段进行忽略，例如  `resp.data.-1.id` 写成  `resp.data.id` 即可，这样就会忽略整个 `data` 列表中的 `id` 字段了，如果有多层嵌套，例如 `resp.data.-1.items.2.id` 时，直接写成 `resp.data.items.id` 即可。
 
     
 
@@ -2448,3 +2454,21 @@ harmo swaggerCase http://192.168.13.246:8182/Plan/rs/swagger/swagger.json plan p
 ![image-20240805095529185](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240805095529185.png)
 
 > **注意**：建议大家在不了解运行机制时，不要调整格式，如果要添加产品ID，按已有样式添加即可
+
+
+
+## 七、附
+
+### 	7.1 SwitchyOmega代理设置
+
+​		7.1.1 SwitchyOmega插件下载和安装，参考官网 https://switchyomega.org/switchyomega-download/ ，这里不做描述
+
+​		7.1.2 安装好SwitchyOmega后点击选项
+
+![image-20240906171126925](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240906171126925.png)
+
+​		7.1.3 新建情境模式
+
+![image-20240906170903508](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240906170903508.png)		7.1.4 代理设置如下：
+
+![image-20240906170949894](C:\Users\hubiao\AppData\Roaming\Typora\typora-user-images\image-20240906170949894.png)
