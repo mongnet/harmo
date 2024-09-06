@@ -18,7 +18,7 @@ class RecordCommand(Command):
             "i",
             description="初始化流量录制相关配置文件，可选",
             default=None,
-            flag=True
+            flag=False
         )
     ]
 

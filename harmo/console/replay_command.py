@@ -18,7 +18,7 @@ class ReplayCommand(Command):
             "m",
             description="场景或模块名称，用于归类用例，可选",
             default=None,
-            flag=True
+            flag=False
         )
     ]
 
