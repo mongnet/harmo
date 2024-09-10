@@ -4,13 +4,14 @@
 # @Author  : hubiao
 # @Email   : 250021520@qq.com
 
-import copy
 import json
 import os
 import pathlib
+from urllib.parse import urlparse
 
 from harmo import base_utils
 from harmo.config import Config
+from harmo.extract import extract_by_jmespath
 from harmo.global_map import Global_Map
 from harmo.operation import json_file
 import time
@@ -57,18 +58,8 @@ class NoiseReduction:
     def getValue(self,data,rules):
         if not isinstance(rules,dict):
             raise ValueError(f"{rules} 规则格式错误(需要是dict类型)，请检查后重新执行！")
-        location_list = str(rules.get('Location')).split('.')
-        value = copy.deepcopy(data)
-        for path in location_list:
-            try:
-                path = int(path)
-            except:
-                pass
-            finally:
-                try:
-                    value = value[path]
-                except:
-                    pass
+        # 通过 Location 提取数据
+        value = extract_by_jmespath(data, rules.get('Location'))
         return value
 
     def getRules(self,scriptPath):
@@ -85,7 +76,8 @@ class NoiseReduction:
                     eachRule['value'],id = [],self.getValueId(flowDatas,eachRule)
                     for data in flowDatas:
                         if id and data.get('id') in id:
-                            eachRule['value'].append(self.getValue(data,eachRule))
+                            if self.getValue(data,eachRule):
+                                eachRule['value'].append(self.getValue(data,eachRule))
                         recond.append({'id':data.get('id'),'url':data.get('url'),'method':data.get('method')})
                     self.rules_GET.append(eachRule)
                 if str(eachRule.get('Type')).upper() == 'IGNORE':
@@ -108,7 +100,8 @@ class NoiseReduction:
         if 'GETVALUE' in rule.get('Type'):
             for i in range(len(flowdata)):
                 if str(rule['Method']).upper()!='MOCK':
-                    if str(rule['Method']).upper() == str(flowdata[i]['method']).upper() and rule['Path'] in flowdata[i]['path']:
+                    # rule['Path'] == flowdata[i]['path'] 不能用in，因为path可能重叠
+                    if str(rule['Method']).upper() == str(flowdata[i]['method']).upper() and rule['Path'] == flowdata[i]['path']:
                         id.append(flowdata[i]['id'])
                 else:
                     if 'MockName' in flowdata[i].keys():

@@ -5,16 +5,16 @@ setting :
   scope :
     - 职务管理-编辑职务_测试脚本文件夹_1725431825
   login :
-    - url : /service/auth/login
-      rule : resp.data.token
+    - path : /service/auth/login
+      Location : resp.data.token
       header : access-token
       scope : ~
-    - url : /service/auth/luban/login
-      rule : resp.data.token
+    - path : /service/auth/luban/login
+      Location : resp.data.token
       header : access-token
       scope : ~
-    - url : /service/ent-admin-basic-data/token/process
-      rule : resp.data
+    - path : /service/ent-admin-basic-data/token/process
+      Location : resp.data
       header : access-token
       scope :
         - /service/process
@@ -45,4 +45,4 @@ setting :
     - 47.103.139.42
     - 192.168.13.178
   headers :
-    access-token: liDbIbxCiWDAwA90fal63IvRUoauzPMq1Mt6JFOvsRRdK041IhswgS9QaEVp891K
+    access-token: bwP4153sI1BT1kDSB3q66GrjHnhl03FgtDpKVJjcD9chzMV6oKmEleTM8LHgG6kX

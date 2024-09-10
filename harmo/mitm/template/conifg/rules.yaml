@@ -74,6 +74,11 @@ Rules:
     Location: resp.data.fileId
     Type: IGNORE
     Contain: False
+  - Path: /service/plan/v1/plan/task/upsert-task
+    Method: PUT
+    Location: resp.data.taskCreateList.id
+    Type: IGNORE
+    Contain: False
   - Path: /service/ent-admin-org/cmp-org/create-node
     Method: POST
     Location: resp.data
@@ -88,7 +93,7 @@ Rules:
     Type: GETVALUE
   - Path: /service/builder-base/file/upload-url
     Method: POST
-    Location: resp.data.0.fileId
+    Location: resp.data[0].fileId
     Type: GETVALUE
   - Path: /service/sphere/rest/responsibility/simpleSave
     Method: POST
@@ -108,13 +113,21 @@ Rules:
     Type: GETVALUE
   - Path: /service/process/task/comment/record
     Method: POST
-    Location: resp.data.-1.id
+    Location: resp.data[-1].id
     Type: GETVALUE
   - Path: /service/process/task/node/process
     Method: GET
-    Location: resp.data.-1.taskId
+    Location: resp.data[0].taskId
     Type: GETVALUE
   - Path: /service/process/task/node/process
     Method: GET
-    Location: resp.data.-1.taskKey
+    Location: resp.data[0].taskKey
+    Type: GETVALUE
+  - Path: /service/plan/v1/plan
+    Method: POST
+    Location: resp.data
+    Type: GETVALUE
+  - Path: /service/plan/v1/plan/task/upsert-task
+    Method: PUT
+    Location: resp.data.taskCreateList[0].id
     Type: GETVALUE

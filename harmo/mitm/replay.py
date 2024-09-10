@@ -13,7 +13,6 @@ import requests
 
 from harmo.mitm.NoiseReduction import NoiseReduction
 from harmo.mitm.report import ReportUtil
-from harmo.msg.robot import WeiXin
 from harmo.operation import yaml_file
 from harmo import http_requests, extract, base_utils
 from harmo.global_map import Global_Map
@@ -116,8 +115,8 @@ class Replay:
                 # 默认 result_dict 为 ignore 状态
                 result_dict['id'], result_dict['url'], result_dict['method'] = flowDatas[i]['id'], flowDatas[i]['url'], flowDatas[i]['method']
                 # 忽略校验的url
-                parsed_url = urlparse(flowDatas[i]['url'])
-                if filter_urls and any(parsed_url.path.endswith(filteUrl) or flowDatas[i]['url'].startswith(filteUrl) for filteUrl in filter_urls):
+                __parsed_url = urlparse(flowDatas[i]['url'])
+                if filter_urls and any(__parsed_url.path.endswith(filteUrl) or flowDatas[i]['url'].startswith(filteUrl) for filteUrl in filter_urls):
                     result_dict['status'] = 'ignore'
                     RESULT_LIST.append(result_dict)
                     continue
@@ -149,24 +148,18 @@ class Replay:
                             RESULT_LIST.append(result_dict)
                         # 数据替换
                         for rule in self.rulesGet:
-                            if rule.get("Path") in flowDatas[i]['url']:
-                                val_deepcopy = copy.deepcopy(val)
+                            __parsed_url = urlparse(flowDatas[i]['url'])
+                            if rule.get("Path") == __parsed_url.path:
                                 id = self.noiseReduction.getValueId(flowDatas, rule)
                                 if id and flowDatas[i]['id'] in id:
-                                    for loc in rule['Location'].split('.')[1:]:
-                                        try:
-                                            loc = int(loc)
-                                        except:
-                                            pass
-                                        try:
-                                            val_deepcopy = val_deepcopy[loc]
-                                        except:
-                                            pass
-                                    if val_deepcopy not in [None, []]:
+                                    # 通过 Location 提取数据
+                                    Location_data = extract.extract_by_object(respObj, rule['Location'])
+                                    # 数据替换
+                                    if Location_data not in [None, []]:
                                         if len(rule['value']) != 0:
                                             # GLOBAL[rule['Location']] = val
                                             # flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), str(val_deepcopy)))
-                                            flowDatas = json.loads(json.dumps(flowDatas).replace(str(rule['value'][0]), str(val_deepcopy)))
+                                            flowDatas = json.loads(json.dumps(flowDatas).replace(str(rule['value'][0]), str(Location_data)))
                                             rule['value'].remove(rule['value'][0])
                     else:
                         # 非json数据的对比
@@ -212,17 +205,17 @@ class Replay:
         :return:
         '''
         req = http_requests.HttpRequests(flowData['url'])
-        parsed_url = urlparse(flowData.get('url'))
+        __parsed_url = urlparse(flowData.get('url'))
         # 强制指定header
         if Global_Map.get('setting').get('headers') and isinstance(Global_Map.get('setting').get('headers'),dict):
             flowData['headers'].update(Global_Map.get('setting').get('headers'))
         # 设置登录header
         if Global_Map.get('setting').get('login'):
             for login in Global_Map.get('setting').get('login'):
-                header_key = '_'.join([login.get('url').replace(' ', '').replace('-', '_').replace('/', '_'), login.get('header')])
+                header_key = '_'.join([login.get('path').replace(' ', '').replace('-', '_').replace('/', '_'), login.get('header')])
                 if isinstance(login, dict) and Global_Map.get(header_key):
                     if login.get('scope'):
-                        if [s for s in login.get('scope') if s in parsed_url.path]:
+                        if [s for s in login.get('scope') if s in __parsed_url.path]:
                             flowData['headers'][login.get('header')] = Global_Map.get(header_key)
                     else:
                         flowData['headers'][login.get('header')] = Global_Map.get(header_key)
@@ -231,10 +224,10 @@ class Replay:
         # 循环提取登录信息
         if Global_Map.get('setting').get('login'):
             for login in Global_Map.get('setting').get('login'):
-                if isinstance(login,dict) and (parsed_url.path.endswith(login.get('url')) or parsed_url.geturl().endswith(login.get('url'))):
-                    token = extract.extract_by_object(resp, login.get('rule'))
+                if isinstance(login,dict) and (__parsed_url.path.endswith(login.get('path')) or __parsed_url.geturl().endswith(login.get('path'))):
+                    token = extract.extract_by_object(resp, login.get('Location'))
                     if isinstance(token,(str,int,bool)):
-                        header_key = '_'.join([login.get('url').replace(' ', '').replace('-', '_').replace('/', '_'),login.get('header')])
+                        header_key = '_'.join([login.get('path').replace(' ', '').replace('-', '_').replace('/', '_'),login.get('header')])
                         Global_Map.set(header_key, token)
         return resp
 

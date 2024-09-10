@@ -28,10 +28,12 @@ class Counter:
         """
         # 记录请求信息
         if self.match(flow):
+            __parsed_url = urlparse(flow.request.url)
             flow.customField = {}
             flow.start_time = time.time()
             flow.customField.update({"url": flow.request.url})
-            flow.customField.update({"path": flow.request.path})
+            flow.customField.update({"path": __parsed_url.path})
+            flow.customField.update({"query": __parsed_url.query})
             flow.customField.update({"method": flow.request.method})
             flow.customField.update({"headers": dict(flow.request.headers)})
             flow.customField.update({"body": flow.request.get_text()})
@@ -94,6 +96,7 @@ class Counter:
             data_json['id'] = base_utils.generate_random_str(randomlength=16)
             data_json['url'] = interface.get("url")
             data_json['path'] = interface.get("path")
+            data_json['query '] = interface.get("query ")
             data_json['method'] = interface.get("method")
             data_json['headers'] = interface.get("headers")
             data_json['status_code'] = interface.get("status_code")
