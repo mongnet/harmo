@@ -155,9 +155,11 @@ class Replay:
                                     # 通过 Location 提取数据
                                     Location_data = extract.extract_by_object(respObj, rule['Location'])
                                     # 数据替换
-                                    if Location_data not in [None, []]:
-                                        if len(rule['value']) != 0:
-                                            # GLOBAL[rule['Location']] = val
+                                    if Location_data and rule['value']:
+                                        if isinstance(Location_data,list):
+                                            for i in range(len(rule['value'])):
+                                                flowDatas = json.loads(json.dumps(flowDatas).replace(str(rule['value'][i]),str(Location_data[i])))
+                                        else:
                                             # flowDatas = eval(str(flowDatas).replace(str(rule['value'][0]), str(val_deepcopy)))
                                             flowDatas = json.loads(json.dumps(flowDatas).replace(str(rule['value'][0]), str(Location_data)))
                                             rule['value'].remove(rule['value'][0])

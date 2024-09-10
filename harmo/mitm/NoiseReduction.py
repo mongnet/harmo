@@ -77,7 +77,10 @@ class NoiseReduction:
                     for data in flowDatas:
                         if id and data.get('id') in id:
                             if self.getValue(data,eachRule):
-                                eachRule['value'].append(self.getValue(data,eachRule))
+                                if isinstance(self.getValue(data,eachRule),list):
+                                    eachRule['value'].extend(self.getValue(data,eachRule))
+                                else:
+                                    eachRule['value'].append(self.getValue(data,eachRule))
                         recond.append({'id':data.get('id'),'url':data.get('url'),'method':data.get('method')})
                     self.rules_GET.append(eachRule)
                 if str(eachRule.get('Type')).upper() == 'IGNORE':

@@ -129,5 +129,5 @@ Rules:
     Type: GETVALUE
   - Path: /service/plan/v1/plan/task/upsert-task
     Method: PUT
-    Location: resp.data.taskCreateList[0].id
+    Location: resp.data.taskCreateList[*].id
     Type: GETVALUE

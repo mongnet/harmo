@@ -1767,7 +1767,15 @@ config.yaml 配置文件的说明：
 
 > **scope**：当 `status ` 为 `DEBUG ` 时有效，会回放这里指定的文件，非必填
 
-> **login**：现在主要用来做自动登录自动设置 `header`，包含四个参数：`url`、`rule`、`header`、`scope`，指定这四个参数后，会把对应接口返回的值设置到后续接口的 `header` 中，当只有部分接口需要应用提取的数据时，一定要指定对应的 `scope` ，不然数据会应用到全部接口，非必填
+> **login**：现在主要用来做自动登录自动设置 `header`，包含四个参数：`path`、`Location`、`header`、`scope` 
+>
+> ​	`path`：`url` 中的 ` path` 部分，必填
+>
+> ​	`Location`：获取数据的定位信息，比如： `resp.data.token` ，使用的是 `jmespath` 语法，但需要以 `resp` 开头，必填
+>
+> ​	`header`：应用到`header` 中的名称，比如 `access-token`，必填
+>
+> ​	`scope`：当只有部分接口需要应用提取的数据时，一定要指定对应的 `scope` ，不然数据会应用到全部接口，非必填
 
 > **filterMethod**：需要过滤的 `http` 请求方法，比如 `options`，非必填
 
@@ -1803,11 +1811,11 @@ harmo replay -m 职务管理
 
 rules.yaml 配置文件的说明：
 
-> **Path**：接口路径，当为 `ALL` 时表示匹配任何接口，必填。
+> **Path**：接口路径(url中的path部分)，当为 `ALL` 时表示匹配任何接口，必填。
 
 > **Method**：接口类型，配合 `Path` 确定唯一的接口，当为 `ALL` 时表示匹配任何接口类型，必填。
 
-> **Location**：字段的路径，`resp` 表示从 `response` 获取数据，以 `.` 风格，例如：`resp.data.id` 表示，从 `response` 中的 `data` 中找到 `id` ，如果 `data` 是一个列表，那定位方式为 `resp.data.-1.id` ，表示获取 `data` 数组中的最后一个对象的 `id` 值，必填。
+> **Location**：字段的路径，支持 `jmespath` 语法，必须以 `resp` 开头，表示从 `response` 获取数据，以 `.` 风格，例如：`resp.data.id` 表示，从 `response` 中的 `data` 中找到 `id` ，如果 `data` 是一个列表，那定位方式为 `resp.data[-1].id` ，表示获取 `data` 数组中的最后一个对象的 `id` 值，必填。
 
 > **Type**：现只支持二个选项，`GETVALUE` 表示提取该字段，`IGNORE` 表示忽略该字段的校验，必填。
 
@@ -2127,7 +2135,7 @@ TestDataCollections:
     Validate :
       - assert_code : ['status_code',200]
       - assert_code : ['resp.code',200]
-      - assert_equal_value : ['resp.result[1].name','初始化分公司']
+          - assert_equal_value : ['resp.Q[1].name','初始化分公司']
       - assert_equal_value : ['$..[1].name','初始化分公司']
   - CaseName : 使用swagger接口方法的用例
     Tag : smoking
@@ -2189,7 +2197,7 @@ Validate 中编写断言的形式如下：
 
 #### 4.6.3 jmespath取值语法
 
-resp 是 response 的简写，表示通过jmespath获取response 响应体中的信息，然后用点分割表示路径，如：
+`resp` 是 `response` 的简写，表示通过 `jmespath` 获取 `response ` 响应体中的信息，然后用点分割表示路径，如：
 
 ```yaml
 - assert_equal_value : ['resp.code',200]
@@ -2198,22 +2206,26 @@ resp 是 response 的简写，表示通过jmespath获取response 响应体中的
 - assert_equal_value : ['resp.code','${code}']
 ```
 
+注：这里的第一个参数是纯 `jmespath` 语法。
+
 
 
 #### 4.6.4 jsonpath取值语法
 
-获取方式直接为jsonpath语法，如：
+获取方式直接为 `jsonpath` 语法，如：
 
 ```yaml
 - assert_equal_value : ['$..name','初始化分公司']
 - assert_equal_value : ['$..[1].name','初始化分公司']
 ```
 
+注：这里的第一个参数是纯 `jsonpath` 语法。
+
 
 
 #### 4.6.5 支持jinja2 模板过滤器语法
 
-通过 jinja2 我们可以修改变量的显示，对变量进行格式化、运算等，语法格式如下:
+通过 `jinja2` 我们可以修改变量的显示，对变量进行格式化、运算等，语法格式如下:
 
 ```python
 ${ var | filterA | filterB | ... }
