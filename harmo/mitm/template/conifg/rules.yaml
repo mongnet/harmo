@@ -6,7 +6,17 @@ Rules:
     Contain: True
   - Path: ALL
     Method: ALL
+    Location: createdAt
+    Type: IGNORE
+    Contain: True
+  - Path: ALL
+    Method: ALL
     Location: updateAt
+    Type: IGNORE
+    Contain: True
+  - Path: ALL
+    Method: ALL
+    Location: updatedAt
     Type: IGNORE
     Contain: True
   - Path: ALL
@@ -79,6 +89,11 @@ Rules:
     Location: resp.data.taskCreateList.id
     Type: IGNORE
     Contain: False
+  - Path: /service/ent-admin-org/project/user/detail
+    Method: PUT
+    Location: resp.data.projectSectionAuthDetail.linkageSwitch
+    Type: IGNORE
+    Contain: False
   - Path: /service/ent-admin-org/cmp-org/create-node
     Method: POST
     Location: resp.data
@@ -88,6 +103,10 @@ Rules:
     Location: resp.data
     Type: GETVALUE
   - Path: /service/ent-admin-org/project/create-proj
+    Method: POST
+    Location: resp.data
+    Type: GETVALUE
+  - Path: /service/ent-admin-org/section/create-section
     Method: POST
     Location: resp.data
     Type: GETVALUE
@@ -130,4 +149,12 @@ Rules:
   - Path: /service/plan/v1/plan/task/upsert-task
     Method: PUT
     Location: resp.data.taskCreateList[*].id
+    Type: GETVALUE
+  - Path: /service/acl/role/createOrUpdate
+    Method: POST
+    Location: resp.data.id
+    Type: GETVALUE
+  - Path: /service/ent-admin-org/project/user
+    Method: POST
+    Location: resp.data
     Type: GETVALUE
